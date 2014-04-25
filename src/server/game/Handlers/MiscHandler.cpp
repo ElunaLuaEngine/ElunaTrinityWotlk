@@ -81,7 +81,7 @@ void WorldSession::HandleRepopRequestOpcode(WorldPacket& recvData)
         GetPlayer()->KillPlayer();
     }
 #ifdef ELUNA
-    sHookMgr->OnRepop(GetPlayer());
+    Eluna::OnRepop(GetPlayer());
 #endif
 
     //this is spirit release confirm?
@@ -185,12 +185,12 @@ void WorldSession::HandleGossipSelectOptionOpcode(WorldPacket& recvData)
 #ifdef ELUNA
         else if (item)
         {
-            sHookMgr->HandleGossipSelectOption(GetPlayer(), item, GetPlayer()->PlayerTalkClass->GetGossipOptionSender(gossipListId), GetPlayer()->PlayerTalkClass->GetGossipOptionAction(gossipListId), code);
+            Eluna::HandleGossipSelectOption(GetPlayer(), item, GetPlayer()->PlayerTalkClass->GetGossipOptionSender(gossipListId), GetPlayer()->PlayerTalkClass->GetGossipOptionAction(gossipListId), code);
             return;
         }
         else if (_player->GetGUID() == guid && menuId == _player->PlayerTalkClass->GetGossipMenu().GetMenuId())
         {
-            sHookMgr->HandleGossipSelectOption(GetPlayer(), menuId, GetPlayer()->PlayerTalkClass->GetGossipOptionSender(gossipListId), GetPlayer()->PlayerTalkClass->GetGossipOptionAction(gossipListId), code);
+            Eluna::HandleGossipSelectOption(GetPlayer(), menuId, GetPlayer()->PlayerTalkClass->GetGossipOptionSender(gossipListId), GetPlayer()->PlayerTalkClass->GetGossipOptionAction(gossipListId), code);
             return;
         }
 #endif
@@ -212,12 +212,12 @@ void WorldSession::HandleGossipSelectOptionOpcode(WorldPacket& recvData)
 #ifdef ELUNA
         else if (_player->GetGUID() == guid && menuId == _player->PlayerTalkClass->GetGossipMenu().GetMenuId())
         {
-            sHookMgr->HandleGossipSelectOption(GetPlayer(), menuId, GetPlayer()->PlayerTalkClass->GetGossipOptionSender(gossipListId), GetPlayer()->PlayerTalkClass->GetGossipOptionAction(gossipListId), code);
+            Eluna::HandleGossipSelectOption(GetPlayer(), menuId, GetPlayer()->PlayerTalkClass->GetGossipOptionSender(gossipListId), GetPlayer()->PlayerTalkClass->GetGossipOptionAction(gossipListId), code);
             return;
         }
         else if (item)
         {
-            sHookMgr->HandleGossipSelectOption(GetPlayer(), item, GetPlayer()->PlayerTalkClass->GetGossipOptionSender(gossipListId), GetPlayer()->PlayerTalkClass->GetGossipOptionAction(gossipListId), code);
+            Eluna::HandleGossipSelectOption(GetPlayer(), item, GetPlayer()->PlayerTalkClass->GetGossipOptionSender(gossipListId), GetPlayer()->PlayerTalkClass->GetGossipOptionAction(gossipListId), code);
             return;
         }
 #endif
