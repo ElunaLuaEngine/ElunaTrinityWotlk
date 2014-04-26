@@ -32,7 +32,6 @@
 #include "MapRefManager.h"
 #include "DynamicTree.h"
 #include "GameObjectModel.h"
-#include "LuaEngine.h"
 
 #include <bitset>
 #include <list>
@@ -54,6 +53,7 @@ class Battleground;
 class MapInstanced;
 class InstanceMap;
 class Transport;
+class Eluna;
 namespace Trinity { struct ObjectUpdater; }
 
 struct ScriptAction
@@ -511,7 +511,7 @@ class Map : public GridRefManager<NGridType>
         void SetZoneWeather(uint32 zoneId, uint32 weatherId, float weatherGrade);
         void SetZoneOverrideLight(uint32 zoneId, uint32 lightId, uint32 fadeInTime);
 
-        const Eluna& GetEluna() const { return luadata; }
+        Eluna* GetEluna() const { return luadata; }
 
     private:
         void LoadMapAndVMap(int gx, int gy);
@@ -660,7 +660,7 @@ class Map : public GridRefManager<NGridType>
         ZoneDynamicInfoMap _zoneDynamicInfo;
         uint32 _defaultLight;
 
-        Eluna luadata;
+        Eluna* luadata;
 };
 
 enum InstanceResetMethod

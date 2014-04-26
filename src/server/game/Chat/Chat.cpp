@@ -35,7 +35,7 @@
 #include "SpellMgr.h"
 #include "ScriptMgr.h"
 #include "ChatLink.h"
-#include "HookMgr.h"
+#include "LuaEngine.h"
 
 bool ChatHandler::load_command_table = true;
 
@@ -319,8 +319,12 @@ bool ChatHandler::ExecuteCommandInTable(ChatCommand* table, const char* text, st
         // select subcommand from child commands list
         if (table[i].ChildCommands != NULL)
         {
-            if (!ExecuteCommandInTable(table[i].ChildCommands, text, fullcmd) && Eluna::OnCommand(GetSession() ? GetSession()->GetPlayer() : NULL, oldtext))
+            if (!ExecuteCommandInTable(table[i].ChildCommands, text, fullcmd))
             {
+#ifdef ELUNA
+                if (!Eluna::GEluna.OnCommand(GetSession() ? GetSession()->GetPlayer() : NULL, oldtext))
+                    return true;
+#endif
                 if (text[0] != '\0')
                     SendSysMessage(LANG_NO_SUBCMD);
                 else
@@ -465,8 +469,12 @@ bool ChatHandler::ParseCommands(char const* text)
     if (text[0] == '!' || text[0] == '.')
         ++text;
 
-    if (!ExecuteCommandInTable(getCommandTable(), text, fullcmd) && Eluna::OnCommand(GetSession() ? GetSession()->GetPlayer() : NULL, text))
+    if (!ExecuteCommandInTable(getCommandTable(), text, fullcmd))
     {
+#ifdef ELUNA
+        if (!Eluna::GEluna.OnCommand(GetSession() ? GetSession()->GetPlayer() : NULL, text))
+            return true;
+#endif
         if (m_session && !m_session->HasPermission(rbac::RBAC_PERM_COMMANDS_NOTIFY_COMMAND_NOT_FOUND_ERROR))
             return false;
 

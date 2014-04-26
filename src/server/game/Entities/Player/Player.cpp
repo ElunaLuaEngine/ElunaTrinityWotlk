@@ -78,7 +78,7 @@
 #include "WorldPacket.h"
 #include "WorldSession.h"
 #include "GameObjectAI.h"
-#include "HookMgr.h"
+#include "LuaEngine.h"
 
 #define ZONE_UPDATE_INTERVAL (1*IN_MILLISECONDS)
 
@@ -5189,7 +5189,7 @@ void Player::ResurrectPlayer(float restore_percent, bool applySickness)
     UpdateObjectVisibility();
 
 #ifdef ELUNA
-    Eluna::OnResurrect(this);
+    GetMap()->GetEluna()->OnResurrect(this);
 #endif
 
     if (!applySickness)
@@ -12426,7 +12426,7 @@ Item* Player::EquipItem(uint16 pos, Item* pItem, bool update)
         ApplyEquipCooldown(pItem2);
 
 #ifdef ELUNA
-        Eluna::OnEquip(this, pItem2, bag, slot);
+        GetMap()->GetEluna()->OnEquip(this, pItem2, bag, slot);
 #endif
         return pItem2;
     }
@@ -12436,7 +12436,7 @@ Item* Player::EquipItem(uint16 pos, Item* pItem, bool update)
     UpdateAchievementCriteria(ACHIEVEMENT_CRITERIA_TYPE_EQUIP_EPIC_ITEM, pItem->GetEntry(), slot);
 
 #ifdef ELUNA
-        Eluna::OnEquip(this, pItem, bag, slot);
+    GetMap()->GetEluna()->OnEquip(this, pItem, bag, slot);
 #endif
     return pItem;
 }
@@ -12460,7 +12460,7 @@ void Player::QuickEquipItem(uint16 pos, Item* pItem)
         UpdateAchievementCriteria(ACHIEVEMENT_CRITERIA_TYPE_EQUIP_ITEM, pItem->GetEntry());
         UpdateAchievementCriteria(ACHIEVEMENT_CRITERIA_TYPE_EQUIP_EPIC_ITEM, pItem->GetEntry(), slot);
 #ifdef ELUNA
-        Eluna::OnEquip(this, pItem, (pos >> 8), slot);
+        GetMap()->GetEluna()->OnEquip(this, pItem, (pos >> 8), slot);
 #endif
     }
 }
@@ -20509,10 +20509,6 @@ void Player::Say(const std::string& text, const uint32 language)
 {
     std::string _text(text);
     sScriptMgr->OnPlayerChat(this, CHAT_MSG_SAY, language, _text);
-#ifdef ELUNA
-    if (!Eluna::OnChat(this, CHAT_MSG_SAY, language, _text))
-        return;
-#endif
 
     WorldPacket data;
     ChatHandler::BuildChatPacket(data, CHAT_MSG_SAY, Language(language), this, this, _text);
@@ -20523,10 +20519,6 @@ void Player::Yell(const std::string& text, const uint32 language)
 {
     std::string _text(text);
     sScriptMgr->OnPlayerChat(this, CHAT_MSG_YELL, language, _text);
-#ifdef ELUNA
-    if (!Eluna::OnChat(this, CHAT_MSG_YELL, language, _text))
-        return;
-#endif
 
     WorldPacket data;
     ChatHandler::BuildChatPacket(data, CHAT_MSG_YELL, Language(language), this, this, _text);
@@ -20537,10 +20529,6 @@ void Player::TextEmote(const std::string& text)
 {
     std::string _text(text);
     sScriptMgr->OnPlayerChat(this, CHAT_MSG_EMOTE, LANG_UNIVERSAL, _text);
-#ifdef ELUNA
-    if (!Eluna::OnChat(this, CHAT_MSG_EMOTE, LANG_UNIVERSAL, _text))
-        return;
-#endif
 
     WorldPacket data;
     ChatHandler::BuildChatPacket(data, CHAT_MSG_EMOTE, LANG_UNIVERSAL, this, this, _text);
@@ -20558,10 +20546,6 @@ void Player::Whisper(const std::string& text, uint32 language, uint64 receiver)
 
     std::string _text(text);
     sScriptMgr->OnPlayerChat(this, CHAT_MSG_WHISPER, language, _text, rPlayer);
-#ifdef ELUNA
-    if (!Eluna::OnChat(this, CHAT_MSG_WHISPER, language, _text, rPlayer))
-        return;
-#endif
 
     WorldPacket data;
     ChatHandler::BuildChatPacket(data, CHAT_MSG_WHISPER, Language(language), this, this, _text);
@@ -24837,7 +24821,7 @@ void Player::StoreLootItem(uint8 lootSlot, Loot* loot)
             loot->DeleteLootItemFromContainerItemDB(item->itemid);
 
 #ifdef ELUNA
-        Eluna::OnLootItem(this, newitem, item->count, this->GetLootGUID());
+        GetMap()->GetEluna()->OnLootItem(this, newitem, item->count, this->GetLootGUID());
 #endif
     }
     else
