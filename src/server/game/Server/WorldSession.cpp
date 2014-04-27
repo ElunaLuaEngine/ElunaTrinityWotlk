@@ -46,7 +46,7 @@
 #include "Transport.h"
 #include "WardenWin.h"
 #include "WardenMac.h"
-#include "LuaENgine.h"
+#include "LuaEngine.h"
 
 namespace {
 
