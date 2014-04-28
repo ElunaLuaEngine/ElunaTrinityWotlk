@@ -31,6 +31,7 @@
 #include "Timer.h"
 #include "WorldRunnable.h"
 #include "OutdoorPvPMgr.h"
+#include "LuaEngine.h"
 
 #define WORLD_SLEEP_CONST 50
 
@@ -95,4 +96,5 @@ void WorldRunnable::run()
     sObjectAccessor->UnloadAll();             // unload 'i_player2corpse' storage and remove from world
     sScriptMgr->Unload();
     sOutdoorPvPMgr->Die();
+    Eluna::Uninitialize();
 }

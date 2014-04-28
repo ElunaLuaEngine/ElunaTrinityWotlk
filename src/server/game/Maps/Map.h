@@ -261,6 +261,7 @@ typedef UNORDERED_MAP<uint32 /*zoneId*/, ZoneDynamicInfo> ZoneDynamicInfoMap;
 class Map : public GridRefManager<NGridType>
 {
     friend class MapReference;
+    friend class Eluna;
     public:
         Map(uint32 id, time_t, uint32 InstanceId, uint8 SpawnMode, Map* _parent = NULL);
         virtual ~Map();
