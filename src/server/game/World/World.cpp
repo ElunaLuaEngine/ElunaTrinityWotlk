@@ -80,6 +80,7 @@
 #include "CalendarMgr.h"
 #include "BattlefieldMgr.h"
 #include "TransportMgr.h"
+#include "LuaEngine.h"
 
 ACE_Atomic_Op<ACE_Thread_Mutex, bool> World::m_stopEvent = false;
 uint8 World::m_ExitCode = SHUTDOWN_EXIT_CODE;
@@ -1489,6 +1490,9 @@ void World::SetInitialWorldSettings()
 
     TC_LOG_INFO("server.loading", "Loading Quests Starters and Enders...");
     sObjectMgr->LoadQuestStartersAndEnders();                    // must be after quest load
+
+    TC_LOG_INFO("server.loading", "Initializing Eluna...");       // Must be before loading Objects Pooling
+    Eluna::Initialize();
 
     TC_LOG_INFO("server.loading", "Loading Objects Pooling Data...");
     sPoolMgr->LoadFromDB();
