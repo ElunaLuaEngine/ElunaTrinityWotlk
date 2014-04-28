@@ -181,7 +181,6 @@ ScriptMgr::ScriptMgr()
 
 ScriptMgr::~ScriptMgr() { }
 
-extern bool StartEluna();
 void ScriptMgr::Initialize()
 {
     uint32 oldMSTime = getMSTime();
@@ -192,10 +191,6 @@ void ScriptMgr::Initialize()
 
     FillSpellSummary();
     AddScripts();
-
-#ifdef ELUNA
-    StartEluna();
-#endif
 
     TC_LOG_INFO("server.loading", ">> Loaded %u C++ scripts in %u ms", GetScriptCount(), GetMSTimeDiffToNow(oldMSTime));
 }
@@ -440,31 +435,49 @@ void ScriptMgr::OnUnknownPacketReceive(WorldSocket* socket, WorldPacket packet)
 
 void ScriptMgr::OnOpenStateChange(bool open)
 {
+#ifdef ELUNA
+    Eluna::GEluna.OnOpenStateChange(open);
+#endif
     FOREACH_SCRIPT(WorldScript)->OnOpenStateChange(open);
 }
 
 void ScriptMgr::OnConfigLoad(bool reload)
 {
+#ifdef ELUNA
+    Eluna::GEluna.OnConfigLoad(reload);
+#endif
     FOREACH_SCRIPT(WorldScript)->OnConfigLoad(reload);
 }
 
 void ScriptMgr::OnMotdChange(std::string& newMotd)
 {
+#ifdef ELUNA
+    Eluna::GEluna.OnMotdChange(newMotd);
+#endif
     FOREACH_SCRIPT(WorldScript)->OnMotdChange(newMotd);
 }
 
 void ScriptMgr::OnShutdownInitiate(ShutdownExitCode code, ShutdownMask mask)
 {
+#ifdef ELUNA
+    Eluna::GEluna.OnShutdownInitiate(code, mask);
+#endif
     FOREACH_SCRIPT(WorldScript)->OnShutdownInitiate(code, mask);
 }
 
 void ScriptMgr::OnShutdownCancel()
 {
+#ifdef ELUNA
+    Eluna::GEluna.OnShutdownCancel();
+#endif
     FOREACH_SCRIPT(WorldScript)->OnShutdownCancel();
 }
 
 void ScriptMgr::OnWorldUpdate(uint32 diff)
 {
+#ifdef ELUNA
+    Eluna::GEluna.OnWorldUpdate(diff);
+#endif
     FOREACH_SCRIPT(WorldScript)->OnUpdate(diff);
 }
 
@@ -1305,11 +1318,17 @@ void ScriptMgr::OnRelocate(Transport* transport, uint32 waypointId, uint32 mapId
 
 void ScriptMgr::OnStartup()
 {
+#ifdef ELUNA
+    Eluna::GEluna.OnStartup();
+#endif
     FOREACH_SCRIPT(WorldScript)->OnStartup();
 }
 
 void ScriptMgr::OnShutdown()
 {
+#ifdef ELUNA
+    Eluna::GEluna.OnShutdown();
+#endif
     FOREACH_SCRIPT(WorldScript)->OnShutdown();
 }
 
