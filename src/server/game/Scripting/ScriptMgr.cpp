@@ -1528,7 +1528,7 @@ void ScriptMgr::OnPlayerSave(Player* player)
 void ScriptMgr::OnPlayerBindToInstance(Player* player, Difficulty difficulty, uint32 mapid, bool permanent)
 {
 #ifdef ELUNA
-    player->GetMap()->GetEluna()->OnBindToInstance(player, difficulty, mapid, permanent);
+    Eluna::GEluna->OnBindToInstance(player, difficulty, mapid, permanent);
 #endif
     FOREACH_SCRIPT(PlayerScript)->OnBindToInstance(player, difficulty, mapid, permanent);
 }
