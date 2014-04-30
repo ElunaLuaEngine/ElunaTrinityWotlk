@@ -1545,7 +1545,7 @@ void ScriptMgr::OnPlayerUpdateZone(Player* player, uint32 newZone, uint32 newAre
 void ScriptMgr::OnGuildAddMember(Guild* guild, Player* player, uint8& plRank)
 {
 #ifdef ELUNA
-    player->GetMap()->GetEluna()->OnAddMember(guild, player, plRank);
+    Eluna::GEluna->OnAddMember(guild, player, plRank);
 #endif
     FOREACH_SCRIPT(GuildScript)->OnAddMember(guild, player, plRank);
 }
@@ -1553,7 +1553,7 @@ void ScriptMgr::OnGuildAddMember(Guild* guild, Player* player, uint8& plRank)
 void ScriptMgr::OnGuildRemoveMember(Guild* guild, Player* player, bool isDisbanding, bool isKicked)
 {
 #ifdef ELUNA
-    player->GetMap()->GetEluna()->OnRemoveMember(guild, player, isDisbanding);
+    Eluna::GEluna->OnRemoveMember(guild, player, isDisbanding);
 #endif
     FOREACH_SCRIPT(GuildScript)->OnRemoveMember(guild, player, isDisbanding, isKicked);
 }
