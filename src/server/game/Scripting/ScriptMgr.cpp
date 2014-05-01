@@ -538,7 +538,7 @@ void ScriptMgr::OnCreateMap(Map* map)
     ASSERT(map);
 
 #ifdef ELUNA
-    Eluna::GEluna->OnCreate(map);
+    map->GetEluna()->OnCreate();
 #endif
 
     SCR_MAP_BGN(WorldMapScript, map, itr, end, entry, IsWorldMap);
@@ -559,7 +559,7 @@ void ScriptMgr::OnDestroyMap(Map* map)
     ASSERT(map);
 
 #ifdef ELUNA
-    Eluna::GEluna->OnDestroy(map);
+    map->GetEluna()->OnDestroy();
 #endif
 
     SCR_MAP_BGN(WorldMapScript, map, itr, end, entry, IsWorldMap);
@@ -617,7 +617,6 @@ void ScriptMgr::OnPlayerEnterMap(Map* map, Player* player)
     ASSERT(player);
 
 #ifdef ELUNA
-    player->GetMap()->GetEluna()->OnPlayerEnter(map, player);
     map->GetEluna()->OnPlayerEnter(map, player);
 #endif
 
@@ -642,7 +641,6 @@ void ScriptMgr::OnPlayerLeaveMap(Map* map, Player* player)
     ASSERT(player);
 
 #ifdef ELUNA
-    player->GetMap()->GetEluna()->OnPlayerLeave(map, player);
     map->GetEluna()->OnPlayerLeave(map, player);
 #endif
 
@@ -664,7 +662,7 @@ void ScriptMgr::OnMapUpdate(Map* map, uint32 diff)
     ASSERT(map);
 
 #ifdef ELUNA
-    map->GetEluna()->OnUpdate(map, diff);
+    map->GetEluna()->OnUpdate(diff);
 #endif
 
     SCR_MAP_BGN(WorldMapScript, map, itr, end, entry, IsWorldMap);
@@ -776,6 +774,8 @@ bool ScriptMgr::OnGossipHello(Player* player, Creature* creature)
     ASSERT(player);
     ASSERT(creature);
 #ifdef ELUNA
+    if (Eluna::GEluna->OnGossipHello(player, creature))
+        return true;
     if (player->GetMap()->GetEluna()->OnGossipHello(player, creature))
         return true;
 #endif
@@ -790,6 +790,8 @@ bool ScriptMgr::OnGossipSelect(Player* player, Creature* creature, uint32 sender
     ASSERT(player);
     ASSERT(creature);
 #ifdef ELUNA
+    if (Eluna::GEluna->OnGossipSelect(player, creature, sender, action))
+        return true;
     if (player->GetMap()->GetEluna()->OnGossipSelect(player, creature, sender, action))
         return true;
 #endif
@@ -804,6 +806,8 @@ bool ScriptMgr::OnGossipSelectCode(Player* player, Creature* creature, uint32 se
     ASSERT(creature);
     ASSERT(code);
 #ifdef ELUNA
+    if (Eluna::GEluna->OnGossipSelectCode(player, creature, sender, action, code))
+        return true;
     if (player->GetMap()->GetEluna()->OnGossipSelectCode(player, creature, sender, action, code))
         return true;
 #endif
@@ -931,6 +935,8 @@ bool ScriptMgr::OnGossipHello(Player* player, GameObject* go)
     ASSERT(player);
     ASSERT(go);
 #ifdef ELUNA
+    if (Eluna::GEluna->OnGossipHello(player, go))
+        return true;
     if (player->GetMap()->GetEluna()->OnGossipHello(player, go))
         return true;
 #endif
@@ -945,6 +951,8 @@ bool ScriptMgr::OnGossipSelect(Player* player, GameObject* go, uint32 sender, ui
     ASSERT(player);
     ASSERT(go);
 #ifdef ELUNA
+    if (Eluna::GEluna->OnGossipSelect(player, go, sender, action))
+        return true;
     if (player->GetMap()->GetEluna()->OnGossipSelect(player, go, sender, action))
         return true;
 #endif
@@ -959,6 +967,8 @@ bool ScriptMgr::OnGossipSelectCode(Player* player, GameObject* go, uint32 sender
     ASSERT(go);
     ASSERT(code);
 #ifdef ELUNA
+    if (Eluna::GEluna->OnGossipSelectCode(player, go, sender, action, code))
+        return true;
     if (player->GetMap()->GetEluna()->OnGossipSelectCode(player, go, sender, action, code))
         return true;
 #endif
@@ -1052,7 +1062,7 @@ void ScriptMgr::OnGameObjectStateChanged(GameObject* go, uint32 state)
 {
     ASSERT(go);
 #ifdef ELUNA
-    if (go->FindMap())
+    if (go->FindMap()) // Called on transports on startup when no map exists
         go->GetMap()->GetEluna()->OnGameObjectStateChanged(go, state);
 #endif
 
@@ -1464,7 +1474,7 @@ void ScriptMgr::OnPlayerChat(Player* player, uint32 type, uint32 lang, std::stri
 void ScriptMgr::OnPlayerEmote(Player* player, uint32 emote)
 {
 #ifdef ELUNA
-    player->GetMap()->GetEluna()->OnEmote(player, emote);
+    Eluna::GEluna->OnEmote(player, emote);
 #endif
     FOREACH_SCRIPT(PlayerScript)->OnEmote(player, emote);
 }
@@ -1472,7 +1482,7 @@ void ScriptMgr::OnPlayerEmote(Player* player, uint32 emote)
 void ScriptMgr::OnPlayerTextEmote(Player* player, uint32 textEmote, uint32 emoteNum, uint64 guid)
 {
 #ifdef ELUNA
-    player->GetMap()->GetEluna()->OnTextEmote(player, textEmote, emoteNum, guid);
+    Eluna::GEluna->OnTextEmote(player, textEmote, emoteNum, guid);
 #endif
     FOREACH_SCRIPT(PlayerScript)->OnTextEmote(player, textEmote, emoteNum, guid);
 }
@@ -1488,7 +1498,7 @@ void ScriptMgr::OnPlayerSpellCast(Player* player, Spell* spell, bool skipCheck)
 void ScriptMgr::OnPlayerLogin(Player* player)
 {
 #ifdef ELUNA
-    player->GetMap()->GetEluna()->OnLogin(player);
+    Eluna::GEluna->OnLogin(player);
 #endif
     FOREACH_SCRIPT(PlayerScript)->OnLogin(player);
 }
@@ -1496,7 +1506,7 @@ void ScriptMgr::OnPlayerLogin(Player* player)
 void ScriptMgr::OnPlayerLogout(Player* player)
 {
 #ifdef ELUNA
-    player->GetMap()->GetEluna()->OnLogout(player);
+    Eluna::GEluna->OnLogout(player);
 #endif
     FOREACH_SCRIPT(PlayerScript)->OnLogout(player);
 }
@@ -1520,7 +1530,7 @@ void ScriptMgr::OnPlayerDelete(uint64 guid)
 void ScriptMgr::OnPlayerSave(Player* player)
 {
 #ifdef ELUNA
-    Eluna::GEluna->OnSave(player);
+    player->GetMap()->GetEluna()->OnSave(player);
 #endif
     FOREACH_SCRIPT(PlayerScript)->OnSave(player);
 }
@@ -1528,7 +1538,8 @@ void ScriptMgr::OnPlayerSave(Player* player)
 void ScriptMgr::OnPlayerBindToInstance(Player* player, Difficulty difficulty, uint32 mapid, bool permanent)
 {
 #ifdef ELUNA
-    Eluna::GEluna->OnBindToInstance(player, difficulty, mapid, permanent);
+    if (player->FindMap()) // Also called on player login to instance when player map not set
+        player->GetMap()->GetEluna()->OnBindToInstance(player, difficulty, mapid, permanent);
 #endif
     FOREACH_SCRIPT(PlayerScript)->OnBindToInstance(player, difficulty, mapid, permanent);
 }

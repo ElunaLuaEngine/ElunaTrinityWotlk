@@ -96,5 +96,7 @@ void WorldRunnable::run()
     sObjectAccessor->UnloadAll();             // unload 'i_player2corpse' storage and remove from world
     sScriptMgr->Unload();
     sOutdoorPvPMgr->Die();
+#ifdef ELUNA
     Eluna::Uninitialize();
+#endif
 }

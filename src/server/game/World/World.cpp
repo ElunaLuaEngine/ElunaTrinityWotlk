@@ -1491,8 +1491,10 @@ void World::SetInitialWorldSettings()
     TC_LOG_INFO("server.loading", "Loading Quests Starters and Enders...");
     sObjectMgr->LoadQuestStartersAndEnders();                    // must be after quest load
 
+#ifdef ELUNA
     TC_LOG_INFO("server.loading", "Initializing Eluna...");       // Must be before loading Objects Pooling
     Eluna::Initialize();
+#endif
 
     TC_LOG_INFO("server.loading", "Loading Objects Pooling Data...");
     sPoolMgr->LoadFromDB();

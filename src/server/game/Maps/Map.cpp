@@ -52,7 +52,9 @@ GridState* si_GridStates[MAX_GRID_STATE];
 Map::~Map()
 {
     sScriptMgr->OnDestroyMap(this);
+#ifdef ELUNA
     delete luadata;
+#endif
 
     UnloadAll();
 
@@ -225,8 +227,10 @@ m_unloadTimer(0), m_VisibleDistance(DEFAULT_VISIBILITY_DISTANCE),
 m_VisibilityNotifyPeriod(DEFAULT_VISIBILITY_NOTIFY_PERIOD),
 m_activeNonPlayersIter(m_activeNonPlayers.end()), _transportsUpdateIter(_transports.end()),
 i_gridExpiry(expiry),
-i_scriptLock(false), _defaultLight(GetDefaultMapLight(id)),
-luadata(new Eluna(this))
+i_scriptLock(false), _defaultLight(GetDefaultMapLight(id))
+#ifdef ELUNA
+, luadata(new Eluna(this))
+#endif
 {
     m_parentMap = (_parent ? _parent : this);
     for (unsigned int idx=0; idx < MAX_NUMBER_OF_GRIDS; ++idx)

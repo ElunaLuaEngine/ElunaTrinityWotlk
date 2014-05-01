@@ -512,7 +512,9 @@ class Map : public GridRefManager<NGridType>
         void SetZoneWeather(uint32 zoneId, uint32 weatherId, float weatherGrade);
         void SetZoneOverrideLight(uint32 zoneId, uint32 lightId, uint32 fadeInTime);
 
+#ifdef ELUNA
         Eluna* GetEluna() const { return luadata; }
+#endif
 
     private:
         void LoadMapAndVMap(int gx, int gy);
@@ -661,7 +663,9 @@ class Map : public GridRefManager<NGridType>
         ZoneDynamicInfoMap _zoneDynamicInfo;
         uint32 _defaultLight;
 
+#ifdef ELUNA
         Eluna* luadata;
+#endif
 };
 
 enum InstanceResetMethod
