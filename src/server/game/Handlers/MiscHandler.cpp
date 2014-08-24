@@ -335,8 +335,8 @@ void WorldSession::HandleWhoOpcode(WorldPacket& recvData)
 
         // check if target's level is in level range
         uint8 lvl = target->getLevel();
-        if (lvl < level_min || lvl > level_max)
-            continue;
+        /*if (lvl < level_min || lvl > level_max)
+            continue;*/
 
         // check if class matches classmask
         uint8 class_ = target->getClass();
