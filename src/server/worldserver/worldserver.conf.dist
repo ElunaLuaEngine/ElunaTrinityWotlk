@@ -2096,6 +2096,16 @@ Battleground.RewardLoserHonorFirst  = 5
 Battleground.RewardLoserHonorLast   = 5
 
 #
+#     Battleground.Crossfaction.Enable
+#        Description: Crossfaction battlegrounds / mixture of both faction members in
+#                     battleground team.
+#        Default:   1 - (Enabled)
+#                   0 - (Disabled)
+#
+
+Battleground.Crossfaction.Enable = 1
+
+#
 ###################################################################################################
 
 ###################################################################################################
