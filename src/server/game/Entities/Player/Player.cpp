@@ -904,6 +904,8 @@ Player::Player(WorldSession* session): Unit(true)
     _activeCheats = CHEAT_NONE;
     m_achievementMgr = new AchievementMgr(this);
     m_reputationMgr = new ReputationMgr(this);
+
+    sprintf(m_SelectedGameObject, "%u", 0);
 }
 
 Player::~Player()
