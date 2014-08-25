@@ -80,6 +80,7 @@ ERR_ARENA_TEAM_LEVEL_TOO_LOW_I
 
 enum ArenaTeamTypes
 {
+    ARENA_TEAM_1v1      = 1,
     ARENA_TEAM_2v2      = 2,
     ARENA_TEAM_3v3      = 3,
     ARENA_TEAM_5v5      = 5
@@ -111,7 +112,7 @@ struct ArenaTeamStats
     uint32 Rank;
 };
 
-#define MAX_ARENA_SLOT 3                                    // 0..2 slots
+#define MAX_ARENA_SLOT 4                                    // 0..3 slots
 
 class ArenaTeam
 {
