@@ -260,9 +260,6 @@ public:
     //teleport to gameobject
     static bool HandleGoObjectCommand(ChatHandler* handler, char const* args)
     {
-        if (!*args)
-            return false;
-
         Player* player = handler->GetSession()->GetPlayer();
 
         // number or [name] Shift-click form |color|Hgameobject:go_guid|h[name]|h|r
