@@ -809,6 +809,19 @@ Player* ChatHandler::getSelectedPlayerOrSelf()
     return targetPlayer;
 }
 
+// Returns selected game object (selected with .gob t) if exists and if gameobject ID is searched for
+static char* GetSelectedGameObject(ChatHandler* handler, char const* linkType)
+{
+    if (!handler || !linkType)
+        return NULL;
+    if (strcmp(linkType, "Hgameobject"))
+        return NULL;
+    Player* player;
+    if (!handler->GetSession() || !(player = handler->GetSession()->GetPlayer()))
+        return NULL;
+    return player->m_SelectedGameObject;
+}
+
 char* ChatHandler::extractKeyFromLink(char* text, char const* linkType, char** something1)
 {
     // skip empty
