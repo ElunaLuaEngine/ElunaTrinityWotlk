@@ -826,14 +826,14 @@ char* ChatHandler::extractKeyFromLink(char* text, char const* linkType, char** s
 {
     // skip empty
     if (!text)
-        return NULL;
+        return GetSelectedGameObject(this, linkType);
 
     // skip spaces
     while (*text == ' '||*text == '\t'||*text == '\b')
         ++text;
 
     if (!*text)
-        return NULL;
+        return GetSelectedGameObject(this, linkType);
 
     // return non link case
     if (text[0] != '|')
