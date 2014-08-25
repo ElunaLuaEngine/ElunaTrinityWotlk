@@ -573,6 +573,7 @@ uint8 ArenaTeam::GetSlotByType(uint32 type)
         case ARENA_TEAM_2v2: return 0;
         case ARENA_TEAM_3v3: return 1;
         case ARENA_TEAM_5v5: return 2;
+        case ARENA_TEAM_1v1: return 3;
         default:
             break;
     }
@@ -611,6 +612,8 @@ uint32 ArenaTeam::GetPoints(uint32 memberRating)
         points *= 0.76f;
     else if (Type == ARENA_TEAM_3v3)
         points *= 0.88f;
+    else if (Type == ARENA_TEAM_1v1) //Custom 1v1 Arena Rated
+        points *= 0.70f;
 
     return (uint32) points;
 }
