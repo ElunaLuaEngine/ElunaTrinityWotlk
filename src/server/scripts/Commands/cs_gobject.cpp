@@ -74,9 +74,6 @@ public:
 
     static bool HandleGameObjectActivateCommand(ChatHandler* handler, char const* args)
     {
-        if (!*args)
-            return false;
-
         char* id = handler->extractKeyFromLink((char*)args, "Hgameobject");
         if (!id)
             return false;
@@ -339,6 +336,8 @@ public:
 
             handler->PSendSysMessage(LANG_COMMAND_RAWPAWNTIMES, defRespawnDelayStr.c_str(), curRespawnDelayStr.c_str());
         }
+
+        sprintf(handler->GetSession()->GetPlayer()->m_SelectedGameObject, "%u", guidLow);
         return true;
     }
 
