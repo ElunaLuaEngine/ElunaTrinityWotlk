@@ -2330,6 +2330,8 @@ class Player : public Unit, public GridObject<Player>
         std::string GetMapAreaAndZoneString();
         std::string GetCoordsMapAreaAndZoneString();
 
+        char m_SelectedGameObject[12]; // should be able to fit uint32 and int32
+
     protected:
         // Gamemaster whisper whitelist
         WhisperListContainer WhisperList;
