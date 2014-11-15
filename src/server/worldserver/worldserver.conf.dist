@@ -3221,3 +3221,66 @@ PacketSpoof.BanDuration = 86400
 
 #
 ###################################################################################################
+###################################################################################################
+# Grumbo'z VIP System
+#
+# These settings provide a flexibility to the system.
+#
+# 	
+#	VIP.MAX
+#		Description: Max VIP Level for VIP System. max Uint32 value. recommended 6.
+#		Default:     6
+#
+
+VIP.MAX = 6
+
+#	VIP.VOTE.ENABE
+#		Description: Votes can earn higher vip ranks.
+#		Default: 1 . 0 off // 1 on.
+#
+
+VIP.VOTE.ENABLE = 1
+
+#
+#	VIP.VOTE.COUNT
+#		Description: how many Votes to earn each level of VIP.
+#		Default: 125 votes per.
+#
+
+VIP.VOTE.COUNT = 125
+
+#
+#	VIP.COIN
+#		Description: 
+#		Default: 
+#
+
+
+VIP.COIN = 63020
+
+#
+#	VIP.STONE
+#		Description:
+#		Default: 
+#
+
+VIP.STONE =  63021
+
+#
+#	VIP.MAGIC.GOLD
+#		Description:
+#		Default: 
+#
+
+VIP.MAGIC.GOLD = 44209
+
+#
+#	VIP.TP.BONUS
+#		Description:
+#		Default: 
+#
+
+VIP.TP.BONUS = 14
+
+#
+###################################################################################################
