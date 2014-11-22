@@ -500,7 +500,7 @@ void ObjectMgr::LoadCreatureTemplate(Field* fields)
     creatureTemplate.MovementType   = fields[61].GetUInt8();
     creatureTemplate.InhabitType    = fields[62].GetUInt8();
     creatureTemplate.HoverHeight    = fields[63].GetFloat();
-    creatureTemplate.ModHealth      = fields[64].GetFloat();
+    creatureTemplate.ModHealth      = fields[64].GetUInt32();
     creatureTemplate.ModMana        = fields[65].GetFloat();
     creatureTemplate.ModArmor       = fields[66].GetFloat();
     creatureTemplate.ModDamage      = fields[67].GetFloat();
@@ -2329,7 +2329,7 @@ void ObjectMgr::LoadItemTemplates()
         itemTemplate.MaxCount                  = fields[24].GetInt32();
         itemTemplate.Stackable                 = fields[25].GetInt32();
         itemTemplate.ContainerSlots            = uint32(fields[26].GetUInt8());
-        itemTemplate.StatsCount                = uint32(fields[27].GetUInt8());
+        itemTemplate.StatsCount                = uint32(fields[27].GetUInt32());
 
         for (uint8 i = 0; i < itemTemplate.StatsCount; ++i)
         {
@@ -2342,8 +2342,8 @@ void ObjectMgr::LoadItemTemplates()
 
         for (uint8 i = 0; i < MAX_ITEM_PROTO_DAMAGES; ++i)
         {
-            itemTemplate.Damage[i].DamageMin  = fields[50 + i*3].GetFloat();
-            itemTemplate.Damage[i].DamageMax  = fields[51 + i*3].GetFloat();
+            itemTemplate.Damage[i].DamageMin  = fields[50 + i*3].GetUInt32();
+            itemTemplate.Damage[i].DamageMax  = fields[51 + i*3].GetUInt32();
             itemTemplate.Damage[i].DamageType = uint32(fields[52 + i*3].GetUInt8());
         }
 
