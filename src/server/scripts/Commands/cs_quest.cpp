@@ -159,7 +159,7 @@ public:
         }
         else
         {
-            handler->SendSysMessage(LANG_COMMAND_QUEST_NOTFOUND);
+            handler->PSendSysMessage(LANG_COMMAND_QUEST_NOTFOUND, entry);
             handler->SetSentErrorMessage(true);
             return false;
         }
@@ -229,6 +229,11 @@ public:
                 for (uint16 z = 0; z < creatureCount; ++z)
                     player->KillCreditGO(creature);
         }
+
+        // player kills
+        if (quest->HasSpecialFlag(QUEST_SPECIAL_FLAGS_PLAYER_KILL))
+            if (uint32 reqPlayers = quest->GetPlayersSlain())
+                player->KilledPlayerCreditForQuest(reqPlayers, quest);
 
         // If the quest requires reputation to complete
         if (uint32 repFaction = quest->GetRepObjectiveFaction())

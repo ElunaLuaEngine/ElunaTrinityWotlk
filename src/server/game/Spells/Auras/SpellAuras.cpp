@@ -265,8 +265,8 @@ void AuraApplication::ClientUpdate(bool remove)
 
 uint8 Aura::BuildEffectMaskForOwner(SpellInfo const* spellProto, uint8 availableEffectMask, WorldObject* owner)
 {
-    ASSERT(spellProto);
-    ASSERT(owner);
+    ASSERT_NODEBUGINFO(spellProto);
+    ASSERT_NODEBUGINFO(owner);
     uint8 effMask = 0;
     switch (owner->GetTypeId())
     {
@@ -295,7 +295,7 @@ uint8 Aura::BuildEffectMaskForOwner(SpellInfo const* spellProto, uint8 available
 
 Aura* Aura::TryRefreshStackOrCreate(AuraCreateInfo& createInfo)
 {
-    ASSERT(createInfo.Caster || createInfo.CasterGUID);
+    ASSERT_NODEBUGINFO(createInfo.Caster || createInfo.CasterGUID);
 
     if (createInfo.IsRefresh)
         *createInfo.IsRefresh = false;
@@ -393,7 +393,7 @@ Aura* Aura::Create(AuraCreateInfo& createInfo)
                 effMask = createInfo._targetEffectMask;
 
             effMask = Aura::BuildEffectMaskForOwner(createInfo._spellInfo, effMask, createInfo._owner);
-            ASSERT(effMask);
+            ASSERT_NODEBUGINFO(effMask);
 
             Unit* unit = createInfo._owner->ToUnit();
             aura->ToUnitAura()->AddStaticApplication(unit, effMask);
@@ -401,7 +401,7 @@ Aura* Aura::Create(AuraCreateInfo& createInfo)
         }
         case TYPEID_DYNAMICOBJECT:
             createInfo._auraEffectMask = Aura::BuildEffectMaskForOwner(createInfo._spellInfo, createInfo._auraEffectMask, createInfo._owner);
-            ASSERT(createInfo._auraEffectMask);
+            ASSERT_NODEBUGINFO(createInfo._auraEffectMask);
 
             aura = new DynObjAura(createInfo);
             break;
@@ -419,7 +419,7 @@ Aura* Aura::Create(AuraCreateInfo& createInfo)
 
 Aura::Aura(AuraCreateInfo const& createInfo) :
 m_spellInfo(createInfo._spellInfo), m_casterGuid(createInfo.CasterGUID),
-m_castItemGuid(createInfo.CastItem ? createInfo.CastItem->GetGUID() : ObjectGuid::Empty), m_applyTime(GameTime::GetGameTime()),
+m_castItemGuid(createInfo.CastItemGUID), m_applyTime(GameTime::GetGameTime()),
 m_owner(createInfo._owner), m_timeCla(0), m_updateTargetMapInterval(0),
 _casterInfo(), m_procCharges(0), m_stackAmount(1),
 m_isRemoved(false), m_isSingleTarget(false), m_isUsingCharges(false), m_dropEvent(nullptr),
@@ -1990,6 +1990,11 @@ void Aura::AddProcCooldown(std::chrono::steady_clock::time_point cooldownEnd)
     m_procCooldown = cooldownEnd;
 }
 
+void Aura::ResetProcCooldown()
+{
+    m_procCooldown = std::chrono::steady_clock::now();
+}
+
 void Aura::PrepareProcToTrigger(AuraApplication* aurApp, ProcEventInfo& eventInfo, std::chrono::steady_clock::time_point now)
 {
     bool prepare = CallScriptPrepareProcHandlers(aurApp, eventInfo);
@@ -2566,6 +2571,15 @@ void Aura::CallScriptAfterEffectProcHandlers(AuraEffect const* aurEff, AuraAppli
 
         (*scritr)->_FinishScriptCall();
     }
+}
+
+std::string Aura::GetDebugInfo() const
+{
+    std::stringstream sstr;
+    sstr << std::boolalpha
+        << "Id: " << GetId() << " Caster: " << GetCasterGUID().ToString()
+        << "\nOwner: " << (GetOwner() ? GetOwner()->GetDebugInfo() : "NULL");
+    return sstr.str();
 }
 
 UnitAura::UnitAura(AuraCreateInfo const& createInfo)
