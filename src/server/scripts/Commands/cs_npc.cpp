@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2008-2018 TrinityCore <https://www.trinitycore.org/>
+ * Copyright (C) 2008-2019 TrinityCore <https://www.trinitycore.org/>
  *
  * This program is free software; you can redistribute it and/or modify it
  * under the terms of the GNU General Public License as published by the
@@ -778,7 +778,9 @@ public:
         }
 
         // update position in memory
+        sObjectMgr->RemoveCreatureFromGrid(lowguid, data);
         const_cast<CreatureData*>(data)->spawnPoint.Relocate(*player);
+        sObjectMgr->AddCreatureToGrid(lowguid, data);
 
         // update position in DB
         PreparedStatement* stmt = WorldDatabase.GetPreparedStatement(WORLD_UPD_CREATURE_POSITION);
@@ -834,6 +836,13 @@ public:
         if (!creature || creature->IsPet())
         {
             handler->SendSysMessage(LANG_SELECT_CREATURE);
+            handler->SetSentErrorMessage(true);
+            return false;
+        }
+
+        if (!sCreatureDisplayInfoStore.LookupEntry(displayId))
+        {
+            handler->PSendSysMessage(LANG_COMMAND_INVALID_PARAM, args);
             handler->SetSentErrorMessage(true);
             return false;
         }
