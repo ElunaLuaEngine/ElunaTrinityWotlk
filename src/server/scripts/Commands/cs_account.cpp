@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2008-2018 TrinityCore <https://www.trinitycore.org/>
+ * Copyright (C) 2008-2019 TrinityCore <https://www.trinitycore.org/>
  *
  * This program is free software; you can redistribute it and/or modify it
  * under the terms of the GNU General Public License as published by the
@@ -526,7 +526,15 @@ public:
         uint32 accountId;
         if (accountName)
         {
-            if (!Utf8ToUpperOnlyLatin(*accountName) || !(accountId = AccountMgr::GetId(*accountName)))
+            if (!Utf8ToUpperOnlyLatin(*accountName))
+            {
+                handler->PSendSysMessage(LANG_ACCOUNT_NOT_EXIST, accountName->c_str());
+                handler->SetSentErrorMessage(true);
+                return false;
+            }
+
+            accountId = AccountMgr::GetId(*accountName);
+            if (!accountId)
             {
                 handler->PSendSysMessage(LANG_ACCOUNT_NOT_EXIST, accountName->c_str());
                 handler->SetSentErrorMessage(true);

@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2008-2018 TrinityCore <https://www.trinitycore.org/>
+ * Copyright (C) 2008-2019 TrinityCore <https://www.trinitycore.org/>
  *
  * This program is free software; you can redistribute it and/or modify it
  * under the terms of the GNU General Public License as published by the
@@ -582,8 +582,9 @@ enum SMART_ACTION
     SMART_ACTION_DESPAWN_SPAWNGROUP                 = 132,    // Group ID, min secs, max secs, spawnflags
     SMART_ACTION_RESPAWN_BY_SPAWNID                 = 133,    // spawnType, spawnId
     SMART_ACTION_INVOKER_CAST                       = 134,    // spellID, castFlags
+    SMART_ACTION_PLAY_CINEMATIC                     = 135,    // entry, cinematic
 
-    SMART_ACTION_END                                = 135
+    SMART_ACTION_END                                = 136
 };
 
 struct SmartAction
@@ -1132,6 +1133,11 @@ struct SmartAction
             uint32 spawnType;
             uint32 spawnId;
         } respawnData;
+
+        struct
+        {
+            uint32 entry;
+        } cinematic;
 
         //! Note for any new future actions
         //! All parameters must have type uint32

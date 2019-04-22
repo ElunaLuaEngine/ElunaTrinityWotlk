@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2008-2018 TrinityCore <https://www.trinitycore.org/>
+ * Copyright (C) 2008-2019 TrinityCore <https://www.trinitycore.org/>
  *
  * This program is free software; you can redistribute it and/or modify it
  * under the terms of the GNU General Public License as published by the
@@ -910,8 +910,11 @@ struct npc_jormungars_slime_pool : public ScriptedAI
 
     void Reset() override
     {
-        DoCastSelf(SPELL_SLIME_POOL_EFFECT, true);
-        DoCastSelf(SPELL_PACIFY_SELF, true);
+        me->m_Events.AddEventAtOffset([this]()
+        {
+            DoCastSelf(SPELL_SLIME_POOL_EFFECT, true);
+            DoCastSelf(SPELL_PACIFY_SELF, true);
+        }, 1s);
     }
 };
 
