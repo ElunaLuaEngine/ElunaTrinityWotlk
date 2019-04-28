@@ -526,6 +526,7 @@ void GameObject::Update(uint32 diff)
             }
             // NO BREAK for switch (m_lootState)
         }
+        /* fallthrough */
         case GO_READY:
         {
             if (m_respawnCompatibilityMode)
@@ -806,10 +807,17 @@ void GameObject::Update(uint32 diff)
             if (!m_respawnDelayTime)
                 return;
 
-            if (!m_spawnedByDefault)
+            if (!m_spawnId)
             {
                 m_respawnTime = 0;
                 Delete();
+                return;
+            }
+
+            if (!m_spawnedByDefault)
+            {
+                m_respawnTime = 0;
+                DestroyForNearbyPlayers();
                 return;
             }
 
@@ -1131,6 +1139,10 @@ void GameObject::DeleteFromDB()
     stmt->setUInt32(1, LINKED_RESPAWN_CREATURE_TO_GO);
     trans->Append(stmt);
 
+    stmt = WorldDatabase.GetPreparedStatement(WORLD_DEL_GAMEOBJECT_ADDON);
+    stmt->setUInt32(0, m_spawnId);
+    trans->Append(stmt);
+
     WorldDatabase.CommitTransaction(trans);
 }
 
@@ -1430,7 +1442,7 @@ void GameObject::Use(Unit* user)
     if (Player* playerUser = user->ToPlayer())
     {
         if (!m_goInfo->IsUsableMounted())
-            playerUser->Dismount();
+            playerUser->RemoveAurasByType(SPELL_AURA_MOUNTED);
 
         playerUser->PlayerTalkClass->ClearMenus();
 #ifdef ELUNA
