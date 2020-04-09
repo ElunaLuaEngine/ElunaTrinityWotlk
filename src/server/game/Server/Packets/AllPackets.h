@@ -24,6 +24,7 @@
 #include "GuildPackets.h"
 #include "NPCPackets.h"
 #include "MiscPackets.h"
+#include "PetPackets.h"
 #include "QueryPackets.h"
 #include "QuestPackets.h"
 #include "SpellPackets.h"
