@@ -5682,6 +5682,10 @@ bool Player::UpdateCraftSkill(uint32 spellid)
 
             uint32 craft_skill_gain = sWorld->getIntConfig(CONFIG_SKILL_GAIN_CRAFTING);
 
+#ifdef ELUNA
+            sEluna->OnCraftSkillChange(this, spellid, craft_skill_gain);
+#endif
+
             return UpdateSkillPro(_spell_idx->second->skillId, SkillGainChance(SkillValue,
                 _spell_idx->second->max_value,
                 (_spell_idx->second->max_value + _spell_idx->second->min_value)/2,
