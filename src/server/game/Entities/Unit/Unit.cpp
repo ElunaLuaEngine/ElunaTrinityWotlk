@@ -8850,7 +8850,10 @@ uint32 Unit::GetCreatureType() const
         if (ssEntry && ssEntry->creatureType > 0)
             return ssEntry->creatureType;
         else
-            return CREATURE_TYPE_HUMANOID;
+        {
+            ChrRacesEntry const* raceEntry = sChrRacesStore.AssertEntry(GetRace());
+            return raceEntry->CreatureType;
+        }
     }
     else
         return ToCreature()->GetCreatureTemplate()->type;
@@ -8904,7 +8907,7 @@ bool Unit::IsInDisallowedMountForm() const
     ChrRacesEntry const* race = sChrRacesStore.LookupEntry(displayExtra->Race);
 
     if (model && !(model->HasFlag(CREATURE_MODEL_DATA_FLAGS_CAN_MOUNT)))
-        if (race && !(race->Flags & 0x4))
+        if (race && !(race->HasFlag(CHRRACES_FLAGS_CAN_MOUNT)))
             return true;
 
     return false;
