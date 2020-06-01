@@ -13098,7 +13098,7 @@ bool Unit::SetWalk(bool enable)
 
 bool Unit::SetDisableGravity(bool disable, bool /*packetOnly = false*/)
 {
-    if (disable == IsLevitating())
+    if (disable == IsGravityDisabled())
         return false;
 
     if (disable)
