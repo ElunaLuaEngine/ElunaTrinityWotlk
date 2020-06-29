@@ -186,7 +186,7 @@ void PathGenerator::BuildPolyPath(G3D::Vector3 const& startPos, G3D::Vector3 con
             // Check both start and end points, if they're both in water, then we can *safely* let the creature move
             for (uint32 i = 0; i < _pathPoints.size(); ++i)
             {
-                ZLiquidStatus status = _source->GetBaseMap()->GetLiquidStatus(_pathPoints[i].x, _pathPoints[i].y, _pathPoints[i].z, MAP_ALL_LIQUIDS, nullptr, _source->GetCollisionHeight());
+                ZLiquidStatus status = _source->GetMap()->GetLiquidStatus(_source->GetPhaseMask(), _pathPoints[i].x, _pathPoints[i].y, _pathPoints[i].z, MAP_ALL_LIQUIDS, nullptr, _source->GetCollisionHeight());
                 // One of the points is not in the water, cancel movement.
                 if (status == LIQUID_MAP_NO_WATER)
                 {
@@ -220,7 +220,7 @@ void PathGenerator::BuildPolyPath(G3D::Vector3 const& startPos, G3D::Vector3 con
         bool buildShotrcut = false;
 
         G3D::Vector3 const& p = (distToStartPoly > 7.0f) ? startPos : endPos;
-        if (_source->GetBaseMap()->IsUnderWater(p.x, p.y, p.z))
+        if (_source->GetMap()->IsUnderWater(_source->GetPhaseMask(), p.x, p.y, p.z))
         {
             TC_LOG_DEBUG("maps.mmaps", "++ BuildPolyPath :: underWater case");
             if (Unit const* _sourceUnit = _source->ToUnit())
@@ -678,6 +678,7 @@ void PathGenerator::UpdateFilter()
     // allow creatures to cheat and use different movement types if they are moved
     // forcefully into terrain they can't normally move in
     if (Unit const* _sourceUnit = _source->ToUnit())
+    {
         if (_sourceUnit->IsInWater() || _sourceUnit->IsUnderWater())
         {
             uint16 includedFlags = _filter.getIncludeFlags();
@@ -687,12 +688,17 @@ void PathGenerator::UpdateFilter()
 
             _filter.setIncludeFlags(includedFlags);
         }
+
+        if (Creature const* _sourceCreature = _source->ToCreature())
+            if (_sourceCreature->IsInCombat() || _sourceCreature->IsInEvadeMode())
+                _filter.setIncludeFlags(_filter.getIncludeFlags() | NAV_GROUND_STEEP);
+    }
 }
 
 NavTerrainFlag PathGenerator::GetNavTerrain(float x, float y, float z)
 {
     LiquidData data;
-    ZLiquidStatus liquidStatus = _source->GetBaseMap()->GetLiquidStatus(x, y, z, MAP_ALL_LIQUIDS, &data, _source->GetCollisionHeight());
+    ZLiquidStatus liquidStatus = _source->GetMap()->GetLiquidStatus(_source->GetPhaseMask(), x, y, z, MAP_ALL_LIQUIDS, &data, _source->GetCollisionHeight());
     if (liquidStatus == LIQUID_MAP_NO_WATER)
         return NAV_GROUND;
 

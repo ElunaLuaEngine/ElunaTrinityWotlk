@@ -320,6 +320,7 @@ class TC_GAME_API WorldObject : public Object, public WorldLocation
         uint32 GetZoneId() const { return m_zoneId; }
         uint32 GetAreaId() const { return m_areaId; }
         void GetZoneAndAreaId(uint32& zoneid, uint32& areaid) const { zoneid = m_zoneId, areaid = m_areaId; }
+        bool IsInWorldPvpZone() const;
         bool IsOutdoors() const { return m_outdoors; }
         ZLiquidStatus GetLiquidStatus() const { return m_liquidStatus; }
 
@@ -395,9 +396,6 @@ class TC_GAME_API WorldObject : public Object, public WorldLocation
         Map* GetMap() const { ASSERT(m_currMap); return m_currMap; }
         Map* FindMap() const { return m_currMap; }
         //used to check all object's GetMap() calls when object is not in world!
-
-        //this function should be removed in nearest time...
-        Map const* GetBaseMap() const;
 
         void SetZoneScript();
         void ClearZoneScript();

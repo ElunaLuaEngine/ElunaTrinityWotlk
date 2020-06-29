@@ -142,9 +142,9 @@ public:
 
         }
 
-        void SpellHitTarget(Unit* /*target*/, SpellInfo const* spell) override
+        void SpellHitTarget(WorldObject* /*target*/, SpellInfo const* spellInfo) override
         {
-            if (spell->Id == SPELL_CHAIN_LIGHTNING)
+            if (spellInfo->Id == SPELL_CHAIN_LIGHTNING)
             {
                 if (rand32() % 10)
                     return;
@@ -334,9 +334,9 @@ public:
             summoned->AI()->AttackStart(me);
         }
 
-        void SpellHitTarget(Unit* /*target*/, SpellInfo const* spell) override
+        void SpellHitTarget(WorldObject* /*target*/, SpellInfo const* spellInfo) override
         {
-            if (spell->Id == SPELL_KUR_CHAIN_LIGHTNING)
+            if (spellInfo->Id == SPELL_KUR_CHAIN_LIGHTNING)
             {
                 if (rand32() % 30)
                     return;
@@ -344,7 +344,7 @@ public:
                 Talk(SAY_KUR_LIGHTNING);
             }
 
-            if (spell->Id == SPELL_KUR_FROST_SHOCK)
+            if (spellInfo->Id == SPELL_KUR_FROST_SHOCK)
             {
                 if (rand32() % 30)
                     return;
@@ -442,7 +442,7 @@ public:
             scheduler.CancelAll();
         }
 
-        void SpellHit(Unit* /*caster*/, SpellInfo const* spellInfo) override
+        void SpellHit(WorldObject* /*caster*/, SpellInfo const* spellInfo) override
         {
             if (spellInfo->Id == SPELL_PLANT_WARMAUL_OGRE_BANNER || spellInfo->Id == SPELL_PLANT_KIL_SORROW_BANNER)
                 bannered = true;
@@ -496,7 +496,7 @@ public:
                 })
                 .Schedule(Seconds(3), Seconds(6), [this](TaskContext ChainsOfIce)
                 {
-                    if (Unit* target = SelectTarget(SELECT_TARGET_RANDOM))
+                    if (Unit* target = SelectTarget(SelectTargetMethod::Random))
                         DoCast(target, SPELL_CHAINS_OF_ICE, true);
                     ChainsOfIce.Repeat(Seconds(20),Seconds(25));
                 });
