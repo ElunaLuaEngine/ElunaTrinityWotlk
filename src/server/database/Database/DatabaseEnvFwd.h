@@ -21,6 +21,7 @@
 #include <future>
 #include <memory>
 
+struct QueryResultFieldMetadata;
 class Field;
 
 class ResultSet;
@@ -80,6 +81,8 @@ class SQLQueryHolder;
 using CharacterDatabaseQueryHolder = SQLQueryHolder<CharacterDatabaseConnection>;
 using LoginDatabaseQueryHolder = SQLQueryHolder<LoginDatabaseConnection>;
 using WorldDatabaseQueryHolder = SQLQueryHolder<WorldDatabaseConnection>;
+
+class SQLQueryHolderCallback;
 
 // mysql
 struct MySQLHandle;

@@ -229,7 +229,7 @@ public:
             Talk(ATTACK_YELL, who);
         }
 
-        bool GossipSelect(Player* player, uint32 /*menuId*/, uint32 /*gossipListId*/) override
+        bool OnGossipSelect(Player* player, uint32 /*menuId*/, uint32 /*gossipListId*/) override
         {
             CloseGossipMenuFor(player);
             me->SetFaction(FACTION_MONSTER);
@@ -360,7 +360,7 @@ public:
             Talk(SAY_AGGRO, who);
         }
 
-        void QuestAccept(Player* player, Quest const* quest) override
+        void OnQuestAccept(Player* player, Quest const* quest) override
         {
             if (quest->GetQuestId() == QUEST_A_CRY_FOR_HELP)
             {
@@ -505,7 +505,7 @@ public:
         {
             Step = 0;
             EventStarted = true;
-            if (Creature* Spark = me->SummonCreature(NPC_SPARK, SparkPos, TEMPSUMMON_CORPSE_TIMED_DESPAWN, 1000))
+            if (Creature* Spark = me->SummonCreature(NPC_SPARK, SparkPos, TEMPSUMMON_CORPSE_TIMED_DESPAWN, 1s))
             {
                 SparkGUID = Spark->GetGUID();
                 Spark->setActive(true);
@@ -562,7 +562,7 @@ public:
                     Spark->DisappearAndDie();
                     DespawnNagaFlag(false);
                     me->DisappearAndDie();
-                    /* fallthrough */
+                    [[fallthrough]];
                 default:
                     return 99999999;
             }
@@ -597,8 +597,6 @@ public:
                         (*itr)->Respawn();
                 }
             }
-            else
-                TC_LOG_ERROR("scripts", "SD2 ERROR: FlagList is empty!");
         }
 
         void UpdateAI(uint32 diff) override
@@ -643,5 +641,5 @@ void AddSC_azuremyst_isle()
     new npc_injured_draenei();
     new npc_magwin();
     new npc_geezle();
-    RegisterAuraScript(spell_inoculate_nestlewood);
+    RegisterSpellScript(spell_inoculate_nestlewood);
 }

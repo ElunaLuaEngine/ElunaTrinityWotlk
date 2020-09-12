@@ -207,9 +207,7 @@ void UnitAI::FillAISpellInfo()
         if (AIInfo->cooldown < spellInfo->RecoveryTime)
             AIInfo->cooldown = spellInfo->RecoveryTime;
 
-        if (!spellInfo->GetMaxRange(false))
-            UPDATE_TARGET(AITARGET_SELF)
-        else
+        if (spellInfo->GetMaxRange(false))
         {
             for (SpellEffectInfo const& Effect : spellInfo->Effects)
             {
@@ -240,7 +238,7 @@ ThreatManager& UnitAI::GetThreatManager()
     return me->GetThreatManager();
 }
 
-void UnitAI::SortByDistance(std::list<Unit*> list, bool ascending)
+void UnitAI::SortByDistance(std::list<Unit*>& list, bool ascending)
 {
     list.sort(Trinity::ObjectDistanceOrderPred(me, ascending));
 }
@@ -312,7 +310,7 @@ bool SpellTargetSelector::operator()(Unit const* target) const
     float rangeMod = 0.0f;
     if (_spellInfo->RangeEntry)
     {
-        if (_spellInfo->RangeEntry->type & SPELL_RANGE_MELEE)
+        if (_spellInfo->RangeEntry->Flags & SPELL_RANGE_MELEE)
         {
             rangeMod = _caster->GetCombatReach() + 4.0f / 3.0f;
             rangeMod += target->GetCombatReach();
@@ -322,7 +320,7 @@ bool SpellTargetSelector::operator()(Unit const* target) const
         else
         {
             float meleeRange = 0.0f;
-            if (_spellInfo->RangeEntry->type & SPELL_RANGE_RANGED)
+            if (_spellInfo->RangeEntry->Flags & SPELL_RANGE_RANGED)
             {
                 meleeRange = _caster->GetCombatReach() + 4.0f / 3.0f;
                 meleeRange += target->GetCombatReach();
@@ -336,12 +334,12 @@ bool SpellTargetSelector::operator()(Unit const* target) const
             rangeMod = _caster->GetCombatReach();
             rangeMod += target->GetCombatReach();
 
-            if (minRange > 0.0f && !(_spellInfo->RangeEntry->type & SPELL_RANGE_RANGED))
+            if (minRange > 0.0f && !(_spellInfo->RangeEntry->Flags & SPELL_RANGE_RANGED))
                 minRange += rangeMod;
         }
 
         if (_caster->isMoving() && target->isMoving() && !_caster->IsWalking() && !target->IsWalking() &&
-            (_spellInfo->RangeEntry->type & SPELL_RANGE_MELEE || target->GetTypeId() == TYPEID_PLAYER))
+            (_spellInfo->RangeEntry->Flags & SPELL_RANGE_MELEE || target->GetTypeId() == TYPEID_PLAYER))
             rangeMod += 8.0f / 3.0f;
     }
 

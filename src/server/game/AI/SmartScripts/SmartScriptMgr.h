@@ -416,6 +416,7 @@ struct SmartEvent
             uint32 maxHpPct;
             uint32 repeatMin;
             uint32 repeatMax;
+            uint32 radius;
         } friendlyHealthPct;
 
         struct
@@ -479,7 +480,7 @@ enum SMART_ACTION
     SMART_ACTION_ALLOW_COMBAT_MOVEMENT              = 21,     // AllowCombatMovement (0 = stop combat based movement, anything else continue attacking)
     SMART_ACTION_SET_EVENT_PHASE                    = 22,     // Phase
     SMART_ACTION_INC_EVENT_PHASE                    = 23,     // Value (may be negative to decrement phase, should not be 0)
-    SMART_ACTION_EVADE                              = 24,     // No Params
+    SMART_ACTION_EVADE                              = 24,     // toRespawnPosition (0 = Move to RespawnPosition, 1 = Move to last stored home position)
     SMART_ACTION_FLEE_FOR_ASSIST                    = 25,     // With Emote
     SMART_ACTION_CALL_GROUPEVENTHAPPENS             = 26,     // QuestID
     SMART_ACTION_COMBAT_STOP                        = 27,     //
@@ -1176,6 +1177,11 @@ struct SmartAction
             uint32 intensity;
         } overrideWeather;
 
+        struct
+        {
+            uint32 toRespawnPosition;
+        } evade;
+
         //! Note for any new future actions
         //! All parameters must have type uint32
 
@@ -1543,7 +1549,7 @@ enum SmartCastFlags
 struct SmartScriptHolder
 {
     SmartScriptHolder() : entryOrGuid(0), source_type(SMART_SCRIPT_TYPE_CREATURE)
-        , event_id(0), link(0), event(), action(), target(), timer(0), active(false), runOnce(false)
+        , event_id(0), link(0), event(), action(), target(), timer(0), priority(DEFAULT_PRIORITY), active(false), runOnce(false)
         , enableTimed(false) { }
 
     int32 entryOrGuid;
@@ -1561,11 +1567,19 @@ struct SmartScriptHolder
     uint32 GetTargetType() const { return (uint32)target.type; }
 
     uint32 timer;
+    uint32 priority;
     bool active;
     bool runOnce;
     bool enableTimed;
 
     operator bool() const { return entryOrGuid != 0; }
+    // Default comparision operator using priority field as first ordering field
+    bool operator<(SmartScriptHolder const& other) const
+    {
+        return std::tie(priority, entryOrGuid, source_type, event_id, link) < std::tie(other.priority, other.entryOrGuid, other.source_type, other.event_id, other.link);
+    }
+
+    static constexpr uint32 DEFAULT_PRIORITY = std::numeric_limits<uint32>::max();
 };
 
 typedef std::vector<WorldObject*> ObjectVector;

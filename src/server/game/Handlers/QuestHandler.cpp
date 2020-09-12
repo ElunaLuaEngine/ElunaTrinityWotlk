@@ -99,11 +99,13 @@ void WorldSession::HandleQuestgiverHelloOpcode(WorldPacket& recvData)
     creature->SetHomePosition(creature->GetPosition());
 
     _player->PlayerTalkClass->ClearMenus();
+
 #ifdef ELUNA
     if (sEluna->OnGossipHello(_player, creature))
         return;
 #endif
-    if (creature->AI()->GossipHello(_player))
+
+    if (creature->AI()->OnGossipHello(_player))
         return;
 
     _player->PrepareGossipMenu(creature, creature->GetCreatureTemplate()->GossipMenuId, true);
@@ -329,7 +331,8 @@ void WorldSession::HandleQuestgiverChooseRewardOpcode(WorldPacket& recvData)
 #ifdef ELUNA
                         sEluna->OnQuestReward(_player, questgiver, quest, reward);
 #endif
-                        questgiver->AI()->QuestReward(_player, quest, reward);
+                        questgiver->AI()->OnQuestReward(_player, quest, reward);
+
                         break;
                     }
                     case TYPEID_GAMEOBJECT:
@@ -352,7 +355,7 @@ void WorldSession::HandleQuestgiverChooseRewardOpcode(WorldPacket& recvData)
 #ifdef ELUNA
                         sEluna->OnQuestReward(_player, questGiver, quest, reward);
 #endif
-                        questGiver->AI()->QuestReward(_player, quest, reward);
+                        questGiver->AI()->OnQuestReward(_player, quest, reward);
                         break;
                     }
                     default:
@@ -654,7 +657,7 @@ void WorldSession::HandleQuestPushResult(WorldPacket& recvPacket)
     {
         Player* player = ObjectAccessor::FindPlayer(guid);
         if (player)
-            player->SendPushToPartyResponse(_player, msg);
+            player->SendPushToPartyResponse(_player, static_cast<QuestShareMessages>(msg));
     }
 
     _player->ClearQuestSharingInfo();

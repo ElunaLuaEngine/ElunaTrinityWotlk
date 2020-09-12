@@ -56,14 +56,14 @@ class npc_zulaman_hostage : public CreatureScript
 
             InstanceScript* instance;
 
-            bool GossipHello(Player* player) override
+            bool OnGossipHello(Player* player) override
             {
                 AddGossipItemFor(player, GOSSIP_ICON_CHAT, GOSSIP_HOSTAGE1, GOSSIP_SENDER_MAIN, GOSSIP_ACTION_INFO_DEF + 1);
                 SendGossipMenuFor(player, player->GetGossipTextId(me), me->GetGUID());
                 return true;
             }
 
-            bool GossipSelect(Player* player, uint32 /*menuId*/, uint32 gossipListId) override
+            bool OnGossipSelect(Player* player, uint32 /*menuId*/, uint32 gossipListId) override
             {
                 uint32 const action = player->PlayerTalkClass->GetGossipOptionAction(gossipListId);
                 ClearGossipMenuFor(player);
@@ -85,7 +85,7 @@ class npc_zulaman_hostage : public CreatureScript
                 {
                     if (HostageEntry[i] == entry)
                     {
-                        me->SummonGameObject(ChestEntry[i], Position(x - 2, y, z, 0.f), QuaternionData(), 0);
+                        me->SummonGameObject(ChestEntry[i], Position(x - 2, y, z, 0.f), QuaternionData(), 0s);
                         break;
                     }
                 }
@@ -192,7 +192,7 @@ class npc_harrison_jones : public CreatureScript
 
             void JustEngagedWith(Unit* /*who*/) override { }
 
-            bool GossipSelect(Player* player, uint32 menuId, uint32 gossipListId) override
+            bool OnGossipSelect(Player* player, uint32 menuId, uint32 gossipListId) override
             {
                if (me->GetCreatureTemplate()->GossipMenuId == menuId && !gossipListId)
                {
@@ -349,37 +349,9 @@ class npc_harrison_jones : public CreatureScript
         }
 };
 
-class spell_banging_the_gong : public SpellScriptLoader
-{
-    public:
-        spell_banging_the_gong() : SpellScriptLoader("spell_banging_the_gong") { }
-
-        class spell_banging_the_gong_SpellScript : public SpellScript
-        {
-            PrepareSpellScript(spell_banging_the_gong_SpellScript);
-
-            void Activate(SpellEffIndex index)
-            {
-                PreventHitDefaultEffect(index);
-                GetHitGObj()->SendCustomAnim(0);
-            }
-
-            void Register() override
-            {
-                OnEffectHitTarget += SpellEffectFn(spell_banging_the_gong_SpellScript::Activate, EFFECT_1, SPELL_EFFECT_ACTIVATE_OBJECT);
-            }
-        };
-
-        SpellScript* GetSpellScript() const override
-        {
-            return new spell_banging_the_gong_SpellScript();
-        }
-};
-
 
 void AddSC_zulaman()
 {
     new npc_zulaman_hostage();
     new npc_harrison_jones();
-    new spell_banging_the_gong();
 }

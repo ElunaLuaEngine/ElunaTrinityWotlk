@@ -260,22 +260,22 @@ public:
                     {
                     case EVENT_ICY_TOUCH:
                         DoCastVictim(SPELL_ICY_TOUCH);
-                        events.DelayEvents(1000, GCD_CAST);
+                        events.DelayEvents(1s, GCD_CAST);
                         events.ScheduleEvent(EVENT_ICY_TOUCH, 5s, GCD_CAST);
                         break;
                     case EVENT_PLAGUE_STRIKE:
                         DoCastVictim(SPELL_PLAGUE_STRIKE);
-                        events.DelayEvents(1000, GCD_CAST);
+                        events.DelayEvents(1s, GCD_CAST);
                         events.ScheduleEvent(EVENT_PLAGUE_STRIKE, 5s, GCD_CAST);
                         break;
                     case EVENT_BLOOD_STRIKE:
                         DoCastVictim(SPELL_BLOOD_STRIKE);
-                        events.DelayEvents(1000, GCD_CAST);
+                        events.DelayEvents(1s, GCD_CAST);
                         events.ScheduleEvent(EVENT_BLOOD_STRIKE, 5s, GCD_CAST);
                         break;
                     case EVENT_DEATH_COIL:
                         DoCastVictim(SPELL_DEATH_COIL);
-                        events.DelayEvents(1000, GCD_CAST);
+                        events.DelayEvents(1s, GCD_CAST);
                         events.ScheduleEvent(EVENT_DEATH_COIL, 5s, GCD_CAST);
                         break;
                     }
@@ -332,7 +332,7 @@ class go_acherus_soul_prison : public GameObjectScript
         {
             go_acherus_soul_prisonAI(GameObject* go) : GameObjectAI(go) { }
 
-            bool GossipHello(Player* player) override
+            bool OnGossipHello(Player* player) override
             {
                 if (Creature* anchor = me->FindNearestCreature(29521, 15))
                     if (ObjectGuid prisonerGUID = anchor->AI()->GetGUID())
@@ -645,7 +645,7 @@ public:
             CombatAI::UpdateAI(uiDiff);
         }
 
-        bool GossipSelect(Player* player, uint32 /*menuId*/, uint32 gossipListId) override
+        bool OnGossipSelect(Player* player, uint32 /*menuId*/, uint32 gossipListId) override
         {
             uint32 const action = player->PlayerTalkClass->GetGossipOptionAction(gossipListId);
             ClearGossipMenuFor(player);
@@ -668,7 +668,7 @@ public:
             return true;
         }
 
-        bool GossipHello(Player* player) override
+        bool OnGossipHello(Player* player) override
         {
             if (player->GetQuestStatus(QUEST_DEATH_CHALLENGE) == QUEST_STATUS_INCOMPLETE && me->IsFullHealth())
             {
@@ -791,7 +791,7 @@ public:
     {
         npc_salanar_the_horsemanAI(Creature* creature) : ScriptedAI(creature) { }
 
-        bool GossipSelect(Player* player, uint32 menuId, uint32 gossipListId) override
+        bool OnGossipSelect(Player* player, uint32 menuId, uint32 gossipListId) override
         {
             if (menuId == GOSSIP_SALANAR_MENU && gossipListId == GOSSIP_SALANAR_OPTION)
             {
@@ -1116,7 +1116,7 @@ void AddSC_the_scarlet_enclave_c1()
     new npc_death_knight_initiate();
     RegisterCreatureAI(npc_dark_rider_of_acherus);
     new npc_salanar_the_horseman();
-    RegisterAuraScript(spell_stable_master_repo);
+    RegisterSpellScript(spell_stable_master_repo);
     RegisterSpellScript(spell_deliver_stolen_horse);
     new npc_ros_dark_rider();
     new npc_dkc1_gothik();

@@ -107,11 +107,11 @@ public:
                 me->GetMotionMaster()->Clear();
                 me->GetMotionMaster()->MoveIdle();
                 me->setActive(false);
-                me->DespawnOrUnsummon(60000);
+                me->DespawnOrUnsummon(60s);
             }
         }
 
-        bool GossipHello(Player* player) override
+        bool OnGossipHello(Player* player) override
         {
             if (player->HasAura(SPELL_KODO_KOMBO_PLAYER_BUFF) && me->HasAura(SPELL_KODO_KOMBO_DESPAWN_BUFF))
             {

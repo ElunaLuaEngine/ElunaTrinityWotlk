@@ -58,11 +58,9 @@
 #include <cstdarg>
 #include <zlib.h>
 
-void WorldSession::HandleRepopRequestOpcode(WorldPacket& recvData)
+void WorldSession::HandleRepopRequest(WorldPackets::Misc::RepopRequest& /*packet*/)
 {
     TC_LOG_DEBUG("network", "WORLD: Recvd CMSG_REPOP_REQUEST Message");
-
-    recvData.read_skip<uint8>();
 
     if (GetPlayer()->IsAlive() || GetPlayer()->HasFlag(PLAYER_FLAGS, PLAYER_FLAGS_GHOST))
         return;
@@ -179,10 +177,11 @@ void WorldSession::HandleGossipSelectOptionOpcode(WorldPacket& recvData)
     {
         if (unit)
         {
+
 #ifdef ELUNA
             if (!sEluna->OnGossipSelectCode(_player, unit, _player->PlayerTalkClass->GetGossipOptionSender(gossipListId), _player->PlayerTalkClass->GetGossipOptionAction(gossipListId), code.c_str()))
 #endif
-            if (!unit->AI()->GossipSelectCode(_player, menuId, gossipListId, code.c_str()))
+            if (!unit->AI()->OnGossipSelectCode(_player, menuId, gossipListId, code.c_str()))
                 _player->OnGossipSelect(unit, gossipListId, menuId);
         }
         else if (item)
@@ -198,7 +197,7 @@ void WorldSession::HandleGossipSelectOptionOpcode(WorldPacket& recvData)
 #ifdef ELUNA
             if (!sEluna->OnGossipSelectCode(_player, go, _player->PlayerTalkClass->GetGossipOptionSender(gossipListId), _player->PlayerTalkClass->GetGossipOptionAction(gossipListId), code.c_str()))
 #endif
-            if (!go->AI()->GossipSelectCode(_player, menuId, gossipListId, code.c_str()))
+            if (!go->AI()->OnGossipSelectCode(_player, menuId, gossipListId, code.c_str()))
                 _player->OnGossipSelect(go, gossipListId, menuId);
         }
     }
@@ -209,7 +208,7 @@ void WorldSession::HandleGossipSelectOptionOpcode(WorldPacket& recvData)
 #ifdef ELUNA
             if (!sEluna->OnGossipSelect(_player, unit, _player->PlayerTalkClass->GetGossipOptionSender(gossipListId), _player->PlayerTalkClass->GetGossipOptionAction(gossipListId)))
 #endif
-            if (!unit->AI()->GossipSelect(_player, menuId, gossipListId))
+            if (!unit->AI()->OnGossipSelect(_player, menuId, gossipListId))
                 _player->OnGossipSelect(unit, gossipListId, menuId);
         }
         else if (item)
@@ -225,7 +224,7 @@ void WorldSession::HandleGossipSelectOptionOpcode(WorldPacket& recvData)
 #ifdef ELUNA
             if (!sEluna->OnGossipSelect(_player, go, _player->PlayerTalkClass->GetGossipOptionSender(gossipListId), _player->PlayerTalkClass->GetGossipOptionAction(gossipListId)))
 #endif
-            if (!go->AI()->GossipSelect(_player, menuId, gossipListId))
+            if (!go->AI()->OnGossipSelect(_player, menuId, gossipListId))
                 _player->OnGossipSelect(go, gossipListId, menuId);
         }
     }
@@ -363,7 +362,7 @@ void WorldSession::HandleWhoOpcode(WorldPacket& recvData)
 
         std::string aname;
         if (AreaTableEntry const* areaEntry = sAreaTableStore.LookupEntry(playerZoneId))
-            aname = areaEntry->area_name[GetSessionDbcLocale()];
+            aname = areaEntry->AreaName[GetSessionDbcLocale()];
 
         bool s_show = true;
         for (uint32 i = 0; i < strCount; ++i)
@@ -574,12 +573,9 @@ void WorldSession::HandleBugOpcode(WorldPacket& recvData)
     CharacterDatabase.Execute(stmt);
 }
 
-void WorldSession::HandleReclaimCorpseOpcode(WorldPacket& recvData)
+void WorldSession::HandleReclaimCorpse(WorldPackets::Misc::ReclaimCorpse& /*packet*/)
 {
     TC_LOG_DEBUG("network", "WORLD: Received CMSG_RECLAIM_CORPSE");
-
-    ObjectGuid guid;
-    recvData >> guid;
 
     if (_player->IsAlive())
         return;
@@ -610,25 +606,20 @@ void WorldSession::HandleReclaimCorpseOpcode(WorldPacket& recvData)
     _player->SpawnCorpseBones();
 }
 
-void WorldSession::HandleResurrectResponseOpcode(WorldPacket& recvData)
+void WorldSession::HandleResurrectResponse(WorldPackets::Misc::ResurrectResponse& packet)
 {
     TC_LOG_DEBUG("network", "WORLD: Received CMSG_RESURRECT_RESPONSE");
-
-    ObjectGuid guid;
-    uint8 status;
-    recvData >> guid;
-    recvData >> status;
 
     if (GetPlayer()->IsAlive())
         return;
 
-    if (status == 0)
+    if (packet.Response == 0)
     {
         GetPlayer()->ClearResurrectRequestData();           // reject
         return;
     }
 
-    if (!GetPlayer()->IsResurrectRequestedBy(guid))
+    if (!GetPlayer()->IsResurrectRequestedBy(packet.Resurrecter))
         return;
 
     GetPlayer()->ResurrectUsingRequestData();
@@ -695,7 +686,7 @@ void WorldSession::HandleAreaTriggerOpcode(WorldPacket& recvData)
     if (sObjectMgr->IsTavernAreaTrigger(triggerId))
     {
         // set resting flag we are in the inn
-        player->SetRestFlag(REST_FLAG_IN_TAVERN, atEntry->id);
+        player->SetRestFlag(REST_FLAG_IN_TAVERN, atEntry->ID);
 
         if (sWorld->IsFFAPvPRealm())
             player->RemoveByteFlag(UNIT_FIELD_BYTES_2, UNIT_BYTES_2_OFFSET_PVP_FLAG, UNIT_BYTE2_FLAG_FFA_PVP);
@@ -732,7 +723,7 @@ void WorldSession::HandleAreaTriggerOpcode(WorldPacket& recvData)
                 case Map::CANNOT_ENTER_DIFFICULTY_UNAVAILABLE:
                     TC_LOG_DEBUG("maps", "MAP: Player '%s' attempted to enter instance map %d but the requested difficulty was not found", player->GetName().c_str(), at->target_mapId);
                     if (MapEntry const* entry = sMapStore.LookupEntry(at->target_mapId))
-                        player->SendTransferAborted(entry->MapID, TRANSFER_ABORT_DIFFICULTY, player->GetDifficulty(entry->IsRaid()));
+                        player->SendTransferAborted(entry->ID, TRANSFER_ABORT_DIFFICULTY, player->GetDifficulty(entry->IsRaid()));
                     break;
                 case Map::CANNOT_ENTER_NOT_IN_RAID:
                 {
@@ -754,7 +745,7 @@ void WorldSession::HandleAreaTriggerOpcode(WorldPacket& recvData)
                 case Map::CANNOT_ENTER_INSTANCE_BIND_MISMATCH:
                     if (MapEntry const* entry = sMapStore.LookupEntry(at->target_mapId))
                     {
-                        char const* mapName = entry->name[player->GetSession()->GetSessionDbcLocale()];
+                        char const* mapName = entry->MapName[player->GetSession()->GetSessionDbcLocale()];
                         TC_LOG_DEBUG("maps", "MAP: Player '%s' cannot enter instance map '%s' because their permanent bind is incompatible with their group's", player->GetName().c_str(), mapName);
                         // is there a special opcode for this?
                         // @todo figure out how to get player localized difficulty string (e.g. "10 player", "Heroic" etc)
@@ -1310,7 +1301,7 @@ void WorldSession::HandleSetDungeonDifficultyOpcode(WorldPacket& recvData)
                 if (!groupGuy)
                     continue;
 
-                if (!groupGuy->IsInMap(groupGuy))
+                if (!groupGuy->IsInWorld())
                     return;
 
                 if (groupGuy->GetMap()->IsNonRaidDungeon())
@@ -1368,7 +1359,7 @@ void WorldSession::HandleSetRaidDifficultyOpcode(WorldPacket& recvData)
                 if (!groupGuy)
                     continue;
 
-                if (!groupGuy->IsInMap(groupGuy))
+                if (!groupGuy->IsInWorld())
                     return;
 
                 if (groupGuy->GetMap()->IsRaid())
@@ -1523,7 +1514,7 @@ void WorldSession::HandleHearthAndResurrect(WorldPacket& /*recvData*/)
     }
 
     AreaTableEntry const* atEntry = sAreaTableStore.LookupEntry(_player->GetAreaId());
-    if (!atEntry || !(atEntry->flags & AREA_FLAG_WINTERGRASP_2))
+    if (!atEntry || !(atEntry->Flags & AREA_FLAG_WINTERGRASP_2))
         return;
 
     _player->BuildPlayerRepop();

@@ -47,6 +47,7 @@
 #ifdef ELUNA
 #include "LuaEngine.h"
 #endif
+#include "VMapManager2.h"
 #include "Weather.h"
 #include "WeatherMgr.h"
 #include "World.h"
@@ -828,6 +829,20 @@ void Map::Update(uint32 t_diff)
                     if (caster->GetTypeId() != TYPEID_PLAYER && !caster->IsWithinDistInMap(player, GetVisibilityRange(), false))
                         toVisit.insert(caster);
             }
+            for (Unit* unit : toVisit)
+                VisitNearbyCellsOf(unit, grid_object_update, world_object_update);
+        }
+
+        { // Update player's summons
+            std::vector<Unit*> toVisit;
+
+            // Totems
+            for (ObjectGuid const& summonGuid : player->m_SummonSlot)
+                if (summonGuid)
+                    if (Creature* unit = GetCreature(summonGuid))
+                        if (unit->GetMapId() == player->GetMapId() && !unit->IsWithinDistInMap(player, GetVisibilityRange(), false))
+                            toVisit.push_back(unit);
+
             for (Unit* unit : toVisit)
                 VisitNearbyCellsOf(unit, grid_object_update, world_object_update);
         }
@@ -1776,8 +1791,7 @@ GridMap::GridMap()
     _gridIntHeightMultiplier = 0;
     m_V9 = nullptr;
     m_V8 = nullptr;
-    _maxHeight = nullptr;
-    _minHeight = nullptr;
+    _minHeightPlanes = nullptr;
     // Liquid data
     _liquidGlobalEntry = 0;
     _liquidGlobalFlags = 0;
@@ -1859,8 +1873,7 @@ void GridMap::unloadData()
     delete[] _areaMap;
     delete[] m_V9;
     delete[] m_V8;
-    delete[] _maxHeight;
-    delete[] _minHeight;
+    delete[] _minHeightPlanes;
     delete[] _liquidEntry;
     delete[] _liquidFlags;
     delete[] _liquidMap;
@@ -1868,8 +1881,7 @@ void GridMap::unloadData()
     _areaMap = nullptr;
     m_V9 = nullptr;
     m_V8 = nullptr;
-    _maxHeight = nullptr;
-    _minHeight = nullptr;
+    _minHeightPlanes = nullptr;
     _liquidEntry = nullptr;
     _liquidFlags = nullptr;
     _liquidMap  = nullptr;
@@ -1941,11 +1953,44 @@ bool GridMap::loadHeightData(FILE* in, uint32 offset, uint32 /*size*/)
 
     if (header.flags & MAP_HEIGHT_HAS_FLIGHT_BOUNDS)
     {
-        _maxHeight = new int16[3 * 3];
-        _minHeight = new int16[3 * 3];
-        if (fread(_maxHeight, sizeof(int16), 3 * 3, in) != 3 * 3 ||
-            fread(_minHeight, sizeof(int16), 3 * 3, in) != 3 * 3)
+        std::array<int16, 9> maxHeights;
+        std::array<int16, 9> minHeights;
+        if (fread(maxHeights.data(), sizeof(int16), maxHeights.size(), in) != maxHeights.size() ||
+            fread(minHeights.data(), sizeof(int16), minHeights.size(), in) != minHeights.size())
             return false;
+
+        static uint32 constexpr indices[8][3] =
+        {
+            { 3, 0, 4 },
+            { 0, 1, 4 },
+            { 1, 2, 4 },
+            { 2, 5, 4 },
+            { 5, 8, 4 },
+            { 8, 7, 4 },
+            { 7, 6, 4 },
+            { 6, 3, 4 }
+        };
+
+        static float constexpr boundGridCoords[9][2] =
+        {
+            { 0.0f, 0.0f },
+            { 0.0f, -266.66666f },
+            { 0.0f, -533.33331f },
+            { -266.66666f, 0.0f },
+            { -266.66666f, -266.66666f },
+            { -266.66666f, -533.33331f },
+            { -533.33331f, 0.0f },
+            { -533.33331f, -266.66666f },
+            { -533.33331f, -533.33331f }
+        };
+
+        _minHeightPlanes = new G3D::Plane[8];
+        for (uint32 quarterIndex = 0; quarterIndex < 8; ++quarterIndex)
+            _minHeightPlanes[quarterIndex] = G3D::Plane(
+                G3D::Vector3(boundGridCoords[indices[quarterIndex][0]][0], boundGridCoords[indices[quarterIndex][0]][1], minHeights[indices[quarterIndex][0]]),
+                G3D::Vector3(boundGridCoords[indices[quarterIndex][1]][0], boundGridCoords[indices[quarterIndex][1]][1], minHeights[indices[quarterIndex][1]]),
+                G3D::Vector3(boundGridCoords[indices[quarterIndex][2]][0], boundGridCoords[indices[quarterIndex][2]][1], minHeights[indices[quarterIndex][2]])
+            );
     }
 
     return true;
@@ -2257,62 +2302,32 @@ bool GridMap::isHole(int row, int col) const
 
 float GridMap::getMinHeight(float x, float y) const
 {
-    if (!_minHeight)
+    if (!_minHeightPlanes)
         return -500.0f;
 
-    static uint32 const indices[] =
-    {
-        3, 0, 4,
-        0, 1, 4,
-        1, 2, 4,
-        2, 5, 4,
-        5, 8, 4,
-        8, 7, 4,
-        7, 6, 4,
-        6, 3, 4
-    };
+    GridCoord gridCoord = Trinity::ComputeGridCoord(x, y);
 
-    static float const boundGridCoords[] =
-    {
-        0.0f, 0.0f,
-        0.0f, -266.66666f,
-        0.0f, -533.33331f,
-        -266.66666f, 0.0f,
-        -266.66666f, -266.66666f,
-        -266.66666f, -533.33331f,
-        -533.33331f, 0.0f,
-        -533.33331f, -266.66666f,
-        -533.33331f, -533.33331f
-    };
+    int32 doubleGridX = int32(std::floor(-(x - MAP_HALFSIZE) / CENTER_GRID_OFFSET));
+    int32 doubleGridY = int32(std::floor(-(y - MAP_HALFSIZE) / CENTER_GRID_OFFSET));
 
-    Cell cell(x, y);
-    float gx = x - (int32(cell.GridX()) - CENTER_GRID_ID + 1) * SIZE_OF_GRIDS;
-    float gy = y - (int32(cell.GridY()) - CENTER_GRID_ID + 1) * SIZE_OF_GRIDS;
+    float gx = x - (int32(gridCoord.x_coord) - CENTER_GRID_ID + 1) * SIZE_OF_GRIDS;
+    float gy = y - (int32(gridCoord.y_coord) - CENTER_GRID_ID + 1) * SIZE_OF_GRIDS;
 
     uint32 quarterIndex = 0;
-    if (cell.CellY() < MAX_NUMBER_OF_CELLS / 2)
+    if (doubleGridY & 1)
     {
-        if (cell.CellX() < MAX_NUMBER_OF_CELLS / 2)
-        {
-            quarterIndex = 4 + (gy > gx);
-        }
+        if (doubleGridX & 1)
+            quarterIndex = 4 + (gx <= gy);
         else
             quarterIndex = 2 + ((-SIZE_OF_GRIDS - gx) > gy);
     }
-    else if (cell.CellX() < MAX_NUMBER_OF_CELLS / 2)
-    {
+    else if (doubleGridX & 1)
         quarterIndex = 6 + ((-SIZE_OF_GRIDS - gx) <= gy);
-    }
     else
         quarterIndex = gx > gy;
 
-    quarterIndex *= 3;
-
-    return G3D::Plane(
-        G3D::Vector3(boundGridCoords[indices[quarterIndex + 0] * 2 + 0], boundGridCoords[indices[quarterIndex + 0] * 2 + 1], _minHeight[indices[quarterIndex + 0]]),
-        G3D::Vector3(boundGridCoords[indices[quarterIndex + 1] * 2 + 0], boundGridCoords[indices[quarterIndex + 1] * 2 + 1], _minHeight[indices[quarterIndex + 1]]),
-        G3D::Vector3(boundGridCoords[indices[quarterIndex + 2] * 2 + 0], boundGridCoords[indices[quarterIndex + 2] * 2 + 1], _minHeight[indices[quarterIndex + 2]])
-    ).distance(G3D::Vector3(gx, gy, 0.0f));
+    G3D::Ray ray = G3D::Ray::fromOriginAndDirection(G3D::Vector3(gx, gy, 0.0f), G3D::Vector3::unitZ());
+    return ray.intersection(_minHeightPlanes[quarterIndex]).z;
 }
 
 float GridMap::getLiquidLevel(float x, float y) const
@@ -2355,23 +2370,23 @@ inline ZLiquidStatus GridMap::GetLiquidStatus(float x, float y, float z, uint8 R
     if (LiquidTypeEntry const* liquidEntry = sLiquidTypeStore.LookupEntry(entry))
     {
         type &= MAP_LIQUID_TYPE_DARK_WATER;
-        uint32 liqTypeIdx = liquidEntry->Type;
+        uint32 liqTypeIdx = liquidEntry->SoundBank;
         if (entry < 21)
         {
             if (AreaTableEntry const* area = sAreaTableStore.LookupEntry(getArea(x, y)))
             {
-                uint32 overrideLiquid = area->LiquidTypeOverride[liquidEntry->Type];
-                if (!overrideLiquid && area->zone)
+                uint32 overrideLiquid = area->LiquidTypeID[liquidEntry->SoundBank];
+                if (!overrideLiquid && area->ParentAreaID)
                 {
-                    area = sAreaTableStore.LookupEntry(area->zone);
+                    area = sAreaTableStore.LookupEntry(area->ParentAreaID);
                     if (area)
-                        overrideLiquid = area->LiquidTypeOverride[liquidEntry->Type];
+                        overrideLiquid = area->LiquidTypeID[liquidEntry->SoundBank];
                 }
 
                 if (LiquidTypeEntry const* liq = sLiquidTypeStore.LookupEntry(overrideLiquid))
                 {
                     entry = overrideLiquid;
-                    liqTypeIdx = liq->Type;
+                    liqTypeIdx = liq->SoundBank;
                 }
             }
         }
@@ -2592,7 +2607,7 @@ uint32 Map::GetAreaId(uint32 phaseMask, float x, float y, float z) const
     {
         // wmo found
         if (WMOAreaTableEntry const* wmoEntry = GetWMOAreaTableEntryByTripple(rootId, adtId, groupId))
-            areaId = wmoEntry->areaId;
+            areaId = wmoEntry->AreaTableID;
 
         if (!areaId)
             areaId = gridAreaId;
@@ -2601,7 +2616,7 @@ uint32 Map::GetAreaId(uint32 phaseMask, float x, float y, float z) const
         areaId = gridAreaId;
 
     if (!areaId)
-        areaId = i_mapEntry->linked_zone;
+        areaId = i_mapEntry->AreaTableID;
 
     return areaId;
 }
@@ -2610,8 +2625,8 @@ uint32 Map::GetZoneId(uint32 phaseMask, float x, float y, float z) const
 {
     uint32 areaId = GetAreaId(phaseMask, x, y, z);
     if (AreaTableEntry const* area = sAreaTableStore.LookupEntry(areaId))
-        if (area->zone)
-            return area->zone;
+        if (area->ParentAreaID)
+            return area->ParentAreaID;
 
     return areaId;
 }
@@ -2620,8 +2635,8 @@ void Map::GetZoneAndAreaId(uint32 phaseMask, uint32& zoneid, uint32& areaid, flo
 {
     areaid = zoneid = GetAreaId(phaseMask, x, y, z);
     if (AreaTableEntry const* area = sAreaTableStore.LookupEntry(areaid))
-        if (area->zone)
-            zoneid = area->zone;
+        if (area->ParentAreaID)
+            zoneid = area->ParentAreaID;
 }
 
 ZLiquidStatus Map::GetLiquidStatus(uint32 phaseMask, float x, float y, float z, uint8 ReqLiquidType, LiquidData* data, float collisionHeight) const
@@ -2649,24 +2664,24 @@ ZLiquidStatus Map::GetLiquidStatus(uint32 phaseMask, float x, float y, float z, 
 
                 uint32 liquidFlagType = 0;
                 if (LiquidTypeEntry const* liq = sLiquidTypeStore.LookupEntry(liquid_type))
-                    liquidFlagType = liq->Type;
+                    liquidFlagType = liq->SoundBank;
 
                 if (liquid_type && liquid_type < 21)
                 {
                     if (AreaTableEntry const* area = sAreaTableStore.LookupEntry(GetAreaId(phaseMask, x, y, z)))
                     {
-                        uint32 overrideLiquid = area->LiquidTypeOverride[liquidFlagType];
-                        if (!overrideLiquid && area->zone)
+                        uint32 overrideLiquid = area->LiquidTypeID[liquidFlagType];
+                        if (!overrideLiquid && area->ParentAreaID)
                         {
-                            area = sAreaTableStore.LookupEntry(area->zone);
+                            area = sAreaTableStore.LookupEntry(area->ParentAreaID);
                             if (area)
-                                overrideLiquid = area->LiquidTypeOverride[liquidFlagType];
+                                overrideLiquid = area->LiquidTypeID[liquidFlagType];
                         }
 
                         if (LiquidTypeEntry const* liq = sLiquidTypeStore.LookupEntry(overrideLiquid))
                         {
                             liquid_type = overrideLiquid;
-                            liquidFlagType = liq->Type;
+                            liquidFlagType = liq->SoundBank;
                         }
                     }
                 }
@@ -2762,13 +2777,13 @@ void Map::GetFullTerrainStatusForPosition(uint32 phaseMask, float x, float y, fl
     {
         if (wmoData->areaInfo)
         {
-            data.areaInfo = boost::in_place(wmoData->areaInfo->adtId, wmoData->areaInfo->rootId, wmoData->areaInfo->groupId, wmoData->areaInfo->mogpFlags);
+            data.areaInfo.emplace(wmoData->areaInfo->adtId, wmoData->areaInfo->rootId, wmoData->areaInfo->groupId, wmoData->areaInfo->mogpFlags);
             // wmo found
             WMOAreaTableEntry const* wmoEntry = GetWMOAreaTableEntryByTripple(wmoData->areaInfo->rootId, wmoData->areaInfo->adtId, wmoData->areaInfo->groupId);
             data.outdoors = (wmoData->areaInfo->mogpFlags & 0x8) != 0;
             if (wmoEntry)
             {
-                data.areaId = wmoEntry->areaId;
+                data.areaId = wmoEntry->AreaTableID;
                 if (wmoEntry->Flags & 4)
                     data.outdoors = true;
                 else if (wmoEntry->Flags & 2)
@@ -2786,11 +2801,11 @@ void Map::GetFullTerrainStatusForPosition(uint32 phaseMask, float x, float y, fl
         data.outdoors = true;
         data.areaId = gridAreaId;
         if (AreaTableEntry const* areaEntry = sAreaTableStore.LookupEntry(data.areaId))
-            data.outdoors = (areaEntry->flags & (AREA_FLAG_INSIDE | AREA_FLAG_OUTSIDE)) != AREA_FLAG_INSIDE;
+            data.outdoors = (areaEntry->Flags & (AREA_FLAG_INSIDE | AREA_FLAG_OUTSIDE)) != AREA_FLAG_INSIDE;
     }
 
     if (!data.areaId)
-        data.areaId = i_mapEntry->linked_zone;
+        data.areaId = i_mapEntry->AreaTableID;
 
     AreaTableEntry const* areaEntry = sAreaTableStore.LookupEntry(data.areaId);
 
@@ -2804,26 +2819,26 @@ void Map::GetFullTerrainStatusForPosition(uint32 phaseMask, float x, float y, fl
 
         uint32 liquidFlagType = 0;
         if (LiquidTypeEntry const* liquidData = sLiquidTypeStore.LookupEntry(liquidType))
-            liquidFlagType = liquidData->Type;
+            liquidFlagType = liquidData->SoundBank;
 
         if (liquidType && liquidType < 21 && areaEntry)
         {
-            uint32 overrideLiquid = areaEntry->LiquidTypeOverride[liquidFlagType];
-            if (!overrideLiquid && areaEntry->zone)
+            uint32 overrideLiquid = areaEntry->LiquidTypeID[liquidFlagType];
+            if (!overrideLiquid && areaEntry->ParentAreaID)
             {
-                AreaTableEntry const* zoneEntry = sAreaTableStore.LookupEntry(areaEntry->zone);
+                AreaTableEntry const* zoneEntry = sAreaTableStore.LookupEntry(areaEntry->ParentAreaID);
                 if (zoneEntry)
-                    overrideLiquid = zoneEntry->LiquidTypeOverride[liquidFlagType];
+                    overrideLiquid = zoneEntry->LiquidTypeID[liquidFlagType];
             }
 
             if (LiquidTypeEntry const* overrideData = sLiquidTypeStore.LookupEntry(overrideLiquid))
             {
                 liquidType = overrideLiquid;
-                liquidFlagType = overrideData->Type;
+                liquidFlagType = overrideData->SoundBank;
             }
         }
 
-        data.liquidInfo = boost::in_place();
+        data.liquidInfo.emplace();
         data.liquidInfo->level = wmoData->liquidInfo->level;
         data.liquidInfo->depth_level = wmoData->floorZ;
         data.liquidInfo->entry = liquidType;
@@ -2918,7 +2933,7 @@ bool Map::CheckGridIntegrity(Creature* c, bool moved) const
 
 char const* Map::GetMapName() const
 {
-    return i_mapEntry ? i_mapEntry->name[sWorld->GetDefaultDbcLocale()] : "UNNAMEDMAP\x0";
+    return i_mapEntry ? i_mapEntry->MapName[sWorld->GetDefaultDbcLocale()] : "UNNAMEDMAP\x0";
 }
 
 void Map::SendInitSelf(Player* player)
@@ -3117,6 +3132,7 @@ size_t Map::DespawnAll(SpawnObjectType type, ObjectGuid::LowType spawnId)
         case SPAWN_TYPE_GAMEOBJECT:
             for (auto const& pair : Trinity::Containers::MapEqualRange(GetGameObjectBySpawnIdStore(), spawnId))
                 toUnload.push_back(pair.second);
+            break;
         default:
             break;
     }
@@ -3752,10 +3768,10 @@ template TC_GAME_API void Map::RemoveFromMap(DynamicObject*, bool);
 
 /* ******* Dungeon Instance Maps ******* */
 
-InstanceMap::InstanceMap(uint32 id, time_t expiry, uint32 InstanceId, uint8 SpawnMode, Map* _parent)
+InstanceMap::InstanceMap(uint32 id, time_t expiry, uint32 InstanceId, uint8 SpawnMode, Map* _parent, TeamId InstanceTeam)
   : Map(id, expiry, InstanceId, SpawnMode, _parent),
     m_resetAfterUnload(false), m_unloadWhenEmpty(false),
-    i_data(nullptr), i_script_id(0)
+    i_data(nullptr), i_script_id(0), i_script_team(InstanceTeam)
 {
     //lets initialize visibility distance for dungeons
     InstanceMap::InitVisibilityDistance();
@@ -3990,8 +4006,10 @@ void InstanceMap::CreateInstanceData(bool load)
 
     // use mangos behavior if we are dealing with Eluna AI
     // initialize should then be called only if load is false
+#ifndef TRINITY
     if (!isElunaAI || !load)
         i_data->Initialize();
+#endif
 
     if (load)
     {
@@ -4165,7 +4183,7 @@ MapDifficulty const* Map::GetMapDifficulty() const
 
 uint32 Map::GetId() const
 {
-    return i_mapEntry->MapID;
+    return i_mapEntry->ID;
 }
 
 bool Map::IsRegularDifficulty() const
@@ -4244,7 +4262,7 @@ uint32 InstanceMap::GetMaxPlayers() const
     if (mapDiff && mapDiff->maxPlayers)
         return mapDiff->maxPlayers;
 
-    return GetEntry()->maxPlayers;
+    return GetEntry()->MaxPlayers;
 }
 
 uint32 InstanceMap::GetMaxResetDelay() const

@@ -20,7 +20,6 @@
 
 #include "Object.h"
 #include "CombatManager.h"
-#include "OptionalFwd.h"
 #include "SpellAuraDefines.h"
 #include "ThreatManager.h"
 #include "Timer.h"
@@ -924,6 +923,9 @@ class TC_GAME_API Unit : public WorldObject
         bool IsStandState() const;
         void SetStandState(uint8 state);
 
+        void SetAnimationTier(AnimationTier tier);
+        AnimationTier GetAnimationTier() const { return static_cast<AnimationTier>(GetByteValue(UNIT_FIELD_BYTES_1, UNIT_BYTES_1_OFFSET_ANIM_TIER)); }
+
         void SetStandFlags(uint8 flags) { SetByteFlag(UNIT_FIELD_BYTES_1, UNIT_BYTES_1_OFFSET_VIS_FLAG, flags); }
         void RemoveStandFlags(uint8 flags) { RemoveByteFlag(UNIT_FIELD_BYTES_1, UNIT_BYTES_1_OFFSET_VIS_FLAG, flags); }
 
@@ -949,7 +951,7 @@ class TC_GAME_API Unit : public WorldObject
                                      DamageInfo* damageInfo, HealInfo* healInfo);
         void TriggerAurasProcOnEvent(ProcEventInfo& eventInfo, AuraApplicationProcContainer& procAuras);
 
-        void HandleEmoteCommand(uint32 emoteId);
+        void HandleEmoteCommand(Emote emoteId);
         void AttackerStateUpdate (Unit* victim, WeaponAttackType attType = BASE_ATTACK, bool extra = false);
 
         void CalculateMeleeDamage(Unit* victim, CalcDamageInfo* damageInfo, WeaponAttackType attackType = BASE_ATTACK);
@@ -1122,12 +1124,12 @@ class TC_GAME_API Unit : public WorldObject
         bool IsWalking() const { return m_movementInfo.HasMovementFlag(MOVEMENTFLAG_WALKING); }
         bool IsHovering() const { return m_movementInfo.HasMovementFlag(MOVEMENTFLAG_HOVER); }
         virtual bool SetWalk(bool enable);
-        virtual bool SetDisableGravity(bool disable, bool packetOnly = false);
+        virtual bool SetDisableGravity(bool disable, bool packetOnly = false, bool updateAnimationTier = true);
         virtual bool SetSwim(bool enable);
         virtual bool SetCanFly(bool enable, bool packetOnly = false);
         virtual bool SetWaterWalking(bool enable, bool packetOnly = false);
         virtual bool SetFeatherFall(bool enable, bool packetOnly = false);
-        virtual bool SetHover(bool enable, bool packetOnly = false);
+        virtual bool SetHover(bool enable, bool packetOnly = false, bool updateAnimationTier = true);
 
         void SetInFront(WorldObject const* target);
         void SetFacingTo(float const ori, bool force = true);
@@ -1674,11 +1676,11 @@ class TC_GAME_API Unit : public WorldObject
         bool IsHighestExclusiveAura(Aura const* aura, bool removeOtherAuraApplications = false);
         bool IsHighestExclusiveAuraEffect(SpellInfo const* spellInfo, AuraType auraType, int32 effectAmount, uint8 auraEffectMask, bool removeOtherAuraApplications = false);
 
-        virtual void Talk(std::string const& text, ChatMsg msgType, Language language, float textRange, WorldObject const* target);
-        virtual void Say(std::string const& text, Language language, WorldObject const* target = nullptr);
-        virtual void Yell(std::string const& text, Language language, WorldObject const* target = nullptr);
-        virtual void TextEmote(std::string const& text, WorldObject const* target = nullptr, bool isBossEmote = false);
-        virtual void Whisper(std::string const& text, Language language, Player* target, bool isBossWhisper = false);
+        virtual void Talk(std::string_view text, ChatMsg msgType, Language language, float textRange, WorldObject const* target);
+        virtual void Say(std::string_view text, Language language, WorldObject const* target = nullptr);
+        virtual void Yell(std::string_view text, Language language, WorldObject const* target = nullptr);
+        virtual void TextEmote(std::string_view text, WorldObject const* target = nullptr, bool isBossEmote = false);
+        virtual void Whisper(std::string_view text, Language language, Player* target, bool isBossWhisper = false);
         virtual void Talk(uint32 textId, ChatMsg msgType, float textRange, WorldObject const* target);
         virtual void Say(uint32 textId, WorldObject const* target = nullptr);
         virtual void Yell(uint32 textId, WorldObject const* target = nullptr);
@@ -1686,6 +1688,11 @@ class TC_GAME_API Unit : public WorldObject
         virtual void Whisper(uint32 textId, Player* target, bool isBossWhisper = false);
 
         float GetCollisionHeight() const override;
+
+        // returns if the unit is ignoring any combat interaction
+        bool IsIgnoringCombat() const { return _isIgnoringCombat; }
+        // enables/disables combat interaction of this unit.
+        void SetIgnoringCombat(bool apply) { _isIgnoringCombat = apply; }
 
         std::string GetDebugInfo() const override;
     protected:
@@ -1801,7 +1808,7 @@ class TC_GAME_API Unit : public WorldObject
 
         uint32 m_state;                                     // Even derived shouldn't modify
         uint32 m_lastManaUse;                               // msecs
-        TimeTrackerSmall m_splineSyncTimer;
+        TimeTracker m_splineSyncTimer;
 
         DiminishingReturn m_Diminishing[DIMINISHING_MAX];
 
@@ -1833,6 +1840,8 @@ class TC_GAME_API Unit : public WorldObject
 
         SpellHistory* m_spellHistory;
         PositionUpdateInfo _positionUpdateInfo;
+
+        bool _isIgnoringCombat;
 };
 
 namespace Trinity

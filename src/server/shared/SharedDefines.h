@@ -18,6 +18,7 @@
 #ifndef TRINITY_SHAREDDEFINES_H
 #define TRINITY_SHAREDDEFINES_H
 
+#include "DBCEnums.h"
 #include "Define.h"
 #include "DetourNavMesh.h"
 #include "SmartEnum.h"
@@ -67,7 +68,7 @@ inline uint32 GetMaxLevelForExpansion(uint32 expansion)
         default:
             break;
     }
-    return 0;
+    return DEFAULT_MAX_LEVEL;
 }
 
 enum Gender
@@ -968,7 +969,8 @@ enum SpellEffects
     TOTAL_SPELL_EFFECTS                             = 165
 };
 
-enum SpellCastResult
+// EnumUtils: DESCRIBE THIS
+enum SpellCastResult : uint8
 {
     SPELL_FAILED_SUCCESS = 0,
     SPELL_FAILED_AFFECTING_COMBAT = 1,
@@ -1307,6 +1309,7 @@ enum GhostVisibilityType
 };
 
 // Spell aura states
+// EnumUtils: DESCRIBE THIS
 enum AuraStateType
 {   // (C) used in caster aura state     (T) used in target aura state
     // (c) used in caster aura state-not (t) used in target aura state-not
@@ -1921,9 +1924,10 @@ enum TextEmotes
 };
 
 // Emotes.dbc
-enum Emote
+// EnumUtils: DESCRIBE THIS
+enum Emote : uint32
 {
-    EMOTE_ONESHOT_NONE                  = 0,
+    EMOTE_ONESHOT_NONE                  = 0, // SKIP
     EMOTE_ONESHOT_TALK                  = 1,
     EMOTE_ONESHOT_BOW                   = 2,
     EMOTE_ONESHOT_WAVE                  = 3,
@@ -3131,6 +3135,7 @@ enum CorpseDynFlags
 
 #define PLAYER_CORPSE_LOOT_ENTRY 1
 
+// EnumUtils: DESCRIBE THIS
 enum WeatherType
 {
     WEATHER_TYPE_FINE       = 0,
@@ -3143,9 +3148,10 @@ enum WeatherType
 
 #define MAX_WEATHER_TYPE 4
 
-enum ChatMsg
+// EnumUtils: DESCRIBE THIS
+enum ChatMsg : uint8
 {
-    CHAT_MSG_ADDON                  = 0xFFFFFFFF, // -1
+    CHAT_MSG_ADDON                  = 0xFF, // -1
     CHAT_MSG_SYSTEM                 = 0x00,
     CHAT_MSG_SAY                    = 0x01,
     CHAT_MSG_PARTY                  = 0x02,
@@ -3212,7 +3218,7 @@ enum ChatLinkColors : uint32
     CHAT_LINK_COLOR_GLYPH       = 0xff66bbff
 };
 
-// Values from ItemPetFood (power of (value-1) used for compare with CreatureFamilyEntry.petDietMask
+// Values from ItemPetFood (power of (value-1) used for compare with CreatureFamilyEntry.PetFoodMask
 enum PetDiet
 {
     PET_DIET_MEAT     = 1,

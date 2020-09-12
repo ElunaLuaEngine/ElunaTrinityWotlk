@@ -545,8 +545,8 @@ void GameObject::Update(uint32 diff)
                     m_lootState = GO_READY;                         // for other GOis same switched without delay to GO_READY
                     break;
             }
+            [[fallthrough]];
         }
-        /* fallthrough */
         case GO_READY:
         {
             if (m_respawnCompatibilityMode)
@@ -662,7 +662,7 @@ void GameObject::Update(uint32 diff)
                     Unit* target = nullptr;
 
                     /// @todo this hack with search required until GO casting not implemented
-                    if (Unit* owner = GetOwner())
+                    if (GetOwner())
                     {
                         // Hunter trap: Search units which are unfriendly to the trap's owner
                         Trinity::NearestAttackableNoTotemUnitInObjectRangeCheck checker(this, radius);
@@ -1497,11 +1497,12 @@ void GameObject::Use(Unit* user)
             playerUser->RemoveAurasByType(SPELL_AURA_MOUNTED);
 
         playerUser->PlayerTalkClass->ClearMenus();
+
 #ifdef ELUNA
         if (sEluna->OnGossipHello(playerUser, this))
             return;
 #endif
-        if (AI()->GossipHello(playerUser))
+        if (AI()->OnGossipHello(playerUser))
             return;
     }
 
@@ -2122,9 +2123,9 @@ bool GameObject::IsInRange(float x, float y, float z, float radius) const
     float cosB = dy / dist;
     dx = dist * (cosA * cosB + sinA * sinB);
     dy = dist * (cosA * sinB - sinA * cosB);
-    return dx < info->maxX + radius && dx > info->minX - radius
-        && dy < info->maxY + radius && dy > info->minY - radius
-        && dz < info->maxZ + radius && dz > info->minZ - radius;
+    return dx < info->GeoBoxMax.X + radius && dx > info->GeoBoxMin.X - radius
+        && dy < info->GeoBoxMax.Y + radius && dy > info->GeoBoxMin.Y - radius
+        && dz < info->GeoBoxMax.Z + radius && dz > info->GeoBoxMin.Z - radius;
 }
 
 void GameObject::EventInform(uint32 eventId, WorldObject* invoker /*= nullptr*/)
@@ -2738,12 +2739,12 @@ bool GameObject::IsAtInteractDistance(Position const& pos, float radius) const
     {
         float scale = GetObjectScale();
 
-        float minX = displayInfo->minX * scale - radius;
-        float minY = displayInfo->minY * scale - radius;
-        float minZ = displayInfo->minZ * scale - radius;
-        float maxX = displayInfo->maxX * scale + radius;
-        float maxY = displayInfo->maxY * scale + radius;
-        float maxZ = displayInfo->maxZ * scale + radius;
+        float minX = displayInfo->GeoBoxMin.X * scale - radius;
+        float minY = displayInfo->GeoBoxMin.Y * scale - radius;
+        float minZ = displayInfo->GeoBoxMin.Z * scale - radius;
+        float maxX = displayInfo->GeoBoxMax.X * scale + radius;
+        float maxY = displayInfo->GeoBoxMax.Y * scale + radius;
+        float maxZ = displayInfo->GeoBoxMax.Z * scale + radius;
 
         QuaternionData worldRotation = GetWorldRotation();
         G3D::Quat worldRotationQuat(worldRotation.x, worldRotation.y, worldRotation.z, worldRotation.w);
