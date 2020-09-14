@@ -508,6 +508,10 @@ class TC_GAME_API WorldObject : public Object, public WorldLocation
 
         uint32  LastUsedScriptID;
 
+#ifdef ELUNA
+        ElunaEventProcessor* elunaEvents;
+#endif
+
         // Transports
         Transport* GetTransport() const { return m_transport; }
         float GetTransOffsetX() const { return m_movementInfo.transport.pos.GetPositionX(); }
@@ -532,10 +536,6 @@ class TC_GAME_API WorldObject : public Object, public WorldLocation
 
         float GetMapWaterOrGroundLevel(float x, float y, float z, float* ground = nullptr) const;
         float GetMapHeight(float x, float y, float z, bool vmap = true, float distanceToSearch = 50.0f) const; // DEFAULT_HEIGHT_SEARCH in map.h
-
-#ifdef ELUNA
-        ElunaEventProcessor* elunaEvents;
-#endif
 
         std::string GetDebugInfo() const override;
 
