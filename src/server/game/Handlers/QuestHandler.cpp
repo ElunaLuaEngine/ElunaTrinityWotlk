@@ -127,11 +127,11 @@ void WorldSession::HandleQuestgiverAcceptQuestOpcode(WorldPacket& recvData)
     else
         object = ObjectAccessor::FindPlayer(guid);
 
-#define CLOSE_GOSSIP_CLEAR_SHARING_INFO() \
-    do { \
-        _player->PlayerTalkClass->SendCloseGossip(); \
-        _player->ClearQuestSharingInfo(); \
-    } while (0)
+    auto CLOSE_GOSSIP_CLEAR_SHARING_INFO = ([this]()
+    {
+        _player->PlayerTalkClass->SendCloseGossip();
+        _player->ClearQuestSharingInfo();
+    });
 
     // no or incorrect quest giver
     if (!object)
@@ -628,15 +628,18 @@ void WorldSession::HandlePushQuestToParty(WorldPacket& recvPacket)
 
         sender->SendPushToPartyResponse(receiver, QUEST_PARTY_MSG_SHARING_QUEST);
 
-        if (quest->IsAutoAccept() && receiver->CanAddQuest(quest, true) && receiver->CanTakeQuest(quest, true))
-            receiver->AddQuestAndCheckCompletion(quest, sender);
-
         if ((quest->IsAutoComplete() && quest->IsRepeatable() && !quest->IsDailyOrWeekly()) || quest->HasFlag(QUEST_FLAGS_AUTOCOMPLETE))
             receiver->PlayerTalkClass->SendQuestGiverRequestItems(quest, sender->GetGUID(), receiver->CanCompleteRepeatableQuest(quest), true);
         else
         {
             receiver->SetQuestSharingInfo(sender->GetGUID(), questId);
             receiver->PlayerTalkClass->SendQuestGiverQuestDetails(quest, receiver->GetGUID(), true);
+            if (quest->IsAutoAccept() && receiver->CanAddQuest(quest, true) && receiver->CanTakeQuest(quest, true))
+            {
+                receiver->AddQuestAndCheckCompletion(quest, sender);
+                sender->SendPushToPartyResponse(receiver, QUEST_PARTY_MSG_ACCEPT_QUEST);
+                receiver->ClearQuestSharingInfo();
+            }
         }
     }
 }
