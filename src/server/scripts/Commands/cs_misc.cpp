@@ -57,6 +57,10 @@
 #undef GetClassName
 #endif
 
+#if TRINITY_COMPILER == TRINITY_COMPILER_GNU
+#pragma GCC diagnostic ignored "-Wdeprecated-declarations"
+#endif
+
 using namespace Trinity::ChatCommands;
 
 class misc_commandscript : public CommandScript
@@ -69,7 +73,7 @@ public:
         static std::vector<ChatCommand> commandTable =
         {
             { "additem",          rbac::RBAC_PERM_COMMAND_ADDITEM,          false, &HandleAddItemCommand,          "" },
-            { "additemset",       rbac::RBAC_PERM_COMMAND_ADDITEMSET,       false, &HandleAddItemSetCommand,       "" },
+            { "additem set",      rbac::RBAC_PERM_COMMAND_ADDITEMSET,       false, &HandleAddItemSetCommand,       "" },
             { "appear",           rbac::RBAC_PERM_COMMAND_APPEAR,           false, &HandleAppearCommand,           "" },
             { "aura",             rbac::RBAC_PERM_COMMAND_AURA,             false, &HandleAuraCommand,             "" },
             { "bank",             rbac::RBAC_PERM_COMMAND_BANK,             false, &HandleBankCommand,             "" },
@@ -597,7 +601,7 @@ public:
 
     static bool HandleCommandsCommand(ChatHandler* handler)
     {
-        handler->ShowHelpForCommand(ChatHandler::getCommandTable(), "");
+        Trinity::ChatCommands::SendCommandHelpFor(*handler, "");
         return true;
     }
 
@@ -688,19 +692,11 @@ public:
         return true;
     }
 
-    static bool HandleHelpCommand(ChatHandler* handler, Tail cmdArg)
+    static bool HandleHelpCommand(ChatHandler* handler, Tail cmd)
     {
-        if (cmdArg.empty())
-        {
-            handler->ShowHelpForCommand(ChatHandler::getCommandTable(), "help");
-            handler->ShowHelpForCommand(ChatHandler::getCommandTable(), "");
-        }
-        else
-        {
-            if (!handler->ShowHelpForCommand(ChatHandler::getCommandTable(), std::string(cmdArg).c_str()))
-                handler->SendSysMessage(LANG_NO_HELP_CMD);
-        }
-
+        Trinity::ChatCommands::SendCommandHelpFor(*handler, cmd);
+        if (cmd.empty())
+            Trinity::ChatCommands::SendCommandHelpFor(*handler, "help");
         return true;
     }
 
