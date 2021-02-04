@@ -7082,7 +7082,6 @@ void Player::UpdateZone(uint32 newZone, uint32 newArea)
 
     GetMap()->SendZoneDynamicInfo(newZone, this);
 
-
     // in PvP, any not controlled zone (except zone->FactionGroupMask == 6, default case)
     // in PvE, only opposition team capital
     switch (zone->FactionGroupMask)
@@ -18607,7 +18606,6 @@ void Player::_LoadQuestStatus(PreparedQueryResult result)
                     ++slot;
                 }
 
-
                 TC_LOG_DEBUG("entities.player.loading", "Player::_LoadQuestStatus: Quest status is {%u} for quest {%u} for player (%s)", questStatusData.Status, quest_id, GetGUID().ToString().c_str());
             }
         }
@@ -19918,7 +19916,6 @@ void Player::_SaveInventory(CharacterDatabaseTransaction trans)
     }
     m_itemUpdateQueue.clear();
 }
-
 
 void Player::_SaveMail(CharacterDatabaseTransaction trans)
 {
@@ -25984,7 +25981,6 @@ void Player::_SaveGlyphs(CharacterDatabaseTransaction trans) const
     CharacterDatabasePreparedStatement* stmt = CharacterDatabase.GetPreparedStatement(CHAR_DEL_CHAR_GLYPHS);
     stmt->setUInt32(0, GetGUID().GetCounter());
     trans->Append(stmt);
-
 
     for (uint8 spec = 0; spec < m_specsCount; ++spec)
     {
