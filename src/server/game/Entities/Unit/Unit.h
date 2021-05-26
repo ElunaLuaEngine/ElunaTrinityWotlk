@@ -71,6 +71,7 @@ class AuraApplication;
 class AuraEffect;
 class Creature;
 class DynamicObject;
+class GameClient;
 class GameObject;
 class Guardian;
 class Item;
@@ -1184,6 +1185,7 @@ class TC_GAME_API Unit : public WorldObject
         void RemoveAllControlled();
 
         bool IsCharmed() const { return !GetCharmerGUID().IsEmpty(); }
+        bool IsCharming() const { return !GetCharmedGUID().IsEmpty(); }
         bool isPossessed() const { return HasUnitState(UNIT_STATE_POSSESSED); }
         bool isPossessedByPlayer() const;
         bool isPossessing() const;
@@ -1193,12 +1195,17 @@ class TC_GAME_API Unit : public WorldObject
         CharmInfo* InitCharmInfo();
         void DeleteCharmInfo();
 
-        // all of these are for DIRECT CLIENT CONTROL only
-        void SetMovedUnit(Unit* target);
-        // returns the unit that this player IS CONTROLLING
-        Unit* GetUnitBeingMoved() const { return m_unitMovedByMe; }
-        // returns the player that this unit is BEING CONTROLLED BY
-        Player* GetPlayerMovingMe() const { return m_playerMovingMe; }
+        // base client control of this unit (possess effects, vehicles and similar). Not affected by temporary CC.
+        bool IsCharmerOrSelfPlayer() const { return GetCharmerOrSelf()->IsPlayer(); }
+        Unit* GetCharmerOrSelf() const;
+        Player* GetCharmerOrSelfPlayer() const { return ToPlayer(GetCharmerOrSelf());}
+        Unit* GetCharmedOrSelf() const { return IsCharming() ? GetCharmed() : const_cast<Unit*>(this); }
+
+        // real time client control status of this unit (possess effects, vehicles and similar). For example, if this unit is a player temporarly under fear, it will return false.
+        bool IsMovedByClient() const { return _gameClientMovingMe != nullptr; }
+        bool IsMovedByServer() const { return !IsMovedByClient(); }
+        GameClient* GetGameClientMovingMe() const { return _gameClientMovingMe; }
+        void SetGameClientMovingMe(GameClient* gameClientMovingMe) { _gameClientMovingMe = gameClientMovingMe; }
 
         SharedVisionList const& GetSharedVisionList() { return m_sharedVision; }
         void AddPlayerToVision(Player* player);
@@ -1624,7 +1631,7 @@ class TC_GAME_API Unit : public WorldObject
 
         void HandleSpellClick(Unit* clicker, int8 seatId = -1);
         void EnterVehicle(Unit* base, int8 seatId = -1);
-        void ExitVehicle(Position const* exitPosition = nullptr);
+        virtual void ExitVehicle(Position const* exitPosition = nullptr);
         void ChangeSeat(int8 seatId, bool next = true);
 
         // Should only be called by AuraEffect::HandleAuraControlVehicle(AuraApplication const* auraApp, uint8 mode, bool apply) const;
@@ -1672,6 +1679,8 @@ class TC_GAME_API Unit : public WorldObject
 
         // Movement info
         Movement::MoveSpline * movespline;
+
+        uint8 m_forced_speed_changes[MAX_MOVE_TYPE];
 
         int32 GetHighestExclusiveSameEffectSpellGroupValue(AuraEffect const* aurEff, AuraType auraType, bool checkMiscValue = false, int32 miscValue = 0) const;
         bool IsHighestExclusiveAura(Aura const* aura, bool removeOtherAuraApplications = false);
@@ -1751,12 +1760,11 @@ class TC_GAME_API Unit : public WorldObject
 
         float m_speed_rate[MAX_MOVE_TYPE];
 
-        Unit* m_unitMovedByMe;    // only ever set for players, and only for direct client control
-        Player* m_playerMovingMe; // only set for direct client control (possess effects, vehicles and similar)
         Unit* m_charmer; // Unit that is charming ME
         Unit* m_charmed; // Unit that is being charmed BY ME
         CharmInfo* m_charmInfo;
         SharedVisionList m_sharedVision;
+        GameClient* _gameClientMovingMe;
 
         MotionMaster* i_motionMaster;
 
