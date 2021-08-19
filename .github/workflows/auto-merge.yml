@@ -1,4 +1,4 @@
-name: GCC
+name: automerge
 
 on:
   schedule:
