@@ -215,28 +215,6 @@ void SpellCastTargets::Write(WorldPackets::Spells::SpellTargetData& data)
         data.Name = m_strTarget;
 }
 
-ObjectGuid SpellCastTargets::GetOrigUnitTargetGUID() const
-{
-    switch (m_origObjectTargetGUID.GetHigh())
-    {
-        case HighGuid::Player:
-        case HighGuid::Vehicle:
-        case HighGuid::Unit:
-        case HighGuid::Pet:
-            return m_origObjectTargetGUID;
-        default:
-            return ObjectGuid();
-    }
-}
-
-void SpellCastTargets::SetOrigUnitTarget(Unit* target)
-{
-    if (!target)
-        return;
-
-    m_origObjectTargetGUID = target->GetGUID();
-}
-
 ObjectGuid SpellCastTargets::GetUnitTargetGUID() const
 {
     if (m_objectTargetGUID.IsUnit())
@@ -584,6 +562,7 @@ m_caster((info->HasAttribute(SPELL_ATTR6_CAST_BY_CHARMER) && caster->GetCharmerO
     damage = 0;
     targetMissInfo = SPELL_MISS_NONE;
     effectHandleMode = SPELL_EFFECT_HANDLE_LAUNCH;
+    effectInfo = nullptr;
     m_damage = 0;
     m_healing = 0;
     m_procAttacker = 0;
@@ -650,7 +629,7 @@ Spell::~Spell()
 void Spell::InitExplicitTargets(SpellCastTargets const& targets)
 {
     m_targets = targets;
-    m_targets.SetOrigUnitTarget(m_targets.GetUnitTarget());
+
     // this function tries to correct spell explicit targets for spell
     // client doesn't send explicit targets correctly sometimes - we need to fix such spells serverside
     // this also makes sure that we correctly send explicit targets to client (removes redundant data)
@@ -2514,6 +2493,8 @@ void Spell::TargetInfo::DoDamageAndTriggers(Spell* spell)
             }
             else
             {
+                caster->SetLastDamagedTargetGuid(spell->unitTarget->GetGUID());
+
                 // Add bonuses and fill damageInfo struct
                 caster->CalculateSpellDamageTaken(&damageInfo, spell->m_damage, spell->m_spellInfo, spell->m_attackType, IsCrit, spell);
                 Unit::DealDamageMods(damageInfo.target, damageInfo.damage, &damageInfo.absorb);
@@ -3710,13 +3691,8 @@ void Spell::_handle_finish_phase()
             unitCaster->AddComboPoints(m_comboTarget, m_comboPointGain);
         }
 
-        if (unitCaster->m_extraAttacks && m_spellInfo->HasEffect(SPELL_EFFECT_ADD_EXTRA_ATTACKS))
-        {
-            if (Unit* victim = ObjectAccessor::GetUnit(*unitCaster, m_targets.GetOrigUnitTargetGUID()))
-                unitCaster->HandleProcExtraAttackFor(victim);
-            else
-                unitCaster->m_extraAttacks = 0;
-        }
+        if (m_spellInfo->HasEffect(SPELL_EFFECT_ADD_EXTRA_ATTACKS))
+            unitCaster->SetLastExtraAttackSpell(m_spellInfo->Id);
     }
 
     // Handle procs on finish
@@ -5081,6 +5057,7 @@ void Spell::HandleEffects(Unit* pUnitTarget, Item* pItemTarget, GameObject* pGoT
     gameObjTarget = pGoTarget;
     m_corpseTarget = pCorpseTarget;
     destTarget = &m_destTargets[spellEffectInfo.EffectIndex]._position;
+    effectInfo = &spellEffectInfo;
 
     // we do not need DamageMultiplier here.
     damage = CalculateDamage(spellEffectInfo);
@@ -5088,7 +5065,7 @@ void Spell::HandleEffects(Unit* pUnitTarget, Item* pItemTarget, GameObject* pGoT
     bool preventDefault = CallScriptEffectHandlers(spellEffectInfo.EffectIndex, mode);
 
     if (!preventDefault)
-        (this->*SpellEffectHandlers[spellEffectInfo.Effect])(spellEffectInfo.EffectIndex);
+        (this->*SpellEffectHandlers[spellEffectInfo.Effect])();
 }
 
 SpellCastResult Spell::CheckCast(bool strict, uint32* param1 /*= nullptr*/, uint32* param2 /*= nullptr*/)

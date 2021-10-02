@@ -841,7 +841,7 @@ SpellInfo::SpellInfo(SpellEntry const* spellEntry)
     AreaGroupId = spellEntry->RequiredAreasID;
     SchoolMask = spellEntry->SchoolMask;
     for (uint8 i = 0; i < MAX_SPELL_EFFECTS; ++i)
-        Effects[i] = SpellEffectInfo(spellEntry, this, i);
+        _effects[i] = SpellEffectInfo(spellEntry, this, i);
 
     ChainEntry = nullptr;
     ExplicitTargetMask = 0;
@@ -1705,7 +1705,7 @@ SpellCastResult SpellInfo::CheckTarget(WorldObject const* caster, WorldObject co
        return SPELL_FAILED_BAD_TARGETS;
 
     // checked in Unit::IsValidAttack/AssistTarget, shouldn't be checked for ENTRY targets
-    //if (!HasAttribute(SPELL_ATTR6_CAN_TARGET_UNTARGETABLE) && target->HasFlag(UNIT_FIELD_FLAGS, UNIT_FLAG_NOT_SELECTABLE))
+    //if (!HasAttribute(SPELL_ATTR6_CAN_TARGET_UNTARGETABLE) && target->HasFlag(UNIT_FIELD_FLAGS, UNIT_FLAG_UNINTERACTIBLE))
     //    return SPELL_FAILED_BAD_TARGETS;
 
     //if (!HasAttribute(SPELL_ATTR6_CAN_TARGET_POSSESSED_FRIENDS))
@@ -1757,7 +1757,7 @@ SpellCastResult SpellInfo::CheckTarget(WorldObject const* caster, WorldObject co
     if (ExcludeTargetAuraSpell && unitTarget->HasAura(sSpellMgr->GetSpellIdForDifficulty(ExcludeTargetAuraSpell, caster)))
         return SPELL_FAILED_TARGET_AURASTATE;
 
-    if (unitTarget->HasAuraType(SPELL_AURA_PREVENT_RESURRECTION))
+    if (unitTarget->HasAuraType(SPELL_AURA_PREVENT_RESURRECTION) && !HasAttribute(SPELL_ATTR7_BYPASS_NO_RESURRECT_AURA))
         if (HasEffect(SPELL_EFFECT_SELF_RESURRECT) || HasEffect(SPELL_EFFECT_RESURRECT) || HasEffect(SPELL_EFFECT_RESURRECT_NEW))
             return SPELL_FAILED_TARGET_CANNOT_BE_RESURRECTED;
 
@@ -2558,7 +2558,7 @@ int32 SpellInfo::GetDiminishingReturnsLimitDuration(bool triggered) const
 
 void SpellInfo::_LoadImmunityInfo()
 {
-    for (SpellEffectInfo& effect : Effects)
+    for (SpellEffectInfo& effect : _GetEffects())
     {
         uint32 schoolImmunityMask = 0;
         uint32 applyHarmfulAuraImmunityMask = 0;
@@ -2996,7 +2996,7 @@ bool SpellInfo::SpellCancelsAuraEffect(AuraEffect const* aurEff) const
 
     for (SpellEffectInfo const& effect : GetEffects())
     {
-        if (effect.IsEffect(SPELL_EFFECT_APPLY_AURA))
+        if (!effect.IsEffect(SPELL_EFFECT_APPLY_AURA))
             continue;
 
         uint32 const miscValue = static_cast<uint32>(effect.MiscValue);
@@ -3892,15 +3892,15 @@ void SpellInfo::_InitializeSpellPositivity()
 void SpellInfo::_UnloadImplicitTargetConditionLists()
 {
     // find the same instances of ConditionList and delete them.
-    for (SpellEffectInfo const& effect : Effects)
+    for (SpellEffectInfo const& effect : GetEffects())
     {
         ConditionContainer* cur = effect.ImplicitTargetConditions;
         if (!cur)
             continue;
 
-        for (size_t j = effect.EffectIndex; j < Effects.size(); ++j)
-            if (Effects[j].ImplicitTargetConditions == cur)
-                Effects[j].ImplicitTargetConditions = nullptr;
+        for (size_t j = effect.EffectIndex; j < GetEffects().size(); ++j)
+            if (GetEffect(SpellEffIndex(j)).ImplicitTargetConditions == cur)
+                _GetEffect(SpellEffIndex(j)).ImplicitTargetConditions = nullptr;
 
         delete cur;
     }

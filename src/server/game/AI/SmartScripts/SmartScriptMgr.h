@@ -473,8 +473,8 @@ enum SMART_ACTION
     SMART_ACTION_CALL_AREAEXPLOREDOREVENTHAPPENS    = 15,     // QuestID
     SMART_ACTION_RESERVED_16                        = 16,     // used on 4.3.4 and higher scripts
     SMART_ACTION_SET_EMOTE_STATE                    = 17,     // emoteID
-    SMART_ACTION_SET_UNIT_FLAG                      = 18,     // Flags (may be more than one field OR'd together), Target
-    SMART_ACTION_REMOVE_UNIT_FLAG                   = 19,     // Flags (may be more than one field OR'd together), Target
+    SMART_ACTION_SET_UNIT_FLAG                      = 18,     // Flags
+    SMART_ACTION_REMOVE_UNIT_FLAG                   = 19,     // Flags
     SMART_ACTION_AUTO_ATTACK                        = 20,     // AllowAttackState (0 = stop attack, anything else means continue attacking)
     SMART_ACTION_ALLOW_COMBAT_MOVEMENT              = 21,     // AllowCombatMovement (0 = stop combat based movement, anything else continue attacking)
     SMART_ACTION_SET_EVENT_PHASE                    = 22,     // Phase
@@ -513,7 +513,7 @@ enum SMART_ACTION
     SMART_ACTION_WP_STOP                            = 55,     // despawnTime, quest, fail?
     SMART_ACTION_ADD_ITEM                           = 56,     // itemID, count
     SMART_ACTION_REMOVE_ITEM                        = 57,     // itemID, count
-    // SMART_ACTION_UNUSED_58                       = 58,     // do not reuse
+    SMART_ACTION_INSTALL_AI_TEMPLATE                = 58,     // do not use
     SMART_ACTION_SET_RUN                            = 59,     // 0/1
     SMART_ACTION_SET_DISABLE_GRAVITY                = 60,     // 0/1
     SMART_ACTION_SET_SWIM                           = 61,     // 0/1
@@ -549,7 +549,7 @@ enum SMART_ACTION
     SMART_ACTION_REMOVE_UNIT_FIELD_BYTES_1          = 91,     // bytes, target
     SMART_ACTION_INTERRUPT_SPELL                    = 92,
     SMART_ACTION_SEND_GO_CUSTOM_ANIM                = 93,     // anim id
-    // SMART_ACTION_UNUSED_94                       = 94,     // do not reuse
+    SMART_ACTION_SET_DYNAMIC_FLAG                   = 94,     // do not use
     SMART_ACTION_ADD_DYNAMIC_FLAG                   = 95,     // Flags
     SMART_ACTION_REMOVE_DYNAMIC_FLAG                = 96,     // Flags
     SMART_ACTION_JUMP_TO_POS                        = 97,     // speedXY, speedZ, targetX, targetY, targetZ
@@ -599,8 +599,11 @@ enum SMART_ACTION
     SMART_ACTION_SET_HOVER                          = 141,    // 0/1
     SMART_ACTION_SET_HEALTH_PCT                     = 142,    // percent
     SMART_ACTION_CREATE_CONVERSATION                = 143,    // don't use on 3.3.5a
+    SMART_ACTION_SET_IMMUNE_PC                      = 144,    // 0/1
+    SMART_ACTION_SET_IMMUNE_NPC                     = 145,    // 0/1
+    SMART_ACTION_SET_UNINTERACTIBLE                 = 146,    // 0/1
 
-    SMART_ACTION_END                                = 144
+    SMART_ACTION_END                                = 147
 };
 
 enum class SmartActionSummonCreatureFlags
@@ -947,7 +950,6 @@ struct SmartAction
         struct
         {
             uint32 flag;
-            uint32 type;
         } unitFlag;
 
         struct
@@ -1197,6 +1199,21 @@ struct SmartAction
         {
             uint32 percent;
         } setHealthPct;
+
+        struct
+        {
+            SAIBool immunePC;
+        } setImmunePC;
+
+        struct
+        {
+            SAIBool immuneNPC;
+        } setImmuneNPC;
+
+        struct
+        {
+            SAIBool uninteractible;
+        } setUninteractible;
 
         //! Note for any new future actions
         //! All parameters must have type uint32

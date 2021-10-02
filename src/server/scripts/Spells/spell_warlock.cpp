@@ -196,7 +196,7 @@ class spell_warl_create_healthstone : public SpellScriptLoader
                 return SPELL_CAST_OK;
             }
 
-            void HandleScriptEffect(SpellEffIndex effIndex)
+            void HandleScriptEffect(SpellEffIndex /*effIndex*/)
             {
                 if (Unit* unitTarget = GetHitUnit())
                 {
@@ -219,7 +219,7 @@ class spell_warl_create_healthstone : public SpellScriptLoader
                     }
                     uint8 spellRank = GetSpellInfo()->GetRank();
                     if (spellRank > 0 && spellRank <= 8)
-                        CreateItem(effIndex, iTypes[spellRank - 1][rank]);
+                        CreateItem(iTypes[spellRank - 1][rank]);
                 }
             }
 
@@ -468,7 +468,7 @@ class spell_warl_drain_soul : public AuraScript
         if (!impDrainSoul)
             return;
 
-        int32 amount = CalculatePct(caster->GetMaxPower(POWER_MANA), impDrainSoul->GetSpellInfo()->Effects[EFFECT_2].CalcValue());
+        int32 amount = CalculatePct(caster->GetMaxPower(POWER_MANA), impDrainSoul->GetSpellInfo()->GetEffect(EFFECT_2).CalcValue());
         CastSpellExtraArgs args(aurEff);
         args.AddSpellBP0(amount);
         caster->CastSpell(nullptr, SPELL_WARLOCK_IMPROVED_DRAIN_SOUL_PROC, args);
@@ -757,7 +757,7 @@ class spell_warl_life_tap : public SpellScript
 
     SpellCastResult CheckCast()
     {
-        if (int32(GetCaster()->GetHealth()) > int32(GetSpellInfo()->Effects[EFFECT_0].CalcValue()))
+        if (int32(GetCaster()->GetHealth()) > int32(GetEffectInfo(EFFECT_0).CalcValue()))
             return SPELL_CAST_OK;
         return SPELL_FAILED_FIZZLE;
     }
@@ -973,7 +973,7 @@ class spell_warl_seed_of_corruption_dummy : public AuraScript
             return;
 
         // effect 1 scales with 14% of caster's SP (DBC data)
-        amount = caster->SpellDamageBonusDone(GetUnitOwner(), GetSpellInfo(), amount, SPELL_DIRECT_DAMAGE, aurEff->GetEffIndex(), GetAura()->GetDonePct());
+        amount = caster->SpellDamageBonusDone(GetUnitOwner(), GetSpellInfo(), amount, SPELL_DIRECT_DAMAGE, aurEff->GetSpellEffectInfo(), GetAura()->GetDonePct());
     }
 
     void HandleProc(AuraEffect const* aurEff, ProcEventInfo& eventInfo)

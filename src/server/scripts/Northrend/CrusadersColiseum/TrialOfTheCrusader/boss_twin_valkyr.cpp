@@ -555,7 +555,7 @@ struct npc_unleashed_ballAI : public ScriptedAI
 
     void Reset() override
     {
-        me->SetFlag(UNIT_FIELD_FLAGS, UNIT_FLAG_NON_ATTACKABLE | UNIT_FLAG_NOT_SELECTABLE);
+        me->SetFlag(UNIT_FIELD_FLAGS, UNIT_FLAG_NON_ATTACKABLE | UNIT_FLAG_UNINTERACTIBLE);
         me->SetReactState(REACT_PASSIVE);
         me->SetDisableGravity(true);
         me->SetCanFly(true);
@@ -759,7 +759,7 @@ private:
                     // Twin Vortex part
                     uint32 lightVortex = sSpellMgr->GetSpellIdForDifficulty(SPELL_LIGHT_VORTEX_DAMAGE, owner);
                     uint32 darkVortex = sSpellMgr->GetSpellIdForDifficulty(SPELL_DARK_VORTEX_DAMAGE, owner);
-                    int32 stacksCount = dmgInfo.GetSpellInfo()->Effects[EFFECT_0].CalcValue() / 1000 - 1;
+                    int32 stacksCount = dmgInfo.GetSpellInfo()->GetEffect(EFFECT_0).CalcValue() / 1000 - 1;
 
                     if (lightVortex && darkVortex && stacksCount)
                     {
