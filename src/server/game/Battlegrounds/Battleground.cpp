@@ -40,6 +40,9 @@
 #include "WorldPacket.h"
 #include "WorldStatePackets.h"
 #include <cstdarg>
+#ifdef ELUNA
+#include "LuaEngine.h"
+#endif
 
 void BattlegroundScore::AppendToPacket(WorldPacket& data)
 {
@@ -143,6 +146,10 @@ Battleground::~Battleground()
     size = uint32(BgObjects.size());
     for (uint32 i = 0; i < size; ++i)
         DelObject(i);
+
+#ifdef ELUNA
+    sEluna->OnBGDestroy(this, GetTypeID(), GetInstanceID());
+#endif
 
     sBattlegroundMgr->RemoveBattleground(GetTypeID(), GetInstanceID());
     // unload map
@@ -447,6 +454,10 @@ inline void Battleground::_ProcessJoin(uint32 diff)
         m_Events |= BG_STARTING_EVENT_4;
 
         StartingEventOpenDoors();
+
+#ifdef ELUNA
+        sEluna->OnBGStart(this, GetTypeID(), GetInstanceID());
+#endif
 
         if (StartMessageIds[BG_STARTING_EVENT_FOURTH])
             SendBroadcastText(StartMessageIds[BG_STARTING_EVENT_FOURTH], CHAT_MSG_BG_SYSTEM_NEUTRAL);
@@ -801,6 +812,10 @@ void Battleground::EndBattleground(uint32 winner)
         player->SendDirectMessage(&data);
         player->UpdateAchievementCriteria(ACHIEVEMENT_CRITERIA_TYPE_COMPLETE_BATTLEGROUND, player->GetMapId());
     }
+#ifdef ELUNA
+    //the type of the winner,change Team to BattlegroundTeamId,it could be better.
+    sEluna->OnBGEnd(this, GetTypeID(), GetInstanceID(), Team(winner));
+#endif
 }
 
 uint32 Battleground::GetBonusHonorFromKill(uint32 kills) const
@@ -972,6 +987,10 @@ void Battleground::StartBattleground()
     // This must be done here, because we need to have already invited some players when first BG::Update() method is executed
     // and it doesn't matter if we call StartBattleground() more times, because m_Battlegrounds is a map and instance id never changes
     sBattlegroundMgr->AddBattleground(this);
+
+#ifdef ELUNA
+    sEluna->OnBGCreate(this, GetTypeID(), GetInstanceID());
+#endif
 
     if (m_IsRated)
         TC_LOG_DEBUG("bg.arena", "Arena match type: %u for Team1Id: %u - Team2Id: %u started.", m_ArenaType, m_ArenaTeamIds[TEAM_ALLIANCE], m_ArenaTeamIds[TEAM_HORDE]);
