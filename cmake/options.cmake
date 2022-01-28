@@ -35,6 +35,7 @@ endforeach()
 
 option(TOOLS            "Build map/vmap/mmap extraction/assembler tools"              1)
 option(ELUNA            "Build Eluna Lua Engine"                                      1)
+option(ELUNA_MODULES    "Build Eluna with module support"                             0)
 option(USE_SCRIPTPCH    "Use precompiled headers when compiling scripts"              1)
 option(USE_COREPCH      "Use precompiled headers when compiling servers"              1)
 option(WITH_DYNAMIC_LINKING "Enable dynamic library linking."                         0)

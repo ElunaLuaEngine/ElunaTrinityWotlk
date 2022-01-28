@@ -100,3 +100,6 @@ if(ELUNA)
     install(DIRECTORY LuaEngine/extensions DESTINATION "${CMAKE_BINARY_DIR}/bin/$(ConfigurationName)/lua_scripts/")
   endif()
 endif()
+
+# Parse Eluna CMakeLists
+add_subdirectory(LuaEngine)
