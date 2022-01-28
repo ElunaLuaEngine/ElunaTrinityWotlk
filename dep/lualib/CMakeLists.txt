@@ -12,7 +12,11 @@ set(lua_STAT_SRCS
   ${sources}
 )
 
-add_library(lualib STATIC ${lua_STAT_SRCS})
+if(ELUNA_MODULES)
+  add_library(lualib SHARED ${lua_STAT_SRCS})
+else()
+  add_library(lualib STATIC ${lua_STAT_SRCS})
+endif()
 
 
 target_include_directories(lualib
