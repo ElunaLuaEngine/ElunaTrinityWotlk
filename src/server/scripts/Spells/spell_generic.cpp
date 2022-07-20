@@ -247,6 +247,11 @@ class spell_gen_arena_drink : public AuraScript
 
     bool Load() override
     {
+        //npcbot
+        if (GetCaster() && GetCaster()->GetTypeId() == TYPEID_UNIT && GetCaster()->ToCreature()->IsNPCBot())
+            return true;
+        //end npcbot
+
         return GetCaster() && GetCaster()->GetTypeId() == TYPEID_PLAYER;
     }
 
@@ -268,6 +273,14 @@ class spell_gen_arena_drink : public AuraScript
         if (!regen)
             return;
 
+        //npcbot
+        if (GetCaster()->GetTypeId() == TYPEID_UNIT)
+        {
+            isPeriodic = false;
+            return;
+        }
+        //end npcbot
+
         // default case - not in arena
         if (!GetCaster()->ToPlayer()->InArena())
             isPeriodic = false;
@@ -278,6 +291,14 @@ class spell_gen_arena_drink : public AuraScript
         AuraEffect* regen = GetAura()->GetEffect(EFFECT_0);
         if (!regen)
             return;
+
+        //npcbot
+        if (GetCaster()->GetTypeId() == TYPEID_UNIT)
+        {
+            regen->ChangeAmount(amount);
+            return;
+        }
+        //end npcbot
 
         // default case - not in arena
         if (!GetCaster()->ToPlayer()->InArena())
@@ -3631,6 +3652,10 @@ class spell_gen_vehicle_scaling : public AuraScript
 
     bool Load() override
     {
+        //npcbot
+        if (GetCaster() && GetCaster()->GetTypeId() == TYPEID_UNIT && GetCaster()->ToCreature()->IsNPCBot())
+            return true;
+        //end npcbot
         return GetCaster() && GetCaster()->GetTypeId() == TYPEID_PLAYER;
     }
 
@@ -3653,7 +3678,19 @@ class spell_gen_vehicle_scaling : public AuraScript
                 break;
         }
 
+        //npcbot
+        /*
+        //end npcbot
         float avgILvl = caster->ToPlayer()->GetAverageItemLevel();
+        //npcbot
+        */
+        float avgILvl;
+        if (caster->GetTypeId() == TYPEID_PLAYER)
+            avgILvl = caster->ToPlayer()->GetAverageItemLevel();
+        else
+            avgILvl = caster->ToCreature()->GetBotAverageItemLevel();
+        //end npcbot
+
         if (avgILvl < baseItemLevel)
             return;                     /// @todo Research possibility of scaling down
 
