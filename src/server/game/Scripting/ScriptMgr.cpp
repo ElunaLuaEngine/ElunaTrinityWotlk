@@ -46,6 +46,7 @@
 #include "ElunaUtility.h"
 #endif
 #include "WorldSession.h"
+#include "botmgr.h"
 
 // Trait which indicates whether this script type
 // must be assigned in the database.
@@ -1046,6 +1047,10 @@ void ScriptMgr::Initialize()
 
     // LFGScripts
     lfg::AddSC_LFGScripts();
+
+    //npcbot: load bot scripts here
+    AddNpcBotScripts();
+    //end npcbot
 
     // Load all static linked scripts through the script loader function.
     ASSERT(_script_loader_callback,

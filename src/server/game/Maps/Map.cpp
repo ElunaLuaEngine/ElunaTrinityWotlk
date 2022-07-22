@@ -57,6 +57,10 @@
 #include "Hacks/boost_1_74_fibonacci_heap.h"
 BOOST_1_74_FIBONACCI_HEAP_MSVC_COMPILE_FIX(RespawnListContainer::value_type)
 
+//npcbot
+#include "botmgr.h"
+//end npcbot
+
 u_map_magic MapMagic        = { {'M','A','P','S'} };
 uint32 MapVersionMagic      = 10;
 u_map_magic MapAreaMagic    = { {'A','R','E','A'} };
@@ -3652,7 +3656,26 @@ uint32 Map::GetPlayersCountExceptGMs() const
     uint32 count = 0;
     for (MapRefManager::const_iterator itr = m_mapRefManager.begin(); itr != m_mapRefManager.end(); ++itr)
         if (!itr->GetSource()->IsGameMaster())
+        //npcbot - count npcbots as group members (event if not in group)
+        {
+            if (itr->GetSource()->HaveBot() && BotMgr::LimitBots(this))
+            {
+                ++count;
+                BotMap const* botmap = itr->GetSource()->GetBotMgr()->GetBotMap();
+                for (BotMap::const_iterator itr = botmap->begin(); itr != botmap->end(); ++itr)
+                {
+                    Creature* cre = itr->second;
+                    if (!cre || !cre->IsInWorld() || cre->FindMap() != this || cre->IsTempBot())
+                        continue;
+                    ++count;
+                }
+                continue;
+            }
+        //end npcbot
             ++count;
+        //npcbot
+        }
+        //end npcbot
     return count;
 }
 
@@ -3718,6 +3741,10 @@ void Map::AddToActive(Creature* c)
         GridCoord p = Trinity::ComputeGridCoord(x, y);
         if (getNGrid(p.x_coord, p.y_coord))
             getNGrid(p.x_coord, p.y_coord)->incUnloadActiveLock();
+        //npcbot
+        else if (c->IsNPCBot())
+            EnsureGridLoadedForActiveObject(Cell(Trinity::ComputeCellCoord(c->GetPositionX(), c->GetPositionY())), c);
+        //end npcbot
         else
         {
             GridCoord p2 = Trinity::ComputeGridCoord(c->GetPositionX(), c->GetPositionY());
@@ -3745,10 +3772,19 @@ void Map::RemoveFromActive(Creature* c)
     if (!c->IsPet() && c->GetSpawnId())
     {
         float x, y, z;
+        //npcbot: prevent crash from accessing deleted creatureData
+        if (c->IsNPCBot())
+            c->GetHomePosition().GetPosition(x, y, z);
+        else
+        //end npcbot
         c->GetRespawnPosition(x, y, z);
         GridCoord p = Trinity::ComputeGridCoord(x, y);
         if (getNGrid(p.x_coord, p.y_coord))
             getNGrid(p.x_coord, p.y_coord)->decUnloadActiveLock();
+        //npcbot
+        else if (c->IsNPCBot())
+            EnsureGridLoaded(Cell(Trinity::ComputeCellCoord(c->GetPositionX(), c->GetPositionY())));
+        //end npcbot
         else
         {
             GridCoord p2 = Trinity::ComputeGridCoord(c->GetPositionX(), c->GetPositionY());
@@ -4463,6 +4499,11 @@ void Map::SaveRespawnTime(SpawnObjectType type, ObjectGuid::LowType spawnId, uin
 
 void Map::SaveRespawnInfoDB(RespawnInfo const& info, CharacterDatabaseTransaction dbTrans)
 {
+    //npcbot: DO NOT save npcbots respawn time
+    if (info.type == SPAWN_TYPE_CREATURE && info.entry >= BOT_ENTRY_BEGIN && info.entry <= BOT_ENTRY_END)
+        return;
+    //end npcbot
+
     CharacterDatabasePreparedStatement* stmt = CharacterDatabase.GetPreparedStatement(CHAR_REP_RESPAWN);
     stmt->setUInt16(0, info.type);
     stmt->setUInt32(1, info.spawnId);
