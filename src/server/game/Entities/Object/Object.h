@@ -503,13 +503,7 @@ class TC_GAME_API WorldObject : public Object, public WorldLocation
 #ifdef ELUNA
         ElunaEventProcessor* elunaEvents;
 
-        Eluna* GetEluna() const
-        {
-            if (IsInWorld())
-                return GetMap()->GetEluna();
-
-            return nullptr;
-        }
+        Eluna* GetEluna() const;
 #endif
 
         // Transports

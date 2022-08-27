@@ -311,9 +311,6 @@ extern int main(int argc, char** argv)
         sInstanceSaveMgr->Unload();
         sOutdoorPvPMgr->Die();                     // unload it before MapManager
         sMapMgr->UnloadAll();                      // unload all grids (including locked in memory)
-#ifdef ELUNA
-        Eluna::Uninitialize();
-#endif
     });
 
     // Start the Remote Access port (acceptor) if enabled
