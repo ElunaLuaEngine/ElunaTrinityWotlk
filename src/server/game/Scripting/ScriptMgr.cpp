@@ -1548,8 +1548,11 @@ void ScriptMgr::OnMapUpdate(Map* map, uint32 diff)
     ASSERT(map);
 
 #ifdef ELUNA
-    if(Eluna * e = map->GetEluna())
-        e->OnUpdate(map, diff);
+    if (map->IsParentMap())
+    {
+        if(Eluna * e = map->GetEluna())
+            e->OnUpdate(map, diff);
+    }
 #endif
 
     SCR_MAP_BGN(WorldMapScript, map, itr, end, entry, IsWorldMap);
