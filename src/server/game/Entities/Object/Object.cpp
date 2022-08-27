@@ -1067,7 +1067,8 @@ void WorldObject::CleanupsBeforeDelete(bool /*finalCleanup*/)
 void WorldObject::Update (uint32 time_diff)
 {
 #ifdef ELUNA
-    elunaEvents->Update(time_diff);
+    if(elunaEvents) // can be null on maps without eluna
+        elunaEvents->Update(time_diff);
 #endif
 }
 
@@ -1851,8 +1852,9 @@ void WorldObject::SetMap(Map* map)
 
 #ifdef ELUNA
     delete elunaEvents;
-    // On multithread replace this with a pointer to map's Eluna pointer stored in a map
-    elunaEvents = new ElunaEventProcessor(&Eluna::GEluna, this);
+    elunaEvents = nullptr; // set to null in case map doesn't use eluna
+    if(Eluna * e = map->GetEluna())
+        elunaEvents = new ElunaEventProcessor(e, this);
 #endif
 
     if (IsWorldObject())

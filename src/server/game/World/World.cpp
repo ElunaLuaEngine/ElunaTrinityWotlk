@@ -88,6 +88,7 @@
 #include "WeatherMgr.h"
 #ifdef ELUNA
 #include "LuaEngine.h"
+#include "ElunaLoader.h"
 #endif
 #include "WhoListStorage.h"
 #include "WorldSession.h"
@@ -1600,7 +1601,7 @@ void World::SetInitialWorldSettings()
 #ifdef ELUNA
     ///- Initialize Lua Engine
     TC_LOG_INFO("server.loading", "Initialize Eluna Lua Engine...");
-    Eluna::Initialize();
+    sElunaLoader->LoadScripts();
 #endif
 
     ///- Initialize pool manager
@@ -2222,10 +2223,8 @@ void World::SetInitialWorldSettings()
     InitGuildResetTime();
 
 #ifdef ELUNA
-    ///- Run eluna scripts.
-    // in multithread foreach: run scripts
-    sEluna->RunScripts();
-    sEluna->OnConfigLoad(false); // Must be done after Eluna is initialized and scripts have run.
+    // @todo: Find way to run this hook
+    //sEluna->OnConfigLoad(false); // Must be done after Eluna is initialized and scripts have run.
 #endif
 
     // Preload all cells, if required for the base maps

@@ -434,7 +434,8 @@ Unit::~Unit()
 void Unit::Update(uint32 p_time)
 {
 #ifdef ELUNA
-    elunaEvents->Update(p_time);
+    if(elunaEvents) // can be null on maps without eluna
+        elunaEvents->Update(p_time);
 #endif
 
     // WARNING! Order of execution here is important, do not change.

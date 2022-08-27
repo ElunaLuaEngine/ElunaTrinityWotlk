@@ -148,8 +148,9 @@ bool GameEventMgr::StartEvent(uint16 event_id, bool overwrite)
         // When event is started, set its worldstate to current time
         sWorld->setWorldState(event_id, GameTime::GetGameTime());
 #ifdef ELUNA
-        if (IsActiveEvent(event_id))
-            sEluna->OnGameEventStart(event_id);
+        //@todo: Need way to call this hook safely.
+        //if (IsActiveEvent(event_id))
+            //sEluna->OnGameEventStart(event_id);
 #endif
         return false;
     }
@@ -175,8 +176,9 @@ bool GameEventMgr::StartEvent(uint16 event_id, bool overwrite)
             sWorld->ForceGameEventUpdate();
 
 #ifdef ELUNA
-        if (IsActiveEvent(event_id))
-            sEluna->OnGameEventStart(event_id);
+        //@todo: Need way to call this hook safely.
+        //if (IsActiveEvent(event_id))
+            //sEluna->OnGameEventStart(event_id);
 #endif
         return conditions_met;
     }
@@ -225,8 +227,9 @@ void GameEventMgr::StopEvent(uint16 event_id, bool overwrite)
     }
 
 #ifdef ELUNA
-    if (!IsActiveEvent(event_id))
-        sEluna->OnGameEventStop(event_id);
+    //@todo: Need way to call this hook safely.
+    //if (!IsActiveEvent(event_id))
+        //sEluna->OnGameEventStop(event_id);
 #endif
 }
 

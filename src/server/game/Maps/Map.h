@@ -41,6 +41,9 @@
 class Battleground;
 class BattlegroundMap;
 class CreatureGroup;
+#ifdef ELUNA
+class Eluna;
+#endif
 class GameObjectModel;
 class Group;
 class InstanceMap;
@@ -818,7 +821,17 @@ class TC_GAME_API Map : public GridRefManager<NGridType>
 
         typedef std::function<void(Map*)> FarSpellCallback;
         void AddFarSpellCallback(FarSpellCallback&& callback);
+        bool IsParentMap() const { return GetParent() == this; }
+#ifdef ELUNA
+        Eluna* GetEluna() const
+        {
+            // For per instance eluna states remove IsParent() check.
+            if (IsParentMap())
+                return eluna;
 
+            return GetParent()->GetEluna();
+        }
+#endif
     private:
         // Type specific code for add/remove to/from grid
         template<class T>
@@ -906,6 +919,9 @@ class TC_GAME_API Map : public GridRefManager<NGridType>
         std::unordered_set<Object*> _updateObjects;
 
         MPSCQueue<FarSpellCallback> _farSpellCallbacks;
+#ifdef ELUNA
+        Eluna* eluna;
+#endif
 };
 
 enum InstanceResetMethod

@@ -51,15 +51,6 @@ void MapManager::Initialize()
     Map::InitStateMachine();
 
     int num_threads(sWorld->getIntConfig(CONFIG_NUMTHREADS));
-#if ELUNA
-    if (num_threads > 1)
-    {
-        // Force 1 thread for Eluna as lua is single threaded. By default thread count is 1
-        // This should allow us not to use mutex locks
-        TC_LOG_ERROR("maps", "Map update threads set to %i, when Eluna only allows 1, changing to 1", num_threads);
-        num_threads = 1;
-    }
-#endif
     // Start mtmaps if needed.
     if (num_threads > 0)
         m_updater.activate(num_threads);
@@ -371,6 +362,7 @@ void MapManager::FreeInstanceId(uint32 instanceId)
     _nextInstanceId = std::min(instanceId, _nextInstanceId);
     _freeInstanceIds[instanceId] = true;
 #ifdef ELUNA
-    sEluna->FreeInstanceId(instanceId);
+    //@todo: find way to reenable this hook.
+    //sEluna->FreeInstanceId(instanceId);
 #endif
 }

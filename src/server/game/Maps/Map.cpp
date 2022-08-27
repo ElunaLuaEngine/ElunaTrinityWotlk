@@ -46,6 +46,7 @@
 #include "VMapFactory.h"
 #ifdef ELUNA
 #include "LuaEngine.h"
+#include "ElunaLoader.h"
 #endif
 #include "VMapManager2.h"
 #include "Weather.h"
@@ -280,6 +281,14 @@ i_gridExpiry(expiry),
 i_scriptLock(false), _respawnCheckTimer(0)
 {
     m_parentMap = (_parent ? _parent : this);
+#ifdef ELUNA
+    if (sElunaLoader->ShouldMapLoadEluna(id))
+    {
+        //Remove check to have per instance eluna states.
+        if (IsParentMap())
+            eluna = new Eluna(id);
+    }
+#endif
     for (unsigned int idx=0; idx < MAX_NUMBER_OF_GRIDS; ++idx)
     {
         for (unsigned int j=0; j < MAX_NUMBER_OF_GRIDS; ++j)
@@ -3548,10 +3557,13 @@ void Map::AddObjectToRemoveList(WorldObject* obj)
     ASSERT(obj->GetMapId() == GetId() && obj->GetInstanceId() == GetInstanceId());
 
 #ifdef ELUNA
-    if (Creature* creature = obj->ToCreature())
-        sEluna->OnRemove(creature);
-    else if (GameObject* gameobject = obj->ToGameObject())
-        sEluna->OnRemove(gameobject);
+    if (Eluna* e = GetEluna())
+    {
+        if (Creature* creature = obj->ToCreature())
+            e->OnRemove(creature);
+        else if (GameObject* gameobject = obj->ToGameObject())
+            e->OnRemove(gameobject);
+    }
 #endif
 
     obj->CleanupsBeforeDelete(false);                            // remove or simplify at least cross referenced links
@@ -3993,9 +4005,12 @@ void InstanceMap::CreateInstanceData(bool load)
     bool isElunaAI = false;
 
 #ifdef ELUNA
-    i_data = sEluna->GetInstanceData(this);
-    if (i_data)
-        isElunaAI = true;
+    if (Eluna* e = GetEluna())
+    {
+        i_data = e->GetInstanceData(this);
+        if (i_data)
+            isElunaAI = true;
+    }
 #endif
 
     // if Eluna AI was fetched succesfully we should not call CreateInstanceData nor set the unused scriptID
