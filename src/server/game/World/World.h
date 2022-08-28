@@ -35,6 +35,9 @@
 #include <map>
 #include <unordered_map>
 
+#ifdef ELUNA
+class Eluna;
+#endif
 class Player;
 class WorldPacket;
 class WorldSession;
@@ -771,6 +774,10 @@ class TC_GAME_API World
         bool IsGuidWarning() { return _guidWarn; }
         bool IsGuidAlert() { return _guidAlert; }
 
+#ifdef ELUNA
+        Eluna* GetEluna() const { return eluna; }
+        Eluna* eluna;
+#endif
     protected:
         void _UpdateGameTime();
 

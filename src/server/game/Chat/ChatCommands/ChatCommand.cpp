@@ -305,9 +305,8 @@ namespace Trinity::Impl::ChatCommands
             //todo: Need way to handle this hook with console
             if (!handler.IsConsole())
             {
-                if(Eluna * e = handler.GetSession()->GetPlayer()->GetEluna())
-                    if (!e->OnCommand(handler.GetSession()->GetPlayer(), std::string(cmdStr).c_str()))
-                        return true;
+                if (!sWorld->GetEluna()->OnCommand(handler.GetSession()->GetPlayer(), std::string(cmdStr).c_str()))
+                    return true;
             }
 
 #endif
@@ -321,9 +320,8 @@ namespace Trinity::Impl::ChatCommands
     //todo: Need way to handle this hook with console
     if (!handler.IsConsole())
     {
-        if (Eluna* e = handler.GetSession()->GetPlayer()->GetEluna())
-            if (!e->OnCommand(handler.GetSession()->GetPlayer(), std::string(cmdStr).c_str()))
-                return true;
+        if (!sWorld->GetEluna()->OnCommand(handler.GetSession()->GetPlayer(), std::string(cmdStr).c_str()))
+            return true;
     }
 #endif
 

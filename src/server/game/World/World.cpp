@@ -154,6 +154,12 @@ World::World()
 /// World destructor
 World::~World()
 {
+#ifdef ELUNA
+    // Delete world Eluna state
+    delete eluna;
+    eluna = nullptr;
+#endif
+
     ///- Empty the kicked session set
     while (!m_sessions.empty())
     {
@@ -1600,8 +1606,12 @@ void World::SetInitialWorldSettings()
 
 #ifdef ELUNA
     ///- Initialize Lua Engine
-    TC_LOG_INFO("server.loading", "Initialize Eluna Lua Engine...");
+    TC_LOG_INFO("server.loading", "Loading Lua scripts...");
     sElunaLoader->LoadScripts();
+
+    TC_LOG_INFO("server.loading", "Starting Eluna world state...");
+    // use map id -1 for the global Eluna state
+    eluna = new Eluna(-1);
 #endif
 
     ///- Initialize pool manager

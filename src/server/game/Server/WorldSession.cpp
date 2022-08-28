@@ -338,11 +338,8 @@ bool WorldSession::Update(uint32 diff, PacketFilter& updater)
                         {
                             sScriptMgr->OnPacketReceive(this, *packet);
 #ifdef ELUNA
-                            if (Eluna* e = _player->GetEluna())
-                            {
-                                if (!e->OnPacketReceive(this, *packet))
-                                    break;
-                            }
+                            if (!sWorld->GetEluna()->OnPacketReceive(this, *packet))
+                                break;
 #endif
                             opHandle->Call(this, *packet);
                             LogUnprocessedTail(packet);
@@ -361,9 +358,8 @@ bool WorldSession::Update(uint32 diff, PacketFilter& updater)
                         // not expected _player or must checked in packet hanlder
                         sScriptMgr->OnPacketReceive(this, *packet);
 #ifdef ELUNA
-                        //@todo: find way to reenable this hook.
-                        //if (!sEluna->OnPacketReceive(this, *packet))
-                            //break;
+                        if (!sWorld->GetEluna()->OnPacketReceive(this, *packet))
+                            break;
 #endif
                         opHandle->Call(this, *packet);
                         LogUnprocessedTail(packet);
@@ -380,9 +376,8 @@ bool WorldSession::Update(uint32 diff, PacketFilter& updater)
                     {
                         sScriptMgr->OnPacketReceive(this, *packet);
 #ifdef ELUNA
-                        //@todo: find way to reenable this hook.
-                        //if (!sEluna->OnPacketReceive(this, *packet))
-                            //break;
+                        if (!sWorld->GetEluna()->OnPacketReceive(this, *packet))
+                            break;
 #endif
                         opHandle->Call(this, *packet);
                         LogUnprocessedTail(packet);
@@ -407,9 +402,8 @@ bool WorldSession::Update(uint32 diff, PacketFilter& updater)
                     {
                         sScriptMgr->OnPacketReceive(this, *packet);
 #ifdef ELUNA
-                        //@todo: find way to reenable this hook.
-                        //if (!sEluna->OnPacketReceive(this, *packet))
-                            //break;
+                        if (!sWorld->GetEluna()->OnPacketReceive(this, *packet))
+                            break;
 #endif
                         opHandle->Call(this, *packet);
                         LogUnprocessedTail(packet);

@@ -362,7 +362,12 @@ void MapManager::FreeInstanceId(uint32 instanceId)
     _nextInstanceId = std::min(instanceId, _nextInstanceId);
     _freeInstanceIds[instanceId] = true;
 #ifdef ELUNA
-    //@todo: find way to reenable this hook.
-    //sEluna->FreeInstanceId(instanceId);
+    for (MapMapType::iterator itr = i_maps.begin(); itr != i_maps.end(); ++itr)
+    {
+        Map * iMap = ((MapInstanced*)itr->second)->FindInstanceMap(instanceId);
+        if (iMap)
+            if (iMap->GetEluna())
+                iMap->GetEluna()->FreeInstanceId(instanceId);
+    }
 #endif
 }
