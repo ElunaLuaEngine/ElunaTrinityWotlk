@@ -3875,6 +3875,11 @@ AuctionHouseBot.Buyer.Recheck.Interval = 20
 #       Default:    ""  - (enabled on all maps)
 #                   "0,1,2,..." - (enabled on specific maps only)
 #
+#   Eluna.PreloadOnlyOnMaps
+#       Description: When Eluna is enabled, the parent map for every map listed in Eluna.OnlyOnMaps will be created during World loading.
+#       Default:    false  - (not enabled)
+#                   true - (enabled)
+#
 #   Eluna.TraceBack
 #       Description: Sets whether to use debug.traceback function on a lua error or not.
 #                    Notice that you can redefine the function.
@@ -3889,6 +3894,7 @@ AuctionHouseBot.Buyer.Recheck.Interval = 20
 
 Eluna.Enabled = true
 Eluna.OnlyOnMaps = ""
+Eluna.PreloadOnlyOnMaps = false
 Eluna.TraceBack = false
 Eluna.ScriptPath = "lua_scripts"
 

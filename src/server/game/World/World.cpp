@@ -2233,8 +2233,8 @@ void World::SetInitialWorldSettings()
     InitGuildResetTime();
 
 #ifdef ELUNA
-    // @todo: Find way to run this hook
-    //sEluna->OnConfigLoad(false); // Must be done after Eluna is initialized and scripts have run.
+    eluna->OnConfigLoad(false); // Must be done after Eluna is initialized and scripts have run.
+    sElunaLoader->PreloadElunaMaps();
 #endif
 
     // Preload all cells, if required for the base maps
