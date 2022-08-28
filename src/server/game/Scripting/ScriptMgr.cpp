@@ -1348,6 +1348,7 @@ void ScriptMgr::OnShutdownCancel()
 void ScriptMgr::OnWorldUpdate(uint32 diff)
 {
 #ifdef ELUNA
+    sWorld->GetEluna()->UpdateEluna(diff);
     sWorld->GetEluna()->OnWorldUpdate(diff);
 #endif
     FOREACH_SCRIPT(WorldScript)->OnUpdate(diff);
@@ -1543,10 +1544,12 @@ void ScriptMgr::OnMapUpdate(Map* map, uint32 diff)
     ASSERT(map);
 
 #ifdef ELUNA
-    if (map->IsParentMap())
+    if (Eluna* e = map->GetEluna())
     {
-        if(Eluna * e = map->GetEluna())
-            e->OnUpdate(map, diff);
+        // only update the globalProcessor if the map being updated is the parent map
+        if (map->IsParentMap())
+            e->UpdateEluna(diff);
+        e->OnUpdate(map, diff);
     }
 #endif
 
