@@ -302,13 +302,8 @@ namespace Trinity::Impl::ChatCommands
         else if (!handler.HasSentErrorMessage())
         { /* invocation failed, we should show usage */
 #ifdef ELUNA
-            //todo: Need way to handle this hook with console
-            if (!handler.IsConsole())
-            {
-                if (!sWorld->GetEluna()->OnCommand(handler.GetSession()->GetPlayer(), std::string(cmdStr).c_str()))
-                    return true;
-            }
-
+            if (!sWorld->GetEluna()->OnCommand(handler.IsConsole() ? nullptr : handler.GetSession()->GetPlayer(), std::string(cmdStr).c_str()))
+                return true;
 #endif
             cmd->SendCommandHelp(handler);
             handler.SetSentErrorMessage(true);
@@ -317,12 +312,8 @@ namespace Trinity::Impl::ChatCommands
     }
 
 #ifdef ELUNA
-    //todo: Need way to handle this hook with console
-    if (!handler.IsConsole())
-    {
-        if (!sWorld->GetEluna()->OnCommand(handler.GetSession()->GetPlayer(), std::string(cmdStr).c_str()))
-            return true;
-    }
+    if (!sWorld->GetEluna()->OnCommand(handler.IsConsole() ? nullptr : handler.GetSession()->GetPlayer(), std::string(cmdStr).c_str()))
+        return true;
 #endif
 
     return false;
