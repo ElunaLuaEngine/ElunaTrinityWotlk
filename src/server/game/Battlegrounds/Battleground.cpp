@@ -148,8 +148,9 @@ Battleground::~Battleground()
         DelObject(i);
 
 #ifdef ELUNA
-    if(Eluna * e = GetBgMap()->GetEluna())
-        e->OnBGDestroy(this, GetTypeID(), GetInstanceID());
+    if (BattlegroundMap* bg = FindBgMap())
+        if (Eluna* e = bg->GetEluna())
+            e->OnBGDestroy(this, GetTypeID(), GetInstanceID());
 #endif
 
     sBattlegroundMgr->RemoveBattleground(GetTypeID(), GetInstanceID());
