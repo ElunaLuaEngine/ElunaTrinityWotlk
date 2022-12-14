@@ -1669,6 +1669,16 @@ void WorldSession::HandleCharFactionOrRaceChangeCallback(std::shared_ptr<Charact
     uint8 level       = characterInfo->Level;
     //std::string oldName = characterInfo->Name;
 
+    /* Prevent bug with missing models */
+    if (factionChangeInfo->Race == RACE_GOBLIN || factionChangeInfo->Race == RACE_WORGEN || factionChangeInfo->Race == RACE_PANDAREN_NEUTRAL || factionChangeInfo->Race == RACE_PANDAREN_ALLIANCE || factionChangeInfo->Race == RACE_PANDAREN_HORDE || factionChangeInfo->Race == RACE_NIGHTBORNE || factionChangeInfo->Race == RACE_HIGHMOUNTAIN_TAUREN || factionChangeInfo->Race == RACE_VOID_ELF || factionChangeInfo->Race == RACE_LIGHTFORGED_DRAENEI || factionChangeInfo->Race == RACE_ZANDALARI_TROLL || factionChangeInfo->Race == RACE_KUL_TIRAN || factionChangeInfo->Race == RACE_DARK_IRON_DWARF || factionChangeInfo->Race == RACE_VULPERA || factionChangeInfo->Race == RACE_MAGHAR_ORC || factionChangeInfo->Race == RACE_MECHAGNOME || factionChangeInfo->Race == RACE_SETHRAK || factionChangeInfo->Race == RACE_DRACTHYR || factionChangeInfo->Race == RACE_EREDAR)
+    {
+        factionChangeInfo->Skin = urand(1, 3);
+        factionChangeInfo->HairColor = urand(1, 3);
+        factionChangeInfo->HairStyle = urand(1, 3);
+        factionChangeInfo->FacialHair = urand(1, 3);
+        factionChangeInfo->Face = urand(1, 3);
+    }
+
     if (!sObjectMgr->GetPlayerInfo(factionChangeInfo->Race, playerClass))
     {
         SendCharFactionChange(CHAR_CREATE_ERROR, factionChangeInfo.get());
@@ -1807,7 +1817,7 @@ void WorldSession::HandleCharFactionOrRaceChangeCallback(std::shared_ptr<Charact
         trans->Append(stmt);
 
         // Race specific languages
-        if (factionChangeInfo->Race != RACE_ORC && factionChangeInfo->Race != RACE_HUMAN)
+        if (factionChangeInfo->Race != RACE_ORC && factionChangeInfo->Race != RACE_HUMAN && factionChangeInfo->Race != RACE_GOBLIN && factionChangeInfo->Race != RACE_WORGEN && factionChangeInfo->Race != RACE_PANDAREN_NEUTRAL && factionChangeInfo->Race != RACE_PANDAREN_ALLIANCE && factionChangeInfo->Race != RACE_PANDAREN_HORDE && factionChangeInfo->Race != RACE_NIGHTBORNE && factionChangeInfo->Race != RACE_HIGHMOUNTAIN_TAUREN && factionChangeInfo->Race != RACE_VOID_EL && factionChangeInfo->Race != RACE_LIGHTFORGED_DRAENEI && factionChangeInfo->Race != RACE_ZANDALARI_TROLL && factionChangeInfo->Race != RACE_KUL_TIRAN && factionChangeInfo->Race != RACE_DARK_IRON_DWARF && factionChangeInfo->Race != RACE_VULPERA && factionChangeInfo->Race != RACE_MAGHAR_ORC && factionChangeInfo->Race != RACE_MECHAGNOME && factionChangeInfo->Race != RACE_SETHRAK && factionChangeInfo->Race != RACE_DRACTHYR && factionChangeInfo->Race != RACE_EREDAR)
         {
             stmt = CharacterDatabase.GetPreparedStatement(CHAR_INS_CHAR_SKILL_LANGUAGE);
             stmt->setUInt32(0, lowGuid);

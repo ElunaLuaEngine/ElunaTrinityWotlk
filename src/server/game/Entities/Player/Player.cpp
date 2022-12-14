@@ -27428,6 +27428,9 @@ void Player::SendSupercededSpell(uint32 oldSpell, uint32 newSpell) const
 
 bool Player::ValidateAppearance(uint8 race, uint8 class_, uint8 gender, uint8 hairID, uint8 hairColor, uint8 faceID, uint8 facialHair, uint8 skinColor, bool create /*=false*/)
 {
+    if (race == RACE_WORGEN || race == RACE_GOBLIN || race == RACE_PANDAREN_NEUTRAL || race == RACE_PANDAREN_ALLIANCE || race == RACE_PANDAREN_HORDE || race == RACE_NIGHTBORNE || race == RACE_HIGHMOUNTAIN_TAUREN || race == RACE_VOID_ELF || race == RACE_LIGHTFORGED_DRAENEI || race == RACE_ZANDALARI_TROLL || race == RACE_KUL_TIRAN || race == RACE_DARK_IRON_DWARF || race == RACE_VULPERA || race == RACE_MAGHAR_ORC  || race == RACE_MECHAGNOME || race == RACE_SETHRAK || race == RACE_DRACTHYR || race == RACE_EREDAR)
+        return true;
+
     auto validateCharSection = [class_, create](CharSectionsEntry const* entry) -> bool
     {
         if (!entry)

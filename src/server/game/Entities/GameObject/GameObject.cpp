@@ -1623,6 +1623,12 @@ void GameObject::Use(Unit* user)
 
             Player* player = user->ToPlayer();
 
+            if (player->GetRace() == RACE_GOBLIN || player->GetRace() == RACE_WORGEN || player->GetRace() == RACE_PANDAREN_NEUTRAL || player->GetRace() == RACE_PANDAREN_ALLIANCE || player->GetRace() == RACE_PANDAREN_HORDE || player->GetRace() == RACE_NIGHTBORNE || player->GetRace() == RACE_HIGHMOUNTAIN_TAUREN || player->GetRace() == RACE_VOID_ELF || player->GetRace() == RACE_LIGHTFORGED_DRAENEI || player->GetRace() == RACE_ZANDALARI_TROLL || player->GetRace() == RACE_KUL_TIRAN || player->GetRace() == RACE_DARK_IRON_DWARF || player->GetRace() == RACE_VULPERA || player->GetRace() == RACE_MAGHAR_ORC || player->GetRace() == RACE_MECHAGNOME || player->GetRace() == RACE_SETHRAK || player->GetRace() == RACE_DRACTHYR || player->GetRace() == RACE_EREDAR)
+            {
+                player->GetSession()->SendNotification("Goblins/Worgens/Pandaren/Nightborne/NightMountainn Tauren/Void Elf/LightForged Draenei/Zandalari Troll/Kul tiran/Dark Iron Dwarf/Vulpera/Maghar Orc/MechaGnome/Sethrak/Dracthyr/Eredar can't use the BarberShop.");
+                return;
+            }
+
             player->PrepareGossipMenu(this, GetGOInfo()->questgiver.gossipID, true);
             player->SendPreparedGossip(this);
             return;
