@@ -37,6 +37,8 @@
 #include "botdatamgr.h"
 //end npcbot
 
+#include "CFBGQueue.h"
+
 /*********************************************************/
 /***            BATTLEGROUND QUEUE SYSTEM              ***/
 /*********************************************************/
@@ -151,6 +153,7 @@ GroupQueueInfo* BattlegroundQueue::AddGroup(Player* leader, Group* grp, Battlegr
     ginfo->JoinTime                  = GameTime::GetGameTimeMS();
     ginfo->RemoveInviteTime          = 0;
     ginfo->Team                      = leader->GetTeam();
+    ginfo->OTeam                      = leader->GetTeam();
     ginfo->ArenaTeamRating           = ArenaRating;
     ginfo->ArenaMatchmakerRating     = MatchmakerRating;
     ginfo->PreviousOpponentsTeamId   = PreviousOpponentsArenaTeamId;
@@ -163,7 +166,7 @@ GroupQueueInfo* BattlegroundQueue::AddGroup(Player* leader, Group* grp, Battlegr
     uint32 index = 0;
     if (!isRated && !isPremade)
         index += PVP_TEAMS_COUNT;
-    if (ginfo->Team == HORDE)
+    if (ginfo->Team == HORDE  && sWorld->getBoolConfig(CONFIG_CFBG_ENABLED))
         index++;
     TC_LOG_DEBUG("bg.battleground", "Adding Group to BattlegroundQueue bgTypeId : %u, bracket_id : %u, index : %u", BgTypeId, bracketId, index);
 
@@ -333,12 +336,17 @@ void BattlegroundQueue::RemovePlayer(ObjectGuid guid, bool decreaseInvitedCount)
     // we count from MAX_BATTLEGROUND_QUEUES - 1 to 0
 
     uint32 index = (group->Team == HORDE) ? BG_QUEUE_PREMADE_HORDE : BG_QUEUE_PREMADE_ALLIANCE;
+    // Am i missing something, or why is the optimization above made?
+    if (sWorld->getBoolConfig(CONFIG_CFBG_ENABLED))
+        index = 0;
 
     for (int32 bracket_id_tmp = MAX_BATTLEGROUND_BRACKETS - 1; bracket_id_tmp >= 0 && bracket_id == -1; --bracket_id_tmp)
     {
         //we must check premade and normal team's queue - because when players from premade are joining bg,
         //they leave groupinfo so we can't use its players size to find out index
-        for (uint32 j = index; j < BG_QUEUE_GROUP_TYPES_COUNT; j += PVP_TEAMS_COUNT)
+        // I don't understand why we need to optimize this, cpu is cheap
+        // and even though the loops are nested they'll rarely grow big anyways
+        for (uint32 j = index; j < BG_QUEUE_GROUP_TYPES_COUNT; j += (sWorld->getBoolConfig(CONFIG_CFBG_ENABLED) ? 1 : PVP_TEAMS_COUNT))
         {
             GroupsQueueType::iterator k = m_QueuedGroups[bracket_id_tmp][j].begin();
             for (; k != m_QueuedGroups[bracket_id_tmp][j].end(); ++k)
@@ -552,6 +560,9 @@ large groups are disadvantageous, because they will be kicked first if invitatio
 */
 void BattlegroundQueue::FillPlayersToBG(Battleground* bg, BattlegroundBracketId bracket_id)
 {
+    if (CFBGQueue::MixPlayersToBG(this, bg, bracket_id))
+        return;
+
     int32 hordeFree = bg->GetFreeSlotsForTeam(HORDE);
     int32 aliFree   = bg->GetFreeSlotsForTeam(ALLIANCE);
     uint32 aliCount   = m_QueuedGroups[bracket_id][BG_QUEUE_NORMAL_ALLIANCE].size();
@@ -715,6 +726,9 @@ bool BattlegroundQueue::CheckPremadeMatch(BattlegroundBracketId bracket_id, uint
 // this method tries to create battleground or arena with MinPlayersPerTeam against MinPlayersPerTeam
 bool BattlegroundQueue::CheckNormalMatch(Battleground* bg_template, BattlegroundBracketId bracket_id, uint32 minPlayers, uint32 maxPlayers)
 {
+    if (CFBGQueue::CheckMixedMatch(this, bg_template, bracket_id, minPlayers, maxPlayers))
+        return true;
+
     GroupsQueueType::const_iterator itr_team[PVP_TEAMS_COUNT];
     for (uint32 i = 0; i < PVP_TEAMS_COUNT; i++)
     {

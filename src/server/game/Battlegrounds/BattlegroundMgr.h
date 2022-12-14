@@ -24,6 +24,8 @@
 #include "BattlegroundQueue.h"
 #include <unordered_map>
 
+#include "CFBGQueue.h"
+
 struct BattlemasterListEntry;
 
 typedef std::map<uint32, Battleground*> BattlegroundContainer;

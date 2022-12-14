@@ -19,6 +19,7 @@
 void AddSC_Transmogrification();
 void AddSC_npc_1v1arena();
 void AddSC_AutoBalance();
+void AddSC_CrossfactionBattlegrounds();
 
 // The name of this function should match:
 // void Add${NameOfDirectory}Scripts()
@@ -27,4 +28,5 @@ void AddCustomScripts()
     AddSC_Transmogrification();
     AddSC_npc_1v1arena();
     AddSC_AutoBalance();
+    AddSC_CrossfactionBattlegrounds();
 }

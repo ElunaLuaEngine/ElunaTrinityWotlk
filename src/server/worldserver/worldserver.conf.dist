@@ -4949,3 +4949,43 @@ AutoBalance.ForcedID2  = ""
 
 AutoBalance.DisabledID = ""
 ###################################################################################################
+
+###################################################################################################
+# Cross Faction Battlegrounds#
+##############################
+#
+#    CrossFactionBattlegrounds.Enable
+#        Description: Enables Cross Faction Battlegrounds modules.
+#                     This module will enable both factions to team up for Battlegrounds play.
+#
+#        Default:     1    - (Enabled)
+#                     0    - (Disable)
+#
+
+CrossFactionBattlegrounds.Enable = 1
+
+#
+#    CrossFactionBattlegrounds.ReplaceLanguages
+#        Description: Disable Languages so everyone regardless of race.
+#                     This will enable both factions to comunicate on the same team for
+#                     unified team communifcations.
+#
+#        Default:     1    - (Enabled)
+#                     0    - (Disable)
+#
+
+CrossFactionBattlegrounds.ReplaceLanguages = 1
+
+#
+#    CrossFactionBattlegrounds.ReplaceRacials
+#        Description: Replaces Racial with default Skills.
+#                     This Ensures there are no racial exploits or advantage for Battlegounds play.
+#
+#        Default:     0    - (Disable)
+#                     1    - (Enabled)
+#
+
+CrossFactionBattlegrounds.ReplaceRacials = 0
+
+#
+###################################################################################################

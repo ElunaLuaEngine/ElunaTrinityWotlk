@@ -528,6 +528,7 @@ struct SkillStatusData
     }
     uint8 pos;
     SkillUpdateState uState;
+    bool defskill = false;
 };
 
 typedef std::unordered_map<uint32, SkillStatusData> SkillStatusMap;
@@ -896,13 +897,19 @@ struct ResurrectionData
 
 #define SPELL_DK_RAISE_ALLY 46619
 
+class CFBGData;
+
 class TC_GAME_API Player : public Unit, public GridObject<Player>
 {
     friend class WorldSession;
     friend class CinematicMgr;
+    friend class CFBGData;
     friend void AddItemToUpdateQueueOf(Item* item, Player* player);
     friend void RemoveItemFromUpdateQueueOf(Item* item, Player* player);
+
     public:
+        std::unique_ptr<CFBGData> cfbgdata;
+
         explicit Player(WorldSession* session);
         ~Player();
 
@@ -1753,7 +1760,7 @@ class TC_GAME_API Player : public Unit, public GridObject<Player>
         void UpdateWeaponSkill(Unit* victim, WeaponAttackType attType);
         void UpdateCombatSkills(Unit* victim, WeaponAttackType attType, bool defense);
 
-        void SetSkill(uint32 id, uint16 step, uint16 newVal, uint16 maxVal);
+        void SetSkill(uint32 id, uint16 step, uint16 newVal, uint16 maxVal, bool defskill = false);
         uint16 GetMaxSkillValue(uint32 skill) const;        // max + perm. bonus + temp bonus
         uint16 GetPureMaxSkillValue(uint32 skill) const;    // max
         uint16 GetSkillValue(uint32 skill) const;           // skill value + perm. bonus + temp bonus
@@ -1777,7 +1784,7 @@ class TC_GAME_API Player : public Unit, public GridObject<Player>
         void CheckAreaExploreAndOutdoor(void);
 
         static uint32 TeamForRace(uint8 race);
-        uint32 GetTeam() const { return m_team; }
+        uint32 GetTeam() const { return GetBGTeam(); }
         TeamId GetTeamId() const { return m_team == ALLIANCE ? TEAM_ALLIANCE : TEAM_HORDE; }
         void SetFactionForRace(uint8 race);
 
