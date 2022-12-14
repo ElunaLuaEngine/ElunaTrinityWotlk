@@ -30,6 +30,7 @@ void AddSC_channel_factions();
 void AddSC_Donor_Voter_Trader();
 void AddSC_PlayedRewards();
 void AddSC_TemplateNPC();
+void AddSC_NPC_Profession();
 
 // The name of this function should match:
 // void Add${NameOfDirectory}Scripts()
@@ -49,4 +50,5 @@ void AddCustomScripts()
     AddSC_Donor_Voter_Trader();
     AddSC_PlayedRewards();
     AddSC_TemplateNPC();
+    AddSC_NPC_Profession();
 }
