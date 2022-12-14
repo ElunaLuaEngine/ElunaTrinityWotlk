@@ -5151,3 +5151,26 @@ SoloLFG.Announce = 1
 
 #
 ###################################################################################################
+
+###################################################################################################
+#Paymaster#
+#################################
+#
+#    Paymaster
+#        Enable this for a PTR style Paymaster implementation
+#
+#    Paymaster.Announce.Enable
+#         Description: Announces Module when player logs in.
+#         Default:    0 - (Disabled)
+#                     1 - (Enabled)
+
+Paymaster.Announce.Enable = 1
+
+#    Paymaster.AddGold
+#         Configurable gold added amount from Paymaster
+#         Default:    5000
+
+Paymaster.AddGold = 5000
+
+#
+###################################################################################################
