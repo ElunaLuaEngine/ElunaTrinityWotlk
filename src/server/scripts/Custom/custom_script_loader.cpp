@@ -24,6 +24,7 @@ void AddLfgSoloScripts();
 void Add_paymaster_npc();
 void AddSC_racial_traits_npc();
 void AddSolocraftScripts();
+void AddSC_skip_StarterArea();
 
 // The name of this function should match:
 // void Add${NameOfDirectory}Scripts()
@@ -37,4 +38,5 @@ void AddCustomScripts()
     Add_paymaster_npc();
     AddSC_racial_traits_npc();
     AddSolocraftScripts();
+    AddSC_skip_StarterArea();
 }
