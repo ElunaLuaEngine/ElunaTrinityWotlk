@@ -61,6 +61,7 @@
 #include "World.h"
 #include "WorldPacket.h"
 #include "WorldSession.h"
+#include "AnticheatMgr.h"
 
 //npcbot
 #include "botmgr.h"
@@ -5717,6 +5718,11 @@ SpellCastResult Spell::CheckCast(bool strict, uint32* param1 /*= nullptr*/, uint
                         return SPELL_FAILED_NOPATH;
 
                     m_preGeneratedPath->ShortenPathUntilDist(PositionToVector3(target), objSize); // move back
+                }
+                if (Player* player = m_caster->ToPlayer())
+                {
+                    // To prevent false positives in the Anticheat system
+                    sAnticheatMgr->SetAllowedMovement(player, true);
                 }
                 break;
             }
