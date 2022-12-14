@@ -27,6 +27,7 @@ void AddSolocraftScripts();
 void AddSC_skip_StarterArea();
 void AddSC_AutoLearn();
 void AddSC_channel_factions();
+void AddSC_Donor_Voter_Trader();
 
 // The name of this function should match:
 // void Add${NameOfDirectory}Scripts()
@@ -43,4 +44,5 @@ void AddCustomScripts()
     AddSC_skip_StarterArea();
     AddSC_AutoLearn();
     AddSC_channel_factions();
+    AddSC_Donor_Voter_Trader();
 }
