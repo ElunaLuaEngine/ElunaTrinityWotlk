@@ -5824,3 +5824,28 @@ Custom.GainHonorOnEliteKill.AreanPoints = 0
 Custom.GainHonorOnBossKill.AreanPoints = 0
 #
 ####################################################################################################
+
+####################################################################################################
+#  ATTACK/SPEED GAME CUSTOM
+#
+#
+#     Custom.AttackSpeedForPlayer
+#     Custom.AttackSpeedForMobs
+#         Set it to a number upper than 1 to speed up the attack of the player or the mobs
+#     Default : 1.0 (Normal speed)
+#     Example : 2.0 (attack speed is 200% faster)
+#     Example : 0.5 (attack speed is 50% slower)
+
+Custom.AttackSpeedForPlayer = 1.5
+Custom.AttackSpeedForMobs = 1.0
+
+# Custom.SpeedGame
+# Set it to a number upper than 1 to speed up realm timer
+# Default : 1 (Real Time)
+# Example : 60 to force 1scde (real time) = 1 minute (realm timer)
+#
+
+Custom.SpeedGame = 1
+
+#
+#####################################################################################################

@@ -23218,11 +23218,14 @@ void Player::SendInitialPacketsBeforeAddToMap()
     /// SMSG_EQUIPMENT_SET_LIST
     SendEquipmentSetList();
 
+       float speedrate = sWorld->getFloatConfig(CONFIG_SPEED_GAME);
+       uint32 speedtime = ((GameTime::GetGameTime() - GameTime::GetUptime()) + (GameTime::GetUptime() * speedrate));
+
     /// SMSG_LOGIN_SET_TIME_SPEED
-    static float const TimeSpeed = 0.01666667f;
+    static float const TimeSpeed = 0.01666667f * speedrate;
     WorldPackets::Misc::LoginSetTimeSpeed loginSetTimeSpeed;
     loginSetTimeSpeed.NewSpeed = TimeSpeed;
-    loginSetTimeSpeed.GameTime = GameTime::GetGameTime();
+    loginSetTimeSpeed.GameTime = speedtime;
     loginSetTimeSpeed.GameTimeHolidayOffset = 0; /// @todo
     SendDirectMessage(loginSetTimeSpeed.Write());
 
