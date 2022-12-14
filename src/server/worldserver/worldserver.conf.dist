@@ -3472,6 +3472,13 @@ PlayerDump.DisallowPaths = 1
 PlayerDump.DisallowOverwrite = 1
 
 #
+# Includes satellite to search for work elsewhere LFG
+# Default: 0 - Disable
+# 1 - Enable
+
+LFG.Location.All = 1
+
+#
 #     Calculate.Creature.Zone.Area.Data
 #        Description: Calculate at loading creature zoneId / areaId and save in creature table (WARNING: SLOW WORLD SERVER STARTUP)
 #        Default:     0  - (Do not show)
