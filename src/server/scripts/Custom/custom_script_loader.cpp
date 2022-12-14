@@ -18,6 +18,7 @@
 // This is where scripts' loading functions should be declared:
 void AddSC_Transmogrification();
 void AddSC_npc_1v1arena();
+void AddSC_AutoBalance();
 
 // The name of this function should match:
 // void Add${NameOfDirectory}Scripts()
@@ -25,4 +26,5 @@ void AddCustomScripts()
 {
     AddSC_Transmogrification();
     AddSC_npc_1v1arena();
+    AddSC_AutoBalance();
 }
