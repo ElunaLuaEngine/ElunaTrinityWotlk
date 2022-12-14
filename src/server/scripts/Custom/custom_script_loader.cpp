@@ -26,6 +26,7 @@ void AddSC_racial_traits_npc();
 void AddSolocraftScripts();
 void AddSC_skip_StarterArea();
 void AddSC_AutoLearn();
+void AddSC_channel_factions();
 
 // The name of this function should match:
 // void Add${NameOfDirectory}Scripts()
@@ -41,4 +42,5 @@ void AddCustomScripts()
     AddSolocraftScripts();
     AddSC_skip_StarterArea();
     AddSC_AutoLearn();
+    AddSC_channel_factions();
 }
