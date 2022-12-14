@@ -3514,6 +3514,29 @@ PreventRenameCharacterOnCustomization = 0
 ###################################################################################################
 
 ###################################################################################################
+# PVP RANK / TITLE SYSTEM
+#
+#    PvPRank.Rate.ExtraHonor
+#        Description: Rate of honor bonus for killing higher pvp ranked players
+#        Default:     1 - 10% more honor per rank difference
+#                     2 - 20%
+#                     0 - off
+
+PvPRank.Rate.ExtraHonor = 1
+
+#
+#    PvPRank.HKPerRank
+#        Description: Honor Kills needed for each rank, use "," between values.
+#                     Whole string must be enclosed with " "
+#                     Always specify 14 values, for 14 ranks
+#        Default:     "100,500,1000,2500,4000,6500,9500,12000,15000,20000,35000,50000,75000,100000"
+
+PvPRank.HKPerRank = "100,500,1000,2500,4000,6500,9500,12000,15000,20000,35000,50000,75000,100000"
+
+#
+####################################################################################################
+
+###################################################################################################
 # AUCTION HOUSE BOT SETTINGS
 #
 #    AuctionHouseBot.Account
