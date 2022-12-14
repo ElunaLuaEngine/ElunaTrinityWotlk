@@ -38,6 +38,7 @@
 #    PACKET SPOOF PROTECTION SETTINGS
 #    MISC ANTI-CHEAT SETTINGS
 #    METRIC SETTINGS
+#    SOLO LFG
 #
 ###################################################################################################
 
@@ -4986,6 +4987,26 @@ CrossFactionBattlegrounds.ReplaceLanguages = 1
 #
 
 CrossFactionBattlegrounds.ReplaceRacials = 0
+
+#
+###################################################################################################
+
+###################################################################################################
+# SOLO LFG
+#
+#    SoloLFG.Enable
+#        Description: Enable the module.
+#        Default:     1  - (Enabled)
+#                     0  - (Disabled)
+
+SoloLFG.Enable = 1
+
+#    SoloLFG.Announce
+#        Description: Announce the module.
+#        Default:     1  - (Enabled)
+#                     0  - (Disabled)
+
+SoloLFG.Announce = 1
 
 #
 ###################################################################################################
