@@ -25,6 +25,7 @@ void Add_paymaster_npc();
 void AddSC_racial_traits_npc();
 void AddSolocraftScripts();
 void AddSC_skip_StarterArea();
+void AddSC_AutoLearn();
 
 // The name of this function should match:
 // void Add${NameOfDirectory}Scripts()
@@ -39,4 +40,5 @@ void AddCustomScripts()
     AddSC_racial_traits_npc();
     AddSolocraftScripts();
     AddSC_skip_StarterArea();
+    AddSC_AutoLearn();
 }
