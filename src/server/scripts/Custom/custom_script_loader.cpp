@@ -23,6 +23,7 @@ void AddSC_CrossfactionBattlegrounds();
 void AddLfgSoloScripts();
 void Add_paymaster_npc();
 void AddSC_racial_traits_npc();
+void AddSolocraftScripts();
 
 // The name of this function should match:
 // void Add${NameOfDirectory}Scripts()
@@ -35,4 +36,5 @@ void AddCustomScripts()
     AddLfgSoloScripts();
     Add_paymaster_npc();
     AddSC_racial_traits_npc();
+    AddSolocraftScripts();
 }
