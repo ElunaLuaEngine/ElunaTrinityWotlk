@@ -34,6 +34,7 @@ void AddSC_NPC_Profession();
 void AddSC_REFORGER_NPC();
 void AddCustomLoginScripts();
 void AddSC_DuelReset();
+void AddStartGuildScripts();
 
 // The name of this function should match:
 // void Add${NameOfDirectory}Scripts()
@@ -57,4 +58,5 @@ void AddCustomScripts()
     AddSC_REFORGER_NPC();
     AddCustomLoginScripts();
     AddSC_DuelReset();
+    AddStartGuildScripts();
 }
