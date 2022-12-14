@@ -22,6 +22,7 @@ void AddSC_AutoBalance();
 void AddSC_CrossfactionBattlegrounds();
 void AddLfgSoloScripts();
 void Add_paymaster_npc();
+void AddSC_racial_traits_npc();
 
 // The name of this function should match:
 // void Add${NameOfDirectory}Scripts()
@@ -33,4 +34,5 @@ void AddCustomScripts()
     AddSC_CrossfactionBattlegrounds();
     AddLfgSoloScripts();
     Add_paymaster_npc();
+    AddSC_racial_traits_npc();
 }
