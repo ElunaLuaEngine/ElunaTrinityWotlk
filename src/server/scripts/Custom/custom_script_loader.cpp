@@ -29,6 +29,7 @@ void AddSC_AutoLearn();
 void AddSC_channel_factions();
 void AddSC_Donor_Voter_Trader();
 void AddSC_PlayedRewards();
+void AddSC_TemplateNPC();
 
 // The name of this function should match:
 // void Add${NameOfDirectory}Scripts()
@@ -47,4 +48,5 @@ void AddCustomScripts()
     AddSC_channel_factions();
     AddSC_Donor_Voter_Trader();
     AddSC_PlayedRewards();
+    AddSC_TemplateNPC();
 }
