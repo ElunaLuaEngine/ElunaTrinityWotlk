@@ -104,6 +104,8 @@
 #include "World.h"
 #include "WorldPacket.h"
 #include "WorldSession.h"
+#include "StringFormat.h"
+#include <numeric>
 #ifdef ELUNA
 #include "LuaEngine.h"
 #endif
@@ -7012,6 +7014,129 @@ bool Player::RewardHonor(Unit* victim, uint32 groupsize, int32 honor, bool pvpto
             UpdateAchievementCriteria(ACHIEVEMENT_CRITERIA_TYPE_HONORABLE_KILL_AT_AREA, GetAreaId());
             UpdateAchievementCriteria(ACHIEVEMENT_CRITERIA_TYPE_HONORABLE_KILL, 1, 0, victim);
             UpdateAchievementCriteria(ACHIEVEMENT_CRITERIA_TYPE_SPECIAL_PVP_KILL, 1, 0, victim);
+        }
+       // guard elite honor patch
+       else if (sWorld->getBoolConfig(CONFIG_GAIN_HONOR_GUARD) && victim->ToCreature()->IsGuard())
+        {
+            uint8 k_level = GetLevel();
+            uint8 k_grey = Trinity::XP::GetGrayLevel(k_level);
+            uint8 v_level = victim->GetLevel();
+
+            if (v_level <= k_grey)
+                return false;
+
+            uint32 victim_title = 0;
+            victim_guid = ObjectGuid::Empty;
+           int gbonus = sWorld->getIntConfig(CONFIG_GAIN_HONOR_GUARD_BONUS);
+            honor_f = ceil(Trinity::Honor::hk_honor_at_level_f(k_level) * (v_level - k_grey) / (k_level - k_grey) + gbonus);
+
+            // count the number of playerkills in one day
+            ApplyModUInt32Value(PLAYER_FIELD_KILLS, 1, true);
+            // and those in a lifetime
+            ApplyModUInt32Value(PLAYER_FIELD_LIFETIME_HONORABLE_KILLS, 1, true);
+            UpdateAchievementCriteria(ACHIEVEMENT_CRITERIA_TYPE_EARN_HONORABLE_KILL);
+            UpdateAchievementCriteria(ACHIEVEMENT_CRITERIA_TYPE_HK_CLASS, victim->GetClass());
+            UpdateAchievementCriteria(ACHIEVEMENT_CRITERIA_TYPE_HK_RACE, victim->GetRace());
+            UpdateAchievementCriteria(ACHIEVEMENT_CRITERIA_TYPE_HONORABLE_KILL_AT_AREA, GetAreaId());
+            UpdateAchievementCriteria(ACHIEVEMENT_CRITERIA_TYPE_HONORABLE_KILL, 1, 0, victim);
+           int ghonor = honor_f;
+
+           std::string guardmsg = "Вы получили " + std::to_string(ghonor) + " Честь за убийство охранника.";
+           std::string guardmsgap = "Вы получили " + std::to_string(ghonor) + " Очки чести и Арены за убийство охранника.";
+
+           const char * sgm = guardmsg.c_str();
+           const char * sgm_ap = guardmsgap.c_str();
+           if (sWorld->getBoolConfig(CONFIG_GAIN_HONOR_GUARD_AP))
+           {
+           ChatHandler(GetSession()).PSendSysMessage(sgm_ap);
+           ModifyArenaPoints(int32(ghonor));
+           }
+           else
+           {
+           ChatHandler(GetSession()).PSendSysMessage(sgm);
+           }
+        }
+       else if (sWorld->getBoolConfig(CONFIG_GAIN_HONOR_ELITE) && victim->ToCreature()->isElite() && !victim->ToCreature()->IsDungeonBoss() && !victim->ToCreature()->IsGuard())
+        {
+            uint8 k_level = GetLevel();
+            uint8 k_grey = Trinity::XP::GetGrayLevel(k_level);
+            uint8 v_level = victim->GetLevel();
+
+            if (v_level <= k_grey)
+                return false;
+
+            uint32 victim_title = 0;
+            victim_guid = ObjectGuid::Empty;
+           int ebonus = sWorld->getIntConfig(CONFIG_GAIN_HONOR_ELITE_BONUS);
+            honor_f = ceil(Trinity::Honor::hk_honor_at_level_f(k_level) * (v_level - k_grey) / (k_level - k_grey) + ebonus);
+            // count the number of playerkills in one day
+            ApplyModUInt32Value(PLAYER_FIELD_KILLS, 1, true);
+
+            // and those in a lifetime
+            ApplyModUInt32Value(PLAYER_FIELD_LIFETIME_HONORABLE_KILLS, 1, true);
+            UpdateAchievementCriteria(ACHIEVEMENT_CRITERIA_TYPE_EARN_HONORABLE_KILL);
+            UpdateAchievementCriteria(ACHIEVEMENT_CRITERIA_TYPE_HK_CLASS, victim->GetClass());
+            UpdateAchievementCriteria(ACHIEVEMENT_CRITERIA_TYPE_HK_RACE, victim->GetRace());
+            UpdateAchievementCriteria(ACHIEVEMENT_CRITERIA_TYPE_HONORABLE_KILL_AT_AREA, GetAreaId());
+            UpdateAchievementCriteria(ACHIEVEMENT_CRITERIA_TYPE_HONORABLE_KILL, 1, 0, victim);
+           int ghonor = honor_f;
+
+           std::string elitemsg = "Вы получили " + std::to_string(ghonor) + " Честь за убийство Элиты.";
+           std::string elitemsgap = "Вы получили " + std::to_string(ghonor) + " Очки чести и Арены за убийство Элиты.";
+
+
+           const char * sem = elitemsg.c_str();
+           const char * sem_ap = elitemsgap.c_str();
+           if (sWorld->getBoolConfig(CONFIG_GAIN_HONOR_ELITE_AP))
+           {
+           ChatHandler(GetSession()).PSendSysMessage(sem_ap);
+           ModifyArenaPoints(int32(ghonor));
+           }
+           else
+           {
+           ChatHandler(GetSession()).PSendSysMessage(sem);
+           }
+        }
+       else if (sWorld->getBoolConfig(CONFIG_GAIN_HONOR_BOSS) && victim->ToCreature()->isElite() && victim->ToCreature()->IsDungeonBoss())
+        {
+            uint8 k_level = GetLevel();
+            uint8 k_grey = Trinity::XP::GetGrayLevel(k_level);
+            uint8 v_level = victim->GetLevel();
+
+            if (v_level <= k_grey)
+                return false;
+
+            uint32 victim_title = 0;
+            victim_guid = ObjectGuid::Empty;
+           int bbonus = sWorld->getIntConfig(CONFIG_GAIN_HONOR_BOSS_BONUS);
+            honor_f = ceil(Trinity::Honor::hk_honor_at_level_f(k_level) * (v_level - k_grey) / (k_level - k_grey) + bbonus);
+            // count the number of playerkills in one day
+            ApplyModUInt32Value(PLAYER_FIELD_KILLS, 1, true);
+
+            // and those in a lifetime
+            ApplyModUInt32Value(PLAYER_FIELD_LIFETIME_HONORABLE_KILLS, 1, true);
+            UpdateAchievementCriteria(ACHIEVEMENT_CRITERIA_TYPE_EARN_HONORABLE_KILL);
+            UpdateAchievementCriteria(ACHIEVEMENT_CRITERIA_TYPE_HK_CLASS, victim->GetClass());
+            UpdateAchievementCriteria(ACHIEVEMENT_CRITERIA_TYPE_HK_RACE, victim->GetRace());
+            UpdateAchievementCriteria(ACHIEVEMENT_CRITERIA_TYPE_HONORABLE_KILL_AT_AREA, GetAreaId());
+            UpdateAchievementCriteria(ACHIEVEMENT_CRITERIA_TYPE_HONORABLE_KILL, 1, 0, victim);
+           int bhonor = honor_f;
+
+           std::string bossmsg = "Вы получили " + std::to_string(bhonor) + " Честь за убийство босса.";
+           std::string bossmsgap = "Вы получили " + std::to_string(bhonor) + " Очки чести и Арены за убийство босса.";
+
+
+           const char * sbm = bossmsg.c_str();
+           const char * sbm_ap = bossmsgap.c_str();
+           if (sWorld->getBoolConfig(CONFIG_GAIN_HONOR_BOSS_AP))
+           {
+           ChatHandler(GetSession()).PSendSysMessage(sbm_ap);
+           ModifyArenaPoints(int32(bhonor));
+           }
+           else
+           {
+           ChatHandler(GetSession()).PSendSysMessage(sbm);
+           }
         }
         //npcbot: honor for bots
         else if (victim->ToCreature()->IsNPCBot() && !victim->ToCreature()->IsTempBot())

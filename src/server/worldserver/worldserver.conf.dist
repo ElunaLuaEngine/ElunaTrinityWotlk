@@ -5755,3 +5755,72 @@ TemplateNPC.BoostCost = 250
 
 #
 ###################################################################################################
+
+####################################################################################################
+###GainHonorOnGuardKill##
+#########################
+# Custom.GainHonorOnGuardKill
+# Set it to 1 to gain honor when you kill a guard.
+# Note that not all city guards will give you honor. It seems only capital and big city guards are flagged
+# as so in the database.
+# Default : 0 (No honor when you kill a guard)
+#
+Custom.GainHonorOnGuardKill = 1
+#
+# Custom.GainHonorOnEliteKill
+# Set it to 1 to gain honor when you kill an elite mob (this does not apply on rare mob, unless he is also elite).
+# Default : 0 (No honor when you kill an elite mob)
+#
+Custom.GainHonorOnEliteKill = 1
+#
+# Custom.GainHonorOnBossKill
+# Set it to 1 to gain honor when you kill a Dungeon boss.
+# Default : 0 (No honor when you kill a boss)
+#
+Custom.GainHonorOnBossKill = 1
+#
+##########BONUS###########################
+# Custom.GainHonorOnGuardKill.Bonus
+# Give a bonus amount of honor.
+# Set it to 1000 and an extra 1000 honor would be added to whatever amount of honor is given.
+# Default : 0 (No bonus honor will be given )
+#
+Custom.GainHonorOnGuardKill.Bonus = 100
+#
+# Custom.GainHonorOnEliteKill.Bonus
+# Give a bonus amount of honor.
+# Set it to 1000 and an extra 1000 honor would be added to whatever amount of honor is given.
+# Default : 0 (No bonus honor will be given )
+#
+Custom.GainHonorOnEliteKill.Bonus = 0
+#
+# Custom.GainHonorOnBossKill.Bonus
+# Give a bonus amount of honor.
+# Set it to 1000 and an extra 1000 honor would be added to whatever amount of honor is given.
+# Default : 0 (No bonus honor will be given )
+#
+Custom.GainHonorOnBossKill.Bonus = 100
+#
+##########AREANA_POINTS###########################
+# Custom.GainHonorOnGuardKill.AreanPoints
+# Also give Arena Points on Guard kills.
+# Set it to 1 to also receive AP.
+# Default : 0 (No AP will be given )
+#
+Custom.GainHonorOnGuardKill.AreanPoints = 1
+#
+# Custom.GainHonorOnEliteKill.AreanPoints
+# Also give Arena Points on Elite kills.
+# Set it to 1 to also receive AP.
+# Default : 0 (No AP will be given )
+#
+Custom.GainHonorOnEliteKill.AreanPoints = 0
+#
+# Custom.GainHonorOnBossKill.AreanPoints
+# Also give Arena Points on Dungeon Boss kills.
+# Set it to 1 to also receive AP.
+# Default : 0 (No AP will be given )
+#
+Custom.GainHonorOnBossKill.AreanPoints = 0
+#
+####################################################################################################
