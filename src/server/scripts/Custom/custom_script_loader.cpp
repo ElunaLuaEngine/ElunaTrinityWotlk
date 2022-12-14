@@ -32,6 +32,7 @@ void AddSC_PlayedRewards();
 void AddSC_TemplateNPC();
 void AddSC_NPC_Profession();
 void AddSC_REFORGER_NPC();
+void AddCustomLoginScripts();
 
 // The name of this function should match:
 // void Add${NameOfDirectory}Scripts()
@@ -53,4 +54,5 @@ void AddCustomScripts()
     AddSC_TemplateNPC();
     AddSC_NPC_Profession();
     AddSC_REFORGER_NPC();
+    AddCustomLoginScripts();
 }
