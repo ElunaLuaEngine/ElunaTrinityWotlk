@@ -450,6 +450,7 @@ void BotDataMgr::UpdateNpcBotData(uint32 entry, NpcBotDataUpdateType updateType,
                     stmt->setUInt16(++index, botitem->GetUInt32Value(ITEM_FIELD_DURABILITY));
                     stmt->setUInt32(++index, botitem->GetUInt32Value(ITEM_FIELD_CREATE_PLAYED_TIME));
                     stmt->setString(++index, botitem->GetText());
+                    stmt->setUInt32(++index, botitem->transmog); // this for transmog
                     stmt->setUInt32(++index, botitem->GetGUID().GetCounter());
 
                     trans->Append(stmt);
