@@ -31,6 +31,10 @@
 #include "SpellMgr.h"
 #include "Vehicle.h"
 
+//npcbot
+#include "botmgr.h"
+//end npcbot
+
 uint32 GetTargetFlagMask(SpellTargetObjectTypes objType)
 {
     switch (objType)
@@ -439,9 +443,38 @@ int32 SpellEffectInfo::CalcValue(WorldObject const* caster /*= nullptr*/, int32 
     // random damage
     if (casterUnit)
     {
+        //npcbot: Life Burst heal tempfix 2013
+        float pointsPerComboPoint = PointsPerComboPoint;
+        if (_spellInfo->Id == 57143 && EffectIndex == EFFECT_1)
+        {
+            basePoints = 2500;
+            value = float(basePoints);
+            pointsPerComboPoint = 2500.f;
+        }
+        //npcbot: bonus amount from combo points and specific mods
+        if (casterUnit->GetTypeId() == TYPEID_UNIT && casterUnit->ToCreature()->IsNPCBot())
+        {
+            if (uint8 comboPoints = casterUnit->ToCreature()->GetCreatureComboPoints())
+                value += pointsPerComboPoint * comboPoints;
+        }
+        //npcbot: bonus amount from combo points (vehicle)
+        else if (casterUnit->IsVehicle() && casterUnit->GetTypeId() == TYPEID_UNIT && casterUnit->GetCharmerGUID().IsCreature() &&
+            PointsPerComboPoint)
+        {
+            Unit const* bot = casterUnit->GetCharmer();
+            if (bot && bot->ToCreature()->IsNPCBot())
+                if (uint8 comboPoints = bot->ToCreature()->GetCreatureComboPoints())
+                    value += pointsPerComboPoint * comboPoints;
+        }
+        //npcbot: bonus amount from combo points
+        else if (uint8 comboPoints = casterUnit->GetComboPoints())
+            value += pointsPerComboPoint * comboPoints;
+        //end npcbot
+        /*
         // bonus amount from combo points
         if (uint8 comboPoints = casterUnit->GetComboPoints())
             value += PointsPerComboPoint * comboPoints;
+        */
     }
 
     if (caster)
@@ -519,6 +552,11 @@ float SpellEffectInfo::CalcValueMultiplier(WorldObject* caster, Spell* spell /*=
     if (Player* modOwner = (caster ? caster->GetSpellModOwner() : nullptr))
         modOwner->ApplySpellMod(_spellInfo->Id, SPELLMOD_VALUE_MULTIPLIER, multiplier, spell);
 
+    //npcbot - apply bot spell effect value mult mods
+    if (caster && caster->GetTypeId() == TYPEID_UNIT && caster->ToCreature()->IsNPCBot())
+        BotMgr::ApplyBotEffectValueMultiplierMods(caster->ToCreature(), _spellInfo, EffectIndex, multiplier);
+    //end npcbot
+
     return multiplier;
 }
 
@@ -551,6 +589,11 @@ float SpellEffectInfo::CalcRadius(WorldObject* caster /*= nullptr*/, Spell* spel
 
         if (Player* modOwner = caster->GetSpellModOwner())
             modOwner->ApplySpellMod(_spellInfo->Id, SPELLMOD_RADIUS, radius, spell);
+
+        //npcbot - apply bot spell radius mods
+        if (caster->GetTypeId() == TYPEID_UNIT && caster->ToCreature()->IsNPCBotOrPet())
+            caster->ToCreature()->ApplyCreatureSpellRadiusMods(_spellInfo, radius);
+        //end npcbot
     }
 
     return radius;
@@ -1682,6 +1725,9 @@ SpellCastResult SpellInfo::CheckTarget(WorldObject const* caster, WorldObject co
 
     // corpseOwner and unit specific target checks
     if (HasAttribute(SPELL_ATTR3_ONLY_TARGET_PLAYERS) && unitTarget->GetTypeId() != TYPEID_PLAYER)
+        //npcbot: allow to target bots
+        if (!(unitTarget->GetTypeId() == TYPEID_UNIT && unitTarget->ToCreature()->IsNPCBot()))
+        //end npcbot
        return SPELL_FAILED_TARGET_NOT_PLAYER;
 
     if (!IsAllowingDeadTarget() && !unitTarget->IsAlive())
@@ -3238,6 +3284,11 @@ int32 SpellInfo::CalcPowerCost(WorldObject const* caster, SpellSchoolMask school
                 powerCost *= casterScaler->Data / spellScaler->Data;
         }
     }
+
+    //npcbot - apply bot spell cost mods
+    if (powerCost > 0 && caster->GetTypeId() == TYPEID_UNIT && caster->ToCreature()->IsNPCBot())
+        caster->ToCreature()->ApplyCreatureSpellCostMods(this, powerCost);
+    //end npcbot
 
     // PCT mod from user auras by school
     powerCost = int32(powerCost * (1.0f + unitCaster->GetFloatValue(UNIT_FIELD_POWER_COST_MULTIPLIER + school)));

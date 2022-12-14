@@ -190,6 +190,9 @@ class TC_GAME_API Group
         bool Create(Player* leader);
         void LoadGroupFromDB(Field* field);
         void LoadMemberFromDB(ObjectGuid::LowType guidLow, uint8 memberFlags, uint8 subgroup, uint8 roles);
+        //npcbot
+        void LoadCreatureMemberFromDB(uint32 entry, uint8 memberFlags, uint8 subgroup, uint8 roles);
+        //end npcbot
         bool AddInvite(Player* player);
         void RemoveInvite(Player* player);
         void RemoveAllInvites();
@@ -335,6 +338,10 @@ class TC_GAME_API Group
 
         // FG: evil hacks
         void BroadcastGroupUpdate(void);
+
+        //npcbots
+        ObjectGuid const* GetTargetIcons() const { return m_targetIcons; }
+        //end npcbots
 
     protected:
         bool _setMembersGroup(ObjectGuid guid, uint8 group);

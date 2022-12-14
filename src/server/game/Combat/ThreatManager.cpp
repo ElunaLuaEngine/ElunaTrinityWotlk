@@ -32,6 +32,10 @@
 #include "WorldPacket.h"
 #include <algorithm>
 
+//npcbot
+#include "botmgr.h"
+//end npcbot
+
 #include "Hacks/boost_1_74_fibonacci_heap.h"
 BOOST_1_74_FIBONACCI_HEAP_MSVC_COMPILE_FIX(ThreatManager::threat_list_heap::value_type)
 
@@ -169,6 +173,11 @@ void ThreatReference::UnregisterAndFree()
         if (TempSummon const* tWho = cWho->ToTempSummon())
             if (tWho->GetSummonerGUID().IsPlayer())
                 return false;
+
+    //npcbot - npcbots and their pets cannot have threatlist
+    if (cWho->IsNPCBot() || cWho->IsNPCBotPet())
+        return false;
+    //end npcbot
 
     return true;
 }
@@ -626,6 +635,11 @@ void ThreatManager::ProcessAIUpdates()
 
         if (Player* modOwner = victim->GetSpellModOwner())
             modOwner->ApplySpellMod(spell->Id, SPELLMOD_THREAT, threat);
+
+        //npcbot: threat mods
+        if (victim->GetTypeId() == TYPEID_UNIT && victim->ToCreature()->GetBotAI())
+            BotMgr::ApplyBotThreatMods(victim, spell, threat);
+        //end npcbot
     }
 
     // modifiers by effect school

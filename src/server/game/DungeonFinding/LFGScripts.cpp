@@ -106,6 +106,9 @@ void LFGPlayerScript::OnMapChanged(Player* player)
     {
         Group* group = player->GetGroup();
         if (group && group->GetMembersCount() == 1)
+        //npcbot
+        if (!player->GetSession()->PlayerLoading())
+        //end npcbot
         {
             sLFGMgr->LeaveLfg(group->GetGUID());
             group->Disband();

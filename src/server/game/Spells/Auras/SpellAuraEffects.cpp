@@ -1846,6 +1846,10 @@ void AuraEffect::HandleAuraModShapeshift(AuraApplication const* aurApp, uint8 mo
             case FORM_DEFENSIVESTANCE:
             case FORM_BERSERKERSTANCE:
             {
+                //npcbot: skip this, handled inside class ai
+                if (target->GetTypeId() == TYPEID_UNIT && target->ToCreature()->IsNPCBot())
+                    break;
+                //end npcbot
                 uint32 Rage_val = 0;
                 // Defensive Tactics
                 if (form == FORM_DEFENSIVESTANCE)
@@ -1881,6 +1885,10 @@ void AuraEffect::HandleAuraModShapeshift(AuraApplication const* aurApp, uint8 mo
 
     if (target->GetTypeId() == TYPEID_PLAYER)
         target->ToPlayer()->InitDataForForm();
+    //npcbot: skip bots (handled inside AI)
+    else if (target->GetTypeId() == TYPEID_UNIT && target->ToCreature()->IsNPCBotOrPet())
+    {}
+    //end npcbot
     else
         target->UpdateDisplayPower();
 
@@ -1895,6 +1903,11 @@ void AuraEffect::HandleAuraModShapeshift(AuraApplication const* aurApp, uint8 mo
         // and also HandleAuraModDisarm is not triggered
         if (!target->CanUseAttackType(BASE_ATTACK))
         {
+            //npcbot: skip bots (handled inside AI)
+            if (target->GetTypeId() == TYPEID_UNIT && target->ToCreature()->IsNPCBotOrPet())
+            {}
+            else
+            //end npcbot
             if (Item* pItem = target->ToPlayer()->GetItemByPos(INVENTORY_SLOT_BAG_0, EQUIPMENT_SLOT_MAINHAND))
                 target->ToPlayer()->_ApplyWeaponDamage(EQUIPMENT_SLOT_MAINHAND, pItem->GetTemplate(), apply);
         }
@@ -2773,6 +2786,17 @@ void AuraEffect::HandleAuraModTotalThreat(AuraApplication const* aurApp, uint8 m
         return;
 
     Unit* target = aurApp->GetTarget();
+
+    //npcbot: handle for bots
+    if (target->IsAlive() && target->GetTypeId() == TYPEID_UNIT &&
+        target->ToCreature()->IsNPCBotOrPet())
+    {
+        Unit* caster = GetCaster();
+        if (caster && caster->IsAlive())
+            caster->GetThreatManager().UpdateMyTempModifiers();
+        return;
+    }
+    //end npcbot
 
     if (!target->IsAlive() || target->GetTypeId() != TYPEID_PLAYER)
         return;
@@ -5128,6 +5152,14 @@ void AuraEffect::HandlePeriodicDamageAurasTick(Unit* target, Unit* caster) const
 
     if (GetAuraType() == SPELL_AURA_PERIODIC_DAMAGE)
     {
+        //npcbot: Black Arrow damage on targets below 20%
+        if (GetSpellInfo()->SpellFamilyName == SPELLFAMILY_WARLOCK && (GetSpellInfo()->SpellFamilyFlags[1] & 0x4) &&
+            target->HasAuraState(AURA_STATE_HEALTHLESS_20_PERCENT))
+        {
+            damage *= 5;
+        }
+        //end npcbot
+
         // leave only target depending bonuses, rest is handled in calculate amount
         if (GetBase()->GetType() == DYNOBJ_AURA_TYPE)
             damage = caster->SpellDamageBonusDone(target, GetSpellInfo(), damage, DOT, GetSpellEffectInfo(), { }, GetBase()->GetStackAmount());
@@ -5654,6 +5686,46 @@ void AuraEffect::HandleProcTriggerSpellAuraProc(AuraApplication* aurApp, ProcEve
     if (SpellInfo const* triggeredSpellInfo = sSpellMgr->GetSpellInfo(triggerSpellId))
     {
         TC_LOG_DEBUG("spells.aura.effect", "AuraEffect::HandleProcTriggerSpellAuraProc: Triggering spell %u from aura %u proc", triggeredSpellInfo->Id, GetId());
+
+        //npcbot
+        Aura const* triggeredByAura = aurApp->GetBase();
+        int32 basepoints0 = 0;
+        switch (triggerSpellId)
+        {
+            // Quest - Self Healing from resurrect (invisible in log)
+            case 25155:
+            {
+                switch (GetId())
+                {
+                    //Vampiric Aura
+                    case 20810:
+                    {
+                        DamageInfo const* dinfo = eventInfo.GetDamageInfo();
+                        uint32 damage = dinfo->GetDamage();
+                        if (!damage)
+                            return;
+
+                        // 100% / 25%
+                        if (triggerTarget->GetGUID() == triggeredByAura->GetCasterGUID())
+                            basepoints0 = int32(damage);
+                        else
+                            basepoints0 = int32(damage / 4);
+
+                        CastSpellExtraArgs args(true);
+                        args.AddSpellBP0(basepoints0);
+                        triggerCaster->CastSpell(triggerTarget, triggerSpellId, args);
+                        return;
+                    }
+                    default:
+                        break;
+                }
+                break;
+            }
+            default:
+                break;
+        }
+        //end npcbot
+
         triggerCaster->CastSpell(triggerTarget, triggeredSpellInfo->Id, this);
     }
     else
