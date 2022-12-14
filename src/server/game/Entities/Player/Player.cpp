@@ -108,6 +108,7 @@
 #include "LuaEngine.h"
 #endif
 #include "WorldStatePackets.h"
+#include "../scripts/Custom/PlayedRewards.h"
 
 //npcbot
 #include "botmgr.h"
@@ -414,6 +415,8 @@ Player::Player(WorldSession* session): Unit(true)
     m_reputationMgr = new ReputationMgr(this);
 
     m_groupUpdateTimer.Reset(5000);
+
+    m_PlayedRewardsTimer = 0;
 
     /////////////// NPCBot System //////////////////
     _botMgr = nullptr;
@@ -1376,6 +1379,16 @@ void Player::Update(uint32 p_time)
     //because we don't want player's ghost teleported from graveyard
     if (IsHasDelayedTeleport() && IsAlive())
         TeleportTo(m_teleport_dest, m_teleport_options);
+
+    // Check for played rewards every second
+    if (m_PlayedRewardsTimer <= p_time)
+    {
+        m_PlayedRewardsTimer = sPlayedRewards->PLAYED_UPDATE_TIME;
+        sPlayedRewards->SendReward(this);
+    }
+    else
+        m_PlayedRewardsTimer -= p_time;
+
     //NpcBot mod: Update
     if (_botMgr)
         _botMgr->Update(p_time);

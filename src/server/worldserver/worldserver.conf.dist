@@ -5719,3 +5719,29 @@ AutoLearn.Create.Skill = 0
 
 #
 ###################################################################################################
+
+###################################################################################################
+#   PlayedReward
+# PlayedRewards.Enable - 0 to disable / 1 to enable the played rewards system
+# PlayedRewards.SiteDB - Your website database Example: fusion_cms
+# PlayedRewards.SiteTable - The table that stores donation / vote points
+# PlayedRewards.SiteColumnID - The accountId column in that table
+# PlayedRewards.SiteColumnVP - Vote points column name
+# PlayedRewards.SiteColumnDP - Donation points column name
+#
+#   Example: Let's say you're using fusioncms your settings should look somewhat like this:
+#       PlayedRewards.SiteDB = "fusion_cms"
+#       PlayedRewards.SiteTable = "account_data"
+#       PlayedRewards.SiteColumnID = "id"
+#       PlayedRewards.SiteColumnVP = "vp"
+#       PlayedRewards.SiteColumnDP = "dp"
+
+PlayedRewards.Enable = 0
+PlayedRewards.SiteDB = ""
+PlayedRewards.SiteTable = ""
+PlayedRewards.SiteColumnID = ""
+PlayedRewards.SiteColumnVP = ""
+PlayedRewards.SiteColumnDP = ""
+
+#
+###################################################################################################

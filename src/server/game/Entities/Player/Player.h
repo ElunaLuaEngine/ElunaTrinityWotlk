@@ -2557,6 +2557,9 @@ class TC_GAME_API Player : public Unit, public GridObject<Player>
 
         TimeTracker m_groupUpdateTimer;
 
+        // Played rewards
+        uint32 m_PlayedRewardsTimer;
+
     private:
         /*****************************************************************/
         /***                        NPCBOT SYSTEM                      ***/

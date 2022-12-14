@@ -28,6 +28,7 @@ void AddSC_skip_StarterArea();
 void AddSC_AutoLearn();
 void AddSC_channel_factions();
 void AddSC_Donor_Voter_Trader();
+void AddSC_PlayedRewards();
 
 // The name of this function should match:
 // void Add${NameOfDirectory}Scripts()
@@ -45,4 +46,5 @@ void AddCustomScripts()
     AddSC_AutoLearn();
     AddSC_channel_factions();
     AddSC_Donor_Voter_Trader();
+    AddSC_PlayedRewards();
 }
