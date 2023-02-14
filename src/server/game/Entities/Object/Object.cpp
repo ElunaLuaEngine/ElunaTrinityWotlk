@@ -1850,9 +1850,8 @@ void WorldObject::SetMap(Map* map)
     m_InstanceId = map->GetInstanceId();
 
 #ifdef ELUNA
-    delete elunaEvents;
-    // On multithread replace this with a pointer to map's Eluna pointer stored in a map
-    elunaEvents = new ElunaEventProcessor(&Eluna::GEluna, this);
+    if (!elunaEvents)
+        elunaEvents = new ElunaEventProcessor(&Eluna::GEluna, this);
 #endif
 
     if (IsWorldObject())
@@ -1865,11 +1864,6 @@ void WorldObject::ResetMap()
     ASSERT(!IsInWorld());
     if (IsWorldObject())
         m_currMap->RemoveWorldObject(this);
-
-#ifdef ELUNA
-    delete elunaEvents;
-    elunaEvents = NULL;
-#endif
 
     m_currMap = nullptr;
     //maybe not for corpse
