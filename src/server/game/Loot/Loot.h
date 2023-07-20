@@ -150,7 +150,9 @@ struct TC_GAME_API LootItem
                  { };
 
     // Basic checks for player/item compatibility - if false no chance to see the item in the loot
+    bool AllowedForPlayer(Player const* player, bool isGivenByMasterLooter, ObjectGuid ownerGuid) const;
     bool AllowedForPlayer(Player const* player, bool isGivenByMasterLooter = false) const;
+    bool AllowedForPlayer(Player const* player, ObjectGuid ownerGuid) const;
     void AddAllowedLooter(Player const* player);
     GuidSet const& GetAllowedLooters() const { return allowedGUIDs; }
 };
@@ -251,7 +253,7 @@ struct TC_GAME_API Loot
     LootItem* LootItemInSlot(uint32 lootslot, Player* player, NotNormalLootItem** qitem = nullptr, NotNormalLootItem** ffaitem = nullptr, NotNormalLootItem** conditem = nullptr);
     uint32 GetMaxSlotInLootFor(Player* player) const;
     bool hasItemForAll() const;
-    bool hasItemFor(Player* player) const;
+    bool hasItemFor(Player const* player) const;
     bool hasOverThresholdItem() const;
 
     private:

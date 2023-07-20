@@ -185,7 +185,7 @@ class instance_deadmines : public InstanceMapScript
             void LeverStucked()
             {
                 if (GameObject* pDoorLever = instance->GetGameObject(DoorLeverGUID))
-                    pDoorLever->SetUInt32Value(GAMEOBJECT_FLAGS, 4);
+                    pDoorLever->SetFlag(GO_FLAG_INTERACT_COND);
             }
 
             void OnCreatureCreate(Creature* creature) override
@@ -239,6 +239,15 @@ class instance_deadmines : public InstanceMapScript
                             break;
                         case NPC_GILNID:
                             SetBossState(BOSS_GILNID, DONE);
+                            break;
+                        case NPC_MR_SMITE:
+                            SetBossState(BOSS_MR_SMITE, DONE);
+                            break;
+                        case NPC_GREENSKIN:
+                            SetBossState(BOSS_GREENSKIN, DONE);
+                            break;
+                        case NPC_COOKIE:
+                            SetBossState(BOSS_COOKIE, DONE);
                             break;
                         default:
                             break;

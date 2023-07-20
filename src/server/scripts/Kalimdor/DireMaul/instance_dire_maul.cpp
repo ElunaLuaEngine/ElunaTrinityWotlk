@@ -91,8 +91,11 @@ public:
                     // we make Immolthar non attackable, otherwise players with pets can pull him out of the forcefield
                     // TODO: this change isnt correct but since of today (13.09.2020) mmaps dont support doors
                     if (GetBossState(DATA_FORCEFIELD) != DONE)
-                        creature->SetFlag(UNIT_FIELD_FLAGS, UNIT_FLAG_NON_ATTACKABLE);
+                        creature->SetUnitFlag(UNIT_FLAG_NON_ATTACKABLE);
                     break;
+                case NPC_TORTHELDRIN:
+                    _tortheldrinGUID = creature->GetGUID();
+                break;
                 default:
                     break;
             }
@@ -147,6 +150,8 @@ public:
                     return _forcefieldGUID;
                 case NPC_IMMOLTHAR:
                     return _immoGUID;
+                case NPC_TORTHELDRIN:
+                    return _tortheldrinGUID;
                 default:
                     break;
             }
@@ -262,7 +267,16 @@ public:
                     ffield->SetGoState(GO_STATE_ACTIVE);
                 // remove previously set non attackable flag
                 if (Creature* immo = instance->GetCreature(_immoGUID))
-                    immo->RemoveFlag(UNIT_FIELD_FLAGS, UNIT_FLAG_NON_ATTACKABLE);
+                    immo->RemoveUnitFlag(UNIT_FLAG_NON_ATTACKABLE);
+            }
+        }
+
+        void OnUnitDeath(Unit* unit) override
+        {
+            if (unit->GetGUID() == _immoGUID)
+            {
+                if (Creature* tortheldrin = instance->GetCreature(_tortheldrinGUID))
+                    tortheldrin->SetFaction(FACTION_ENEMY);
             }
         }
 
@@ -272,6 +286,7 @@ protected:
         std::array<std::array<ObjectGuid, 4>, 5> _crystalCreatureGUIDs; // 5 different Crystals, maximum of 4 Creatures
         ObjectGuid _forcefieldGUID;
         ObjectGuid _immoGUID;
+        ObjectGuid _tortheldrinGUID;
     };
 
     InstanceScript* GetInstanceScript(InstanceMap* map) const override

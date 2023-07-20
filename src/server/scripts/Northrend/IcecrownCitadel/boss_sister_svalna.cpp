@@ -467,7 +467,7 @@ struct boss_sister_svalna : public BossAI
                     CastSpellExtraArgs args;
                     args.AddSpellBP0(1);
                     summon->CastSpell(target, VEHICLE_SPELL_RIDE_HARDCODED, args);
-                    summon->SetFlag(UNIT_FIELD_FLAGS_2, UNIT_FLAG2_ALLOW_ENEMY_INTERACT);
+                    summon->SetUnitFlag2(UNIT_FLAG2_ALLOW_ENEMY_INTERACT);
                 }
                 break;
             default:
@@ -971,7 +971,8 @@ struct npc_captain_arnath : public npc_argent_captainAI
                 case EVENT_ARNATH_PW_SHIELD:
                 {
                     std::list<Creature*> targets = DoFindFriendlyMissingBuff(40.0f, SPELL_POWER_WORD_SHIELD);
-                    DoCast(Trinity::Containers::SelectRandomContainerElement(targets), SPELL_POWER_WORD_SHIELD);
+                    if (!targets.empty())
+                        DoCast(Trinity::Containers::SelectRandomContainerElement(targets), SPELL_POWER_WORD_SHIELD);
                     Events.ScheduleEvent(EVENT_ARNATH_PW_SHIELD, 15s, 20s);
                     break;
                 }

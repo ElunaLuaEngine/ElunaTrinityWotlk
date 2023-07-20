@@ -45,7 +45,12 @@ enum Sounds
     SOUND_AGGRO             = 5884
 };
 
-#define GOSSIP_HCB "I know this is rather silly but a young ward who is a bit shy would like your hoofprint."
+enum Gossips
+{
+    GOSSIP_MENU_HCB         = 5851,
+    GOSSIP_OPTION_HCB       = 0
+};
+
 /// @todo verify abilities/timers
 class npc_cairne_bloodhoof : public CreatureScript
 {
@@ -137,11 +142,12 @@ public:
 
         bool OnGossipHello(Player* player) override
         {
+            InitGossipMenuFor(player, GOSSIP_MENU_HCB);
             if (me->IsQuestGiver())
                 player->PrepareQuestMenu(me->GetGUID());
 
             if (player->GetQuestStatus(925) == QUEST_STATUS_INCOMPLETE)
-                AddGossipItemFor(player, GOSSIP_ICON_CHAT, GOSSIP_HCB, GOSSIP_SENDER_MAIN, GOSSIP_SENDER_INFO);
+                AddGossipItemFor(player, GOSSIP_MENU_HCB, GOSSIP_OPTION_HCB, GOSSIP_SENDER_MAIN, GOSSIP_SENDER_INFO);
 
             SendGossipMenuFor(player, 7013, me->GetGUID());
 

@@ -47,6 +47,12 @@ enum Spells
     SPELL_EXPLODING_SHOT    = 7896,
 };
 
+enum HyjalCreatureText
+{
+    TRASH_SAY_SLAY           = 0,
+    TRASH_SAY_DEATH          = 1,
+};
+
 float HordeWPs[8][3]=//basic waypoints from spawn to leader
 {
     {5492.91f,    -2404.61f,    1462.63f},
@@ -404,7 +410,7 @@ void hyjal_trashAI::JustDied(Unit* /*killer*/)
         instance->SetData(DATA_TRASH, 0);//signal trash is dead
 
     if ((instance->GetData(DATA_RAIDDAMAGE) < MINRAIDDAMAGE && !me->isWorldBoss()) || (damageTaken < me->GetMaxHealth()/4 && me->isWorldBoss()))
-        me->RemoveFlag(UNIT_DYNAMIC_FLAGS, UNIT_DYNFLAG_LOOTABLE);//no loot
+        me->RemoveDynamicFlag(UNIT_DYNFLAG_LOOTABLE);//no loot
 }
 
 class npc_giant_infernal : public CreatureScript
@@ -420,8 +426,8 @@ public:
             meteor = false;//call once!
             CanMove = false;
             Delay = rand32() % 30000;
-            me->RemoveFlag(UNIT_FIELD_FLAGS, UNIT_FLAG_NON_ATTACKABLE);
-            me->SetFlag(UNIT_FIELD_FLAGS, UNIT_FLAG_UNINTERACTIBLE);
+            me->RemoveUnitFlag(UNIT_FLAG_NON_ATTACKABLE);
+            me->SetUnitFlag(UNIT_FLAG_UNINTERACTIBLE);
             me->SetDisplayId(MODEL_INVIS);
             go = false;
             Initialize();
@@ -476,8 +482,6 @@ public:
             {
                 if (Creature* trigger = me->SummonCreature(NPC_WORLD_TRIGGER_TINY, me->GetPositionWithOffset({ 8.0f, 8.0f, frand(25.0f, 35.0f), 0.0f }), TEMPSUMMON_TIMED_DESPAWN, 1s))
                 {
-                    trigger->SetVisible(false);
-                    trigger->SetFaction(me->GetFaction());
                     trigger->SetDisableGravity(true);
                     trigger->CastSpell(me, SPELL_METEOR, true);
                 }
@@ -486,8 +490,8 @@ public:
             } else if (!CanMove){
                 if (spawnTimer <= diff)
                 {
-                    me->RemoveFlag(UNIT_FIELD_FLAGS, UNIT_FLAG_NON_ATTACKABLE);
-                    me->RemoveFlag(UNIT_FIELD_FLAGS, UNIT_FLAG_UNINTERACTIBLE);
+                    me->RemoveUnitFlag(UNIT_FLAG_NON_ATTACKABLE);
+                    me->RemoveUnitFlag(UNIT_FLAG_UNINTERACTIBLE);
                     me->SetDisplayId(me->GetUInt32Value(UNIT_FIELD_NATIVEDISPLAYID));
                     CanMove = true;
                     if (instance->GetData(DATA_ALLIANCE_RETREAT) && !instance->GetData(DATA_HORDE_RETREAT))
@@ -690,7 +694,7 @@ public:
             }
             if (waypointId == LastOverronPos && IsOverrun)
             {
-                me->SetUInt32Value(UNIT_NPC_EMOTESTATE, EMOTE_ONESHOT_ATTACK_UNARMED);
+                me->SetEmoteState(EMOTE_ONESHOT_ATTACK_UNARMED);
                 if ((faction == 0 && LastOverronPos == 17) || (faction == 1 && LastOverronPos == 21))
                 {
                     me->DespawnOrUnsummon();
@@ -807,6 +811,7 @@ public:
 
         void KilledUnit(Unit* /*victim*/) override
         {
+            Talk(TRASH_SAY_SLAY);
             switch (urand(0, 2))
             {
                 case 0:
@@ -824,6 +829,12 @@ public:
         }
 
         void JustEngagedWith(Unit* /*who*/) override { }
+
+        void JustDied(Unit* killer) override
+        {
+            hyjal_trashAI::JustDied(killer);
+            Talk(TRASH_SAY_DEATH);
+        }
 
         void UpdateAI(uint32 diff) override
         {
@@ -921,6 +932,17 @@ public:
                         AddThreat(target, 0.0f);
                 }
             }
+        }
+
+        void KilledUnit(Unit* /*victim*/) override
+        {
+            Talk(TRASH_SAY_SLAY);
+        }
+
+        void JustDied(Unit* killer) override
+        {
+            hyjal_trashAI::JustDied(killer);
+            Talk(TRASH_SAY_DEATH);
         }
 
         void JustEngagedWith(Unit* /*who*/) override { }
@@ -1187,7 +1209,6 @@ public:
         void Reset() override
         {
             Initialize();
-            me->SetDisableGravity(true);
         }
 
         void WaypointReached(uint32 waypointId, uint32 /*pathId*/) override
@@ -1231,21 +1252,20 @@ public:
             {
                 if (!go)
                 {
-                    go = true;
+
                     if (!useFlyPath)
                     {
                         for (uint8 i = 0; i < 3; ++i)
                             AddWaypoint(i, FrostWyrmWPs[i][0],    FrostWyrmWPs[i][1],    FrostWyrmWPs[i][2]);
-                        Start(false, true);
-                        SetDespawnAtEnd(false);
                     }
                     else
                     {//fly path FlyPathWPs
                         for (uint8 i = 0; i < 3; ++i)
                             AddWaypoint(i, FlyPathWPs[i][0]+irand(-10, 10),    FlyPathWPs[i][1]+irand(-10, 10),    FlyPathWPs[i][2]);
-                        Start(false, true);
-                        SetDespawnAtEnd(false);
                     }
+                    go = true;
+                    Start(false, true);
+                    SetDespawnAtEnd(false);
                 }
             }
 
@@ -1317,7 +1337,6 @@ public:
         void Reset() override
         {
             Initialize();
-            me->SetDisableGravity(true);
         }
 
         void WaypointReached(uint32 waypointId, uint32 /*pathId*/) override
@@ -1357,19 +1376,17 @@ public:
             {
                 if (!go)
                 {
-                    go = true;
                     if (!useFlyPath)
                     {
                         for (uint8 i = 0; i < 3; ++i)
                             AddWaypoint(i, GargoyleWPs[i][0]+irand(-10, 10), GargoyleWPs[i][1]+irand(-10, 10), GargoyleWPs[i][2]);
-                        Start(false, true);
-                        SetDespawnAtEnd(false);
                     }else{//fly path FlyPathWPs
                         for (uint8 i = 0; i < 3; ++i)
                             AddWaypoint(i, FlyPathWPs[i][0]+irand(-10, 10),    FlyPathWPs[i][1]+irand(-10, 10),    FlyPathWPs[i][2]);
-                        Start(false, true);
-                        SetDespawnAtEnd(false);
                     }
+                    go = true;
+                    Start(false, true);
+                    SetDespawnAtEnd(false);
                 }
             }
 
@@ -1379,7 +1396,7 @@ public:
                 {
                     if (StrikeTimer <= diff)
                     {
-                        me->CastSpell({ DummyTarget[0], DummyTarget[1], DummyTarget[2] }, SPELL_GARGOYLE_STRIKE, false);
+                        me->CastSpell(Position{ DummyTarget[0], DummyTarget[1], DummyTarget[2] }, SPELL_GARGOYLE_STRIKE, false);
                         StrikeTimer = 2000 + rand32() % 1000;
                     } else StrikeTimer -= diff;
                     }

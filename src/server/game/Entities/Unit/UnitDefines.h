@@ -19,6 +19,7 @@
 #define UnitDefines_h__
 
 #include "Define.h"
+#include "EnumFlag.h"
 #include <string>
 
 #define BASE_MINDAMAGE 1.0f
@@ -39,18 +40,20 @@ enum UnitStandStateType : uint8
     UNIT_STAND_STATE_SIT_HIGH_CHAIR    = 6,
     UNIT_STAND_STATE_DEAD              = 7,
     UNIT_STAND_STATE_KNEEL             = 8,
-    UNIT_STAND_STATE_SUBMERGED         = 9
+    UNIT_STAND_STATE_SUBMERGED         = 9,
+
+    MAX_UNIT_STAND_STATE
 };
 
 // byte flag value (UNIT_FIELD_BYTES_1, 2)
-enum UnitStandFlags : uint8
+enum UnitVisFlags : uint8
 {
-    UNIT_STAND_FLAGS_UNK1         = 0x01,
-    UNIT_STAND_FLAGS_CREEP        = 0x02,
-    UNIT_STAND_FLAGS_UNTRACKABLE  = 0x04,
-    UNIT_STAND_FLAGS_UNK4         = 0x08,
-    UNIT_STAND_FLAGS_UNK5         = 0x10,
-    UNIT_STAND_FLAGS_ALL          = 0xFF
+    UNIT_VIS_FLAGS_UNK1         = 0x01,
+    UNIT_VIS_FLAGS_CREEP        = 0x02,
+    UNIT_VIS_FLAGS_UNTRACKABLE  = 0x04,
+    UNIT_VIS_FLAGS_UNK4         = 0x08,
+    UNIT_VIS_FLAGS_UNK5         = 0x10,
+    UNIT_VIS_FLAGS_ALL          = 0xFF
 };
 
 enum UnitBytes0Offsets : uint8
@@ -78,13 +81,15 @@ enum UnitBytes2Offsets : uint8
 };
 
 // UNIT_FIELD_BYTES_1 (UNIT_BYTES_1_OFFSET_ANIM_TIER)
-enum class AnimationTier : uint8
+enum class AnimTier : uint8
 {
     Ground      = 0, // plays ground tier animations
     Swim        = 1, // falls back to ground tier animations, not handled by the client, should never appear in sniffs, will prevent tier change animations from playing correctly if used
     Hover       = 2, // plays flying tier animations or falls back to ground tier animations, automatically enables hover clientside when entering visibility with this value
     Fly         = 3, // plays flying tier animations
-    Submerged   = 4
+    Submerged   = 4,
+
+    Max
 };
 
 // low byte (0 from 0..3) of UNIT_FIELD_BYTES_2
@@ -92,14 +97,15 @@ enum SheathState : uint8
 {
     SHEATH_STATE_UNARMED  = 0,                              // non prepared weapon
     SHEATH_STATE_MELEE    = 1,                              // prepared melee weapon
-    SHEATH_STATE_RANGED   = 2                               // prepared ranged weapon
-};
+    SHEATH_STATE_RANGED   = 2,                              // prepared ranged weapon
 
-#define MAX_SHEATH_STATE    3
+    MAX_SHEATH_STATE
+};
 
 // byte (1 from 0..3) of UNIT_FIELD_BYTES_2
 enum UnitPVPStateFlags : uint8
 {
+    UNIT_BYTE2_FLAG_NONE        = 0x00,
     UNIT_BYTE2_FLAG_PVP         = 0x01,
     UNIT_BYTE2_FLAG_UNK1        = 0x02,
     UNIT_BYTE2_FLAG_FFA_PVP     = 0x04,
@@ -110,12 +116,17 @@ enum UnitPVPStateFlags : uint8
     UNIT_BYTE2_FLAG_UNK7        = 0x80
 };
 
+DEFINE_ENUM_FLAG(UnitPVPStateFlags);
+
 // byte (2 from 0..3) of UNIT_FIELD_BYTES_2
-enum UnitRename : uint8
+enum UnitPetFlag : uint8
 {
-    UNIT_CAN_BE_RENAMED     = 0x01,
-    UNIT_CAN_BE_ABANDONED   = 0x02
+    UNIT_PET_FLAG_NONE              = 0x0,
+    UNIT_PET_FLAG_CAN_BE_RENAMED    = 0x01,
+    UNIT_PET_FLAG_CAN_BE_ABANDONED  = 0x02
 };
+
+DEFINE_ENUM_FLAG(UnitPetFlag);
 
 // Value masks for UNIT_FIELD_FLAGS
 // EnumUtils: DESCRIBE THIS
@@ -164,6 +175,8 @@ enum UnitFlags : uint32
 
     UNIT_FLAG_ALLOWED               = (0xFFFFFFFF & ~UNIT_FLAG_DISALLOWED)
 };
+
+DEFINE_ENUM_FLAG(UnitFlags);
 
 // Value masks for UNIT_FIELD_FLAGS_2
 enum UnitFlags2 : uint32
@@ -214,6 +227,8 @@ enum UnitFlags2 : uint32
     UNIT_FLAG2_ALLOWED                      = (0xFFFFFFFF & ~UNIT_FLAG2_DISALLOWED)
 };
 
+DEFINE_ENUM_FLAG(UnitFlags2);
+
 /// Non Player Character flags
 // EnumUtils: DESCRIBE THIS
 enum NPCFlags : uint32
@@ -247,6 +262,8 @@ enum NPCFlags : uint32
     UNIT_NPC_FLAG_PLAYER_VEHICLE        = 0x02000000,       // TITLE is player vehicle DESCRIPTION players with mounts that have vehicle data should have it set
     UNIT_NPC_FLAG_MAILBOX               = 0x04000000        // TITLE is mailbox
 };
+
+DEFINE_ENUM_FLAG(NPCFlags);
 
 enum MovementFlags : uint32
 {

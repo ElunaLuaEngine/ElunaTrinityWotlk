@@ -1365,14 +1365,6 @@ bool SpellInfo::IsSingleTarget() const
     if (HasAttribute(SPELL_ATTR5_SINGLE_TARGET_SPELL))
         return true;
 
-    switch (GetSpellSpecific())
-    {
-        case SPELL_SPECIFIC_JUDGEMENT:
-            return true;
-        default:
-            break;
-    }
-
     return false;
 }
 
@@ -1617,7 +1609,7 @@ SpellCastResult SpellInfo::CheckTarget(WorldObject const* caster, WorldObject co
     if (HasAttribute(SPELL_ATTR1_CANT_TARGET_SELF) && caster == target)
         return SPELL_FAILED_BAD_TARGETS;
 
-    // check visibility - ignore stealth for implicit (area) targets
+    // check visibility - ignore invisibility/stealth for implicit (area) targets
     if (!HasAttribute(SPELL_ATTR6_CAN_TARGET_INVISIBLE) && !caster->CanSeeOrDetect(target, implicit))
         return SPELL_FAILED_BAD_TARGETS;
 
@@ -1627,7 +1619,7 @@ SpellCastResult SpellInfo::CheckTarget(WorldObject const* caster, WorldObject co
     if (unitTarget)
     {
         // spells cannot be cast if target has a pet in combat either
-        if (HasAttribute(SPELL_ATTR1_CANT_TARGET_IN_COMBAT) && (unitTarget->IsInCombat() || unitTarget->HasFlag(UNIT_FIELD_FLAGS, UNIT_FLAG_PET_IN_COMBAT)))
+        if (HasAttribute(SPELL_ATTR1_CANT_TARGET_IN_COMBAT) && (unitTarget->IsInCombat() || unitTarget->HasUnitFlag(UNIT_FLAG_PET_IN_COMBAT)))
             return SPELL_FAILED_TARGET_AFFECTING_COMBAT;
 
         // only spells with SPELL_ATTR3_ONLY_TARGET_GHOSTS can target ghosts
@@ -1666,7 +1658,7 @@ SpellCastResult SpellInfo::CheckTarget(WorldObject const* caster, WorldObject co
                         if (!player->GetWeaponForAttack(BASE_ATTACK) || !player->IsUseEquipedWeapon(true))
                             return SPELL_FAILED_TARGET_NO_WEAPONS;
                     }
-                    else if (!unitTarget->GetUInt32Value(UNIT_VIRTUAL_ITEM_SLOT_ID))
+                    else if (!unitTarget->GetVirtualItemId(0))
                         return SPELL_FAILED_TARGET_NO_WEAPONS;
                 }
             }
@@ -1700,7 +1692,7 @@ SpellCastResult SpellInfo::CheckTarget(WorldObject const* caster, WorldObject co
        return SPELL_FAILED_BAD_TARGETS;
 
     // checked in Unit::IsValidAttack/AssistTarget, shouldn't be checked for ENTRY targets
-    //if (!HasAttribute(SPELL_ATTR6_CAN_TARGET_UNTARGETABLE) && target->HasFlag(UNIT_FIELD_FLAGS, UNIT_FLAG_UNINTERACTIBLE))
+    //if (!HasAttribute(SPELL_ATTR6_CAN_TARGET_UNTARGETABLE) && target->HasUnitFlag(UNIT_FLAG_UNINTERACTIBLE))
     //    return SPELL_FAILED_BAD_TARGETS;
 
     //if (!HasAttribute(SPELL_ATTR6_CAN_TARGET_POSSESSED_FRIENDS))
@@ -2863,13 +2855,26 @@ void SpellInfo::ApplyAllSpellImmunitiesTo(Unit* target, uint8 effIndex, bool app
             if (mechanicImmunity & (1 << i))
                 target->ApplySpellImmune(Id, IMMUNITY_MECHANIC, i, apply);
 
-        if (apply && HasAttribute(SPELL_ATTR1_DISPEL_AURAS_ON_IMMUNITY))
+        if (HasAttribute(SPELL_ATTR1_DISPEL_AURAS_ON_IMMUNITY))
         {
-            // exception for purely snare mechanic (eg. hands of freedom)!
-            if (mechanicImmunity == (1 << MECHANIC_SNARE))
-                target->RemoveMovementImpairingAuras(false);
-            else
+            if (apply)
                 target->RemoveAurasWithMechanic(mechanicImmunity, AURA_REMOVE_BY_DEFAULT, Id);
+            else
+            {
+                std::vector<Aura*> aurasToUpdateTargets;
+                target->RemoveAppliedAuras([mechanicImmunity, &aurasToUpdateTargets](AuraApplication const* aurApp)
+                {
+                    Aura* aura = aurApp->GetBase();
+                    if (aura->GetSpellInfo()->GetAllEffectsMechanicMask() & mechanicImmunity)
+                        aurasToUpdateTargets.push_back(aura);
+
+                    // only update targets, don't remove anything
+                    return false;
+                });
+
+                for (Aura* aura : aurasToUpdateTargets)
+                    aura->UpdateTargetMap(aura->GetCaster());
+            }
         }
     }
 
@@ -2897,7 +2902,11 @@ void SpellInfo::ApplyAllSpellImmunitiesTo(Unit* target, uint8 effIndex, bool app
     {
         target->ApplySpellImmune(Id, IMMUNITY_STATE, auraType, apply);
         if (apply && HasAttribute(SPELL_ATTR1_DISPEL_AURAS_ON_IMMUNITY))
-            target->RemoveAurasByType(auraType);
+            target->RemoveAurasByType(auraType, [](AuraApplication const* aurApp) -> bool
+            {
+                // if the aura has SPELL_ATTR0_UNAFFECTED_BY_INVULNERABILITY, then it cannot be removed by immunity
+                return !aurApp->GetBase()->GetSpellInfo()->HasAttribute(SPELL_ATTR0_UNAFFECTED_BY_INVULNERABILITY);
+            });
     }
 
     for (SpellEffects effectType : immuneInfo.SpellEffectImmune)

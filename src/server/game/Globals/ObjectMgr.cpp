@@ -51,6 +51,7 @@
 #include "SpellScript.h"
 #include "StringConvert.h"
 #include "TemporarySummon.h"
+#include "ThreadPool.h"
 #include "UpdateMask.h"
 #include "Util.h"
 #include "Vehicle.h"
@@ -312,12 +313,12 @@ void ObjectMgr::LoadGossipMenuItemsLocales()
         if (locale == LOCALE_enUS)
             continue;
 
-        GossipMenuItemsLocale& data = _gossipMenuItemsLocaleStore[MAKE_PAIR32(menuId, optionId)];
+        GossipMenuItemsLocale& data = _gossipMenuItemsLocaleStore[std::make_pair(menuId, optionId)];
         AddLocaleString(fields[3].GetString(), locale, data.OptionText);
         AddLocaleString(fields[4].GetString(), locale, data.BoxText);
     } while (result->NextRow());
 
-    TC_LOG_INFO("server.loading", ">> Loaded %u gossip_menu_option locale strings in %u ms", uint32(_gossipMenuItemsLocaleStore.size()), GetMSTimeDiffToNow(oldMSTime));
+    TC_LOG_INFO("server.loading", ">> Loaded " SZFMTD " gossip_menu_option locale strings in %u ms", _gossipMenuItemsLocaleStore.size(), GetMSTimeDiffToNow(oldMSTime));
 }
 
 void ObjectMgr::LoadPointOfInterestLocales()
@@ -710,8 +711,8 @@ void ObjectMgr::LoadCreatureTemplateAddons()
 {
     uint32 oldMSTime = getMSTime();
 
-    //                                                0       1       2      3       4       5               6               7
-    QueryResult result = WorldDatabase.Query("SELECT entry, path_id, mount, bytes1, bytes2, emote, visibilityDistanceType, auras FROM creature_template_addon");
+    //                                               0      1        2      3           4         5         6            7         8      9                       10
+    QueryResult result = WorldDatabase.Query("SELECT entry, path_id, mount, StandState, AnimTier, VisFlags, SheathState, PvPFlags, emote, visibilityDistanceType, auras FROM creature_template_addon");
 
     if (!result)
     {
@@ -736,12 +737,15 @@ void ObjectMgr::LoadCreatureTemplateAddons()
 
         creatureAddon.path_id                   = fields[1].GetUInt32();
         creatureAddon.mount                     = fields[2].GetUInt32();
-        creatureAddon.bytes1                    = fields[3].GetUInt32();
-        creatureAddon.bytes2                    = fields[4].GetUInt32();
-        creatureAddon.emote                     = fields[5].GetUInt32();
-        creatureAddon.visibilityDistanceType    = VisibilityDistanceType(fields[6].GetUInt8());
+        creatureAddon.standState                = fields[3].GetUInt8();
+        creatureAddon.animTier                  = fields[4].GetUInt8();
+        creatureAddon.visFlags                  = fields[5].GetUInt8();
+        creatureAddon.sheathState               = fields[6].GetUInt8();
+        creatureAddon.pvpFlags                  = fields[7].GetUInt8();
+        creatureAddon.emote                     = fields[8].GetUInt32();
+        creatureAddon.visibilityDistanceType    = VisibilityDistanceType(fields[9].GetUInt8());
 
-        for (std::string_view aura : Trinity::Tokenize(fields[7].GetStringView(), ' ', false))
+        for (std::string_view aura : Trinity::Tokenize(fields[10].GetStringView(), ' ', false))
         {
 
             SpellInfo const* spellInfo = nullptr;
@@ -780,6 +784,26 @@ void ObjectMgr::LoadCreatureTemplateAddons()
                 creatureAddon.mount = 0;
             }
         }
+
+        if (creatureAddon.standState >= MAX_UNIT_STAND_STATE)
+        {
+            TC_LOG_ERROR("sql.sql", "Creature (Entry: %u) has invalid unit stand state (%u) defined in `creature_template_addon`. Truncated to 0.", entry, creatureAddon.standState);
+            creatureAddon.standState = 0;
+        }
+
+        if (AnimTier(creatureAddon.animTier) >= AnimTier::Max)
+        {
+            TC_LOG_ERROR("sql.sql", "Creature (Entry: %u) has invalid animation tier (%u) defined in `creature_template_addon`. Truncated to 0.", entry, creatureAddon.animTier);
+            creatureAddon.animTier = 0;
+        }
+
+        if (creatureAddon.sheathState >= MAX_SHEATH_STATE)
+        {
+            TC_LOG_ERROR("sql.sql", "Creature (Entry: %u) has invalid sheath state (%u) defined in `creature_template_addon`. Truncated to 0.", entry, creatureAddon.sheathState);
+            creatureAddon.sheathState = 0;
+        }
+
+        // PvPFlags don't need any checking for the time being since they cover the entire range of a byte
 
         if (!sEmotesStore.LookupEntry(creatureAddon.emote))
         {
@@ -1258,8 +1282,8 @@ void ObjectMgr::LoadCreatureAddons()
 {
     uint32 oldMSTime = getMSTime();
 
-    //                                                0       1       2      3       4       5              6               7
-    QueryResult result = WorldDatabase.Query("SELECT guid, path_id, mount, bytes1, bytes2, emote, visibilityDistanceType, auras FROM creature_addon");
+    //                                               0     1        2      3           4         5         6            7         8      9                       10
+    QueryResult result = WorldDatabase.Query("SELECT guid, path_id, mount, StandState, AnimTier, VisFlags, SheathState, PvPFlags, emote, visibilityDistanceType, auras FROM creature_addon");
 
     if (!result)
     {
@@ -1291,12 +1315,15 @@ void ObjectMgr::LoadCreatureAddons()
         }
 
         creatureAddon.mount                     = fields[2].GetUInt32();
-        creatureAddon.bytes1                    = fields[3].GetUInt32();
-        creatureAddon.bytes2                    = fields[4].GetUInt32();
-        creatureAddon.emote                     = fields[5].GetUInt32();
-        creatureAddon.visibilityDistanceType    = VisibilityDistanceType(fields[6].GetUInt8());
+        creatureAddon.standState                = fields[3].GetUInt8();
+        creatureAddon.animTier                  = fields[4].GetUInt8();
+        creatureAddon.visFlags                  = fields[5].GetUInt8();
+        creatureAddon.sheathState               = fields[6].GetUInt8();
+        creatureAddon.pvpFlags                  = fields[7].GetUInt8();
+        creatureAddon.emote                     = fields[8].GetUInt32();
+        creatureAddon.visibilityDistanceType    = VisibilityDistanceType(fields[9].GetUInt8());
 
-        for (std::string_view aura : Trinity::Tokenize(fields[7].GetStringView(), ' ', false))
+        for (std::string_view aura : Trinity::Tokenize(fields[10].GetStringView(), ' ', false))
         {
             SpellInfo const* spellInfo = nullptr;
             if (Optional<uint32> spellId = Trinity::StringTo<uint32>(aura))
@@ -1334,6 +1361,26 @@ void ObjectMgr::LoadCreatureAddons()
                 creatureAddon.mount = 0;
             }
         }
+
+        if (creatureAddon.standState >= MAX_UNIT_STAND_STATE)
+        {
+            TC_LOG_ERROR("sql.sql", "Creature (GUID: %u) has invalid unit stand state (%u) defined in `creature_addon`. Truncated to 0.", guid, creatureAddon.standState);
+            creatureAddon.standState = 0;
+        }
+
+        if (AnimTier(creatureAddon.animTier) >= AnimTier::Max)
+        {
+            TC_LOG_ERROR("sql.sql", "Creature (GUID: %u) has invalid animation tier (%u) defined in `creature_addon`. Truncated to 0.", guid, creatureAddon.animTier);
+            creatureAddon.animTier = 0;
+        }
+
+        if (creatureAddon.sheathState >= MAX_SHEATH_STATE)
+        {
+            TC_LOG_ERROR("sql.sql", "Creature (GUID: %u) has invalid sheath state (%u) defined in `creature_addon`. Truncated to 0.", guid, creatureAddon.sheathState);
+            creatureAddon.sheathState = 0;
+        }
+
+        // PvPFlags don't need any checking for the time being since they cover the entire range of a byte
 
         if (!sEmotesStore.LookupEntry(creatureAddon.emote))
         {
@@ -2744,9 +2791,14 @@ void ObjectMgr::LoadInstanceSpawnGroups()
         }
 
         uint16 const instanceMapId = fields[0].GetUInt16();
-        auto& vector = _instanceSpawnGroupStore[instanceMapId];
-        vector.emplace_back();
-        InstanceSpawnGroupInfo& info = vector.back();
+        if (it->second.mapId != instanceMapId)
+        {
+            TC_LOG_ERROR("sql.sql", "Instance spawn group %u specified for instance %u has spawns on a different map %u. Skipped.",
+                spawnGroupId, instanceMapId, it->second.mapId);
+            continue;
+        }
+
+        InstanceSpawnGroupInfo& info = _instanceSpawnGroupStore[instanceMapId].emplace_back();
         info.SpawnGroupId = spawnGroupId;
         info.BossStateId = fields[1].GetUInt8();
 
@@ -4352,7 +4404,7 @@ void ObjectMgr::LoadPlayerInfo()
             auto& pClassInfo = _playerClassInfo[class_];
 
             // fatal error if no level 1 data
-            if (!pClassInfo->levelInfo || pClassInfo->levelInfo[0].basehealth == 0)
+            if (!pClassInfo || !pClassInfo->levelInfo || pClassInfo->levelInfo[0].basehealth == 0)
             {
                 TC_LOG_ERROR("sql.sql", "Class %i Level 1 does not have health/mana data!", class_);
                 ABORT();
@@ -9522,7 +9574,7 @@ void ObjectMgr::LoadGossipMenuItems()
 
         gMenuItem.MenuID                = fields[0].GetUInt16();
         gMenuItem.OptionID              = fields[1].GetUInt16();
-        gMenuItem.OptionIcon            = fields[2].GetUInt32();
+        gMenuItem.OptionIcon            = GossipOptionIcon(fields[2].GetUInt32());
         gMenuItem.OptionText            = fields[3].GetString();
         gMenuItem.OptionBroadcastTextID = fields[4].GetUInt32();
         gMenuItem.OptionType            = fields[5].GetUInt8();
@@ -10381,30 +10433,34 @@ void ObjectMgr::InitializeQueriesData(QueryDataGroup mask)
         return;
     }
 
+    Trinity::ThreadPool pool;
+
     // Initialize Query data for creatures
     if (mask & QUERY_DATA_CREATURES)
         for (auto& creatureTemplatePair : _creatureTemplateStore)
-            creatureTemplatePair.second.InitializeQueryData();
+            pool.PostWork([creature = &creatureTemplatePair.second]() { creature->InitializeQueryData(); });
 
     // Initialize Query Data for gameobjects
     if (mask & QUERY_DATA_GAMEOBJECTS)
         for (auto& gameObjectTemplatePair : _gameObjectTemplateStore)
-            gameObjectTemplatePair.second.InitializeQueryData();
+            pool.PostWork([gobj = &gameObjectTemplatePair.second]() { gobj->InitializeQueryData(); });
 
     // Initialize Query Data for items
     if (mask & QUERY_DATA_ITEMS)
         for (auto& itemTemplatePair : _itemTemplateStore)
-            itemTemplatePair.second.InitializeQueryData();
+            pool.PostWork([item = &itemTemplatePair.second]() { item->InitializeQueryData(); });
 
     // Initialize Query Data for quests
     if (mask & QUERY_DATA_QUESTS)
         for (auto& questTemplatePair : _questTemplates)
-            questTemplatePair.second.InitializeQueryData();
+            pool.PostWork([quest = &questTemplatePair.second]() { quest->InitializeQueryData(); });
 
     // Initialize Quest POI data
     if (mask & QUERY_DATA_POIS)
         for (auto& poiWrapperPair : _questPOIStore)
-            poiWrapperPair.second.InitializeQueryData();
+            pool.PostWork([poi = &poiWrapperPair.second]() { poi->InitializeQueryData(); });
+
+    pool.Join();
 
     TC_LOG_INFO("server.loading", ">> Initialized query cache data in %u ms", GetMSTimeDiffToNow(oldMSTime));
 }

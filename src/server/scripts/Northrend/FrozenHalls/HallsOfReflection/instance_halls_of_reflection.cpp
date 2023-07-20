@@ -123,7 +123,7 @@ class instance_halls_of_reflection : public InstanceMapScript
                     case NPC_KORELN:
                     case NPC_LORALEN:
                         if (GetBossState(DATA_MARWYN) != DONE)
-                            creature->RemoveFlag(UNIT_NPC_FLAGS, UNIT_NPC_FLAG_QUESTGIVER);
+                            creature->RemoveNpcFlag(UNIT_NPC_FLAG_QUESTGIVER);
                         KorelnOrLoralenGUID = creature->GetGUID();
                         break;
                     case NPC_THE_LICH_KING_INTRO:
@@ -317,7 +317,7 @@ class instance_halls_of_reflection : public InstanceMapScript
                                 bunny->CastSpell(bunny, SPELL_START_HALLS_OF_REFLECTION_QUEST_AE, true);
 
                             if (Creature* korelnOrLoralen = instance->GetCreature(KorelnOrLoralenGUID))
-                                korelnOrLoralen->SetFlag(UNIT_NPC_FLAGS, UNIT_NPC_FLAG_QUESTGIVER);
+                                korelnOrLoralen->SetNpcFlag(UNIT_NPC_FLAG_QUESTGIVER);
 
                             HandleGameObject(EntranceDoorGUID, true);
                             HandleGameObject(ImpenetrableDoorGUID, true);
@@ -340,7 +340,7 @@ class instance_halls_of_reflection : public InstanceMapScript
                                 break;
                             case DONE:
                                 if (GameObject* chest = instance->GetGameObject(CaptainsChestGUID))
-                                    chest->RemoveFlag(GAMEOBJECT_FLAGS, GO_FLAG_LOCKED | GO_FLAG_NOT_SELECTABLE | GO_FLAG_NODESPAWN);
+                                    chest->RemoveFlag(GO_FLAG_LOCKED | GO_FLAG_NOT_SELECTABLE | GO_FLAG_NODESPAWN);
 
                                 DoUseDoorOrButton(CaveInGUID, 15);
 
@@ -535,7 +535,7 @@ class instance_halls_of_reflection : public InstanceMapScript
                 {
                     // spawning all wave npcs at once
                     case EVENT_SPAWN_WAVES:
-                        _waveCount = 1;
+                        _waveCount = GetBossState(DATA_FALRIC) == DONE ? 6 : 1;
                         DoUpdateWorldState(WORLD_STATE_HOR_WAVES_ENABLED, 1);
                         DoUpdateWorldState(WORLD_STATE_HOR_WAVE_COUNT, _waveCount);
                         {
@@ -549,7 +549,7 @@ class instance_halls_of_reflection : public InstanceMapScript
                             possibilityList.push_back(NPC_WAVE_MAGE);
 
                             // iterate each wave
-                            for (uint8 i = 0; i < 8; ++i)
+                            for (uint8 i = GetBossState(DATA_FALRIC) == DONE ? 4 : 0; i < 8; ++i)
                             {
                                 tempList = possibilityList;
 
@@ -590,7 +590,7 @@ class instance_halls_of_reflection : public InstanceMapScript
                                 if (Creature* temp = instance->GetCreature(guid))
                                 {
                                     temp->CastSpell(temp, SPELL_SPIRIT_ACTIVATE, false);
-                                    temp->RemoveFlag(UNIT_FIELD_FLAGS, UNIT_FLAG_UNINTERACTIBLE);
+                                    temp->RemoveUnitFlag(UNIT_FLAG_UNINTERACTIBLE);
                                     temp->SetImmuneToAll(false);
                                     temp->AI()->DoZoneInCombat(temp);
                                 }

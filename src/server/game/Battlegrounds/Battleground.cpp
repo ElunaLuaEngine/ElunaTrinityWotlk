@@ -1116,8 +1116,8 @@ void Battleground::EventPlayerLoggedOut(Player* player)
         // drop flag and handle other cleanups
         RemovePlayer(player, guid, GetPlayerTeam(guid));
 
-        // 1 player is logging out, if it is the last, then end arena!
-        if (isArena())
+        // 1 player is logging out, if it is the last alive, then end arena!
+        if (isArena() && player->IsAlive())
             if (GetAlivePlayersCountByTeam(player->GetBGTeam()) <= 1 && GetPlayersCountByTeam(GetOtherTeam(player->GetBGTeam())))
                 EndBattleground(GetOtherTeam(player->GetBGTeam()));
     }
@@ -1587,9 +1587,9 @@ bool Battleground::AddSpiritGuide(uint32 type, float x, float y, float z, float 
         /// @todo Fix display here
         // creature->SetVisibleAura(0, SPELL_SPIRIT_HEAL_CHANNEL);
         // casting visual effect
-        creature->SetUInt32Value(UNIT_CHANNEL_SPELL, SPELL_SPIRIT_HEAL_CHANNEL);
+        creature->SetChannelSpellId(SPELL_SPIRIT_HEAL_CHANNEL);
         // correct cast speed
-        creature->SetFloatValue(UNIT_MOD_CAST_SPEED, 1.0f);
+        creature->SetModCastingSpeed(1.0f);
         //creature->CastSpell(creature, SPELL_SPIRIT_HEAL_CHANNEL, true);
         return true;
     }
@@ -1711,7 +1711,7 @@ void Battleground::HandleKillPlayer(Player* victim, Player* killer)
     if (!isArena())
     {
         // To be able to remove insignia -- ONLY IN Battlegrounds
-        victim->SetFlag(UNIT_FIELD_FLAGS, UNIT_FLAG_SKINNABLE);
+        victim->SetUnitFlag(UNIT_FLAG_SKINNABLE);
         RewardXPAtKill(killer, victim);
     }
 }
