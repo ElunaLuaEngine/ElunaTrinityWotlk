@@ -1,24 +1,21 @@
-#
-# Copyright (C) 2010 - 2014 Eluna Lua Engine <http://emudevs.com/>
-# This program is free software licensed under GPL version 3
-# Please see the included DOCS/LICENSE.md for more information
-#
+set(LUA_VERSION "lua52" CACHE STRING "Lua version to use")
+set_property(CACHE LUA_VERSION PROPERTY STRINGS luajit lua51 lua52 lua53 lua54)
+MESSAGE(STATUS "Lua version: ${LUA_VERSION}")
 
-file(GLOB sources *.c)
-list(REMOVE_ITEM sources ${CMAKE_CURRENT_SOURCE_DIR}/lua.c)
-list(REMOVE_ITEM sources ${CMAKE_CURRENT_SOURCE_DIR}/luac.c)
+# Avoid warning about DOWNLOAD_EXTRACT_TIMESTAMP in CMake 3.24:
+if (CMAKE_VERSION VERSION_GREATER_EQUAL "3.24.0")
+  cmake_policy(SET CMP0135 NEW)
+endif()
 
-set(lua_STAT_SRCS
-  ${sources}
-)
+option(LUA_STATIC "link lua statically" OFF)
+if (LUA_STATIC)
+  MESSAGE(STATUS "Lua linking: static")
+else()
+  MESSAGE(STATUS "Lua linking: dynamic")
+endif()
 
-add_library(lualib STATIC ${lua_STAT_SRCS})
-
-
-target_include_directories(lualib
-  PUBLIC
-    ${CMAKE_CURRENT_SOURCE_DIR})
-
-target_link_libraries(lualib
-  PRIVATE
-    trinity-dependency-interface)
+if (LUA_VERSION MATCHES "luajit")
+  add_subdirectory(luajit)
+else()
+  add_subdirectory(lua)
+endif()
