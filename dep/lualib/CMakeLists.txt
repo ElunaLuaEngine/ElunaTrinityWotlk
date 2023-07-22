@@ -2,6 +2,10 @@ set(LUA_VERSION "lua52" CACHE STRING "Lua version to use")
 set_property(CACHE LUA_VERSION PROPERTY STRINGS luajit lua51 lua52 lua53 lua54)
 MESSAGE(STATUS "Lua version: ${LUA_VERSION}")
 
+# Avoid warning about DOWNLOAD_EXTRACT_TIMESTAMP in CMake 3.24:
+if (CMAKE_VERSION VERSION_GREATER_EQUAL "3.24.0")
+  cmake_policy(SET CMP0135 NEW)
+endif()
 
 option(LUA_STATIC "link lua statically" OFF)
 if (LUA_STATIC)
