@@ -2215,7 +2215,7 @@ void Creature::LoadTemplateImmunities()
     }
 }
 
-bool Creature::IsImmunedToSpell(SpellInfo const* spellInfo, WorldObject const* caster) const
+bool Creature::IsImmunedToSpell(SpellInfo const* spellInfo, WorldObject const* caster, bool requireImmunityPurgesEffectAttribute /*= false*/) const
 {
     if (!spellInfo)
         return false;
@@ -2223,7 +2223,7 @@ bool Creature::IsImmunedToSpell(SpellInfo const* spellInfo, WorldObject const* c
     bool immunedToAllEffects = true;
     for (SpellEffectInfo const& spellEffectInfo : spellInfo->GetEffects())
     {
-        if (spellEffectInfo.IsEffect() && !IsImmunedToSpellEffect(spellInfo, spellEffectInfo, caster))
+        if (spellEffectInfo.IsEffect() && !IsImmunedToSpellEffect(spellInfo, spellEffectInfo, caster, requireImmunityPurgesEffectAttribute))
         {
             immunedToAllEffects = false;
             break;
@@ -2233,15 +2233,16 @@ bool Creature::IsImmunedToSpell(SpellInfo const* spellInfo, WorldObject const* c
     if (immunedToAllEffects)
         return true;
 
-    return Unit::IsImmunedToSpell(spellInfo, caster);
+    return Unit::IsImmunedToSpell(spellInfo, caster, requireImmunityPurgesEffectAttribute);
 }
 
-bool Creature::IsImmunedToSpellEffect(SpellInfo const* spellInfo, SpellEffectInfo const& spellEffectInfo, WorldObject const* caster) const
+bool Creature::IsImmunedToSpellEffect(SpellInfo const* spellInfo, SpellEffectInfo const& spellEffectInfo, WorldObject const* caster,
+    bool requireImmunityPurgesEffectAttribute /*= false*/) const
 {
     if (GetCreatureTemplate()->type == CREATURE_TYPE_MECHANICAL && spellEffectInfo.IsEffect(SPELL_EFFECT_HEAL))
         return true;
 
-    return Unit::IsImmunedToSpellEffect(spellInfo, spellEffectInfo, caster);
+    return Unit::IsImmunedToSpellEffect(spellInfo, spellEffectInfo, caster, requireImmunityPurgesEffectAttribute);
 }
 
 bool Creature::isElite() const
@@ -2521,60 +2522,48 @@ CreatureAddon const* Creature::GetCreatureAddon() const
 //creature_addon table
 bool Creature::LoadCreaturesAddon()
 {
-    CreatureAddon const* cainfo = GetCreatureAddon();
-    if (!cainfo)
+    CreatureAddon const* creatureAddon = GetCreatureAddon();
+    if (!creatureAddon)
         return false;
 
-    if (cainfo->mount != 0)
-        Mount(cainfo->mount);
+    if (creatureAddon->mount != 0)
+        Mount(creatureAddon->mount);
 
-    if (cainfo->bytes1 != 0)
-    {
-        // 0 StandState
-        // 1 FreeTalentPoints   Pet only, so always 0 for default creature
-        // 2 StandFlags
-        // 3 StandMiscFlags
+    // UNIT_FIELD_BYTES_1 values
+    SetStandState(UnitStandStateType(creatureAddon->standState));
+    SetAnimTier(AnimTier(creatureAddon->animTier));
+    ReplaceAllVisFlags(UnitVisFlags(creatureAddon->visFlags));
 
-        SetStandState(UnitStandStateType(cainfo->bytes1 & 0xFF));
-        ReplaceAllVisFlags(UnitVisFlags((cainfo->bytes1 >> 16) & 0xFF));
-        SetAnimTier(AnimTier((cainfo->bytes1 >> 24) & 0xFF));
+    //! Suspected correlation between UNIT_FIELD_BYTES_1, offset 3, value 0x2:
+    //! If no inhabittype_fly (if no MovementFlag_DisableGravity or MovementFlag_CanFly flag found in sniffs)
+    //! Check using InhabitType as movement flags are assigned dynamically
+    //! basing on whether the creature is in air or not
+    //! Set MovementFlag_Hover. Otherwise do nothing.
+    if (CanHover())
+        AddUnitMovementFlag(MOVEMENTFLAG_HOVER);
 
-        //! Suspected correlation between UNIT_FIELD_BYTES_1, offset 3, value 0x2:
-        //! If no inhabittype_fly (if no MovementFlag_DisableGravity or MovementFlag_CanFly flag found in sniffs)
-        //! Check using InhabitType as movement flags are assigned dynamically
-        //! basing on whether the creature is in air or not
-        //! Set MovementFlag_Hover. Otherwise do nothing.
-        if (CanHover())
-            AddUnitMovementFlag(MOVEMENTFLAG_HOVER);
-    }
+    // UNIT_FIELD_BYTES_2 values
+    SetSheath(SheathState(creatureAddon->sheathState));
+    ReplaceAllPvpFlags(UnitPVPStateFlags(creatureAddon->pvpFlags));
 
-    if (cainfo->bytes2 != 0)
-    {
-        // 0 SheathState
-        // 1 PvpFlags
-        // 2 PetFlags           Pet only, so always 0 for default creature
-        // 3 ShapeshiftForm     Must be determined/set by shapeshift spell/aura
+    // These fields must only be handled by core internals and must not be modified via scripts/DB data
+    ReplaceAllPetFlags(UNIT_PET_FLAG_NONE);
+    SetShapeshiftForm(FORM_NONE);
 
-        SetSheath(SheathState(cainfo->bytes2 & 0xFF));
-        ReplaceAllPvpFlags(UnitPVPStateFlags((cainfo->bytes2 >> 8) & 0xFF));
-        ReplaceAllPetFlags(UNIT_PET_FLAG_NONE);
-        SetShapeshiftForm(FORM_NONE);
-    }
-
-    if (cainfo->emote != 0)
-        SetEmoteState(Emote(cainfo->emote));
+    if (creatureAddon->emote != 0)
+        SetEmoteState(Emote(creatureAddon->emote));
 
     // Check if visibility distance different
-    if (cainfo->visibilityDistanceType != VisibilityDistanceType::Normal)
-        SetVisibilityDistanceOverride(cainfo->visibilityDistanceType);
+    if (creatureAddon->visibilityDistanceType != VisibilityDistanceType::Normal)
+        SetVisibilityDistanceOverride(creatureAddon->visibilityDistanceType);
 
     // Load Path
-    if (cainfo->path_id != 0)
-        _waypointPathId = cainfo->path_id;
+    if (creatureAddon->path_id != 0)
+        _waypointPathId = creatureAddon->path_id;
 
-    if (!cainfo->auras.empty())
+    if (!creatureAddon->auras.empty())
     {
-        for (std::vector<uint32>::const_iterator itr = cainfo->auras.begin(); itr != cainfo->auras.end(); ++itr)
+        for (std::vector<uint32>::const_iterator itr = creatureAddon->auras.begin(); itr != creatureAddon->auras.end(); ++itr)
         {
             SpellInfo const* AdditionalSpellInfo = sSpellMgr->GetSpellInfo(*itr);
             if (!AdditionalSpellInfo)

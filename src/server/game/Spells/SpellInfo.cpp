@@ -1609,7 +1609,7 @@ SpellCastResult SpellInfo::CheckTarget(WorldObject const* caster, WorldObject co
     if (HasAttribute(SPELL_ATTR1_CANT_TARGET_SELF) && caster == target)
         return SPELL_FAILED_BAD_TARGETS;
 
-    // check visibility - ignore stealth for implicit (area) targets
+    // check visibility - ignore invisibility/stealth for implicit (area) targets
     if (!HasAttribute(SPELL_ATTR6_CAN_TARGET_INVISIBLE) && !caster->CanSeeOrDetect(target, implicit))
         return SPELL_FAILED_BAD_TARGETS;
 
@@ -2855,13 +2855,26 @@ void SpellInfo::ApplyAllSpellImmunitiesTo(Unit* target, uint8 effIndex, bool app
             if (mechanicImmunity & (1 << i))
                 target->ApplySpellImmune(Id, IMMUNITY_MECHANIC, i, apply);
 
-        if (apply && HasAttribute(SPELL_ATTR1_DISPEL_AURAS_ON_IMMUNITY))
+        if (HasAttribute(SPELL_ATTR1_DISPEL_AURAS_ON_IMMUNITY))
         {
-            // exception for purely snare mechanic (eg. hands of freedom)!
-            if (mechanicImmunity == (1 << MECHANIC_SNARE))
-                target->RemoveMovementImpairingAuras(false);
-            else
+            if (apply)
                 target->RemoveAurasWithMechanic(mechanicImmunity, AURA_REMOVE_BY_DEFAULT, Id);
+            else
+            {
+                std::vector<Aura*> aurasToUpdateTargets;
+                target->RemoveAppliedAuras([mechanicImmunity, &aurasToUpdateTargets](AuraApplication const* aurApp)
+                {
+                    Aura* aura = aurApp->GetBase();
+                    if (aura->GetSpellInfo()->GetAllEffectsMechanicMask() & mechanicImmunity)
+                        aurasToUpdateTargets.push_back(aura);
+
+                    // only update targets, don't remove anything
+                    return false;
+                });
+
+                for (Aura* aura : aurasToUpdateTargets)
+                    aura->UpdateTargetMap(aura->GetCaster());
+            }
         }
     }
 

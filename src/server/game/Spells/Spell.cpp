@@ -504,6 +504,7 @@ m_caster((info->HasAttribute(SPELL_ATTR6_CAST_BY_CHARMER) && caster->GetCharmerO
 , m_spellValue(new SpellValue(m_spellInfo)), _spellEvent(nullptr)
 {
     m_customError = SPELL_CUSTOM_ERROR_NONE;
+    m_fromClient = false;
     m_selfContainer = nullptr;
     m_referencedFromCurrentSpell = false;
     m_executedCurrently = false;
@@ -2307,14 +2308,13 @@ void Spell::TargetInfo::PreprocessTarget(Spell* spell)
     spell->m_healing = Healing;
 
     _spellHitTarget = nullptr;
-    if (MissCondition == SPELL_MISS_NONE)
+    if (MissCondition == SPELL_MISS_NONE || (MissCondition == SPELL_MISS_BLOCK && !spell->GetSpellInfo()->HasAttribute(SPELL_ATTR3_COMPLETELY_BLOCKED)))
         _spellHitTarget = unit;
     else if (MissCondition == SPELL_MISS_REFLECT && ReflectResult == SPELL_MISS_NONE)
         _spellHitTarget = spell->m_caster->ToUnit();
 
-    // Ensure that a player target is put in combat by a taunt, even if they result immune clientside
-    if ((MissCondition == SPELL_MISS_IMMUNE || MissCondition == SPELL_MISS_IMMUNE2) && spell->m_caster->GetTypeId() == TYPEID_PLAYER && unit->GetTypeId() == TYPEID_PLAYER && spell->m_caster->IsValidAttackTarget(unit, spell->GetSpellInfo()))
-        unit->SetInCombatWith(spell->m_caster->ToPlayer());
+    if (spell->m_originalCaster && MissCondition != SPELL_MISS_EVADE && !spell->m_originalCaster->IsFriendlyTo(unit) && (!spell->m_spellInfo->IsPositive() || spell->m_spellInfo->HasEffect(SPELL_EFFECT_DISPEL)) && (spell->m_spellInfo->HasInitialAggro() || unit->IsEngaged()))
+        unit->SetInCombatWith(spell->m_originalCaster);
 
     spell->CallScriptBeforeHitHandlers(MissCondition);
 
@@ -2500,7 +2500,7 @@ void Spell::TargetInfo::DoDamageAndTriggers(Spell* spell)
                 caster->SetLastDamagedTargetGuid(spell->unitTarget->GetGUID());
 
                 // Add bonuses and fill damageInfo struct
-                caster->CalculateSpellDamageTaken(&damageInfo, spell->m_damage, spell->m_spellInfo, spell->m_attackType, IsCrit, spell);
+                caster->CalculateSpellDamageTaken(&damageInfo, spell->m_damage, spell->m_spellInfo, spell->m_attackType, IsCrit, MissCondition == SPELL_MISS_BLOCK, spell);
                 Unit::DealDamageMods(damageInfo.target, damageInfo.damage, &damageInfo.absorb);
 
                 // Send log damage message to client
@@ -4171,7 +4171,7 @@ void Spell::SendSpellStart()
     if (schoolImmunityMask || mechanicImmunityMask)
         castFlags |= CAST_FLAG_IMMUNITY;
 
-    if (((IsTriggered() && !m_spellInfo->IsAutoRepeatRangedSpell()) || m_triggeredByAuraSpell) && !m_cast_count)
+    if (((IsTriggered() && !m_spellInfo->IsAutoRepeatRangedSpell()) || m_triggeredByAuraSpell) && !m_fromClient)
         castFlags |= CAST_FLAG_PENDING;
 
     if (m_spellInfo->HasAttribute(SPELL_ATTR0_REQ_AMMO) || m_spellInfo->HasAttribute(SPELL_ATTR0_CU_NEEDS_AMMO_DATA))
@@ -4228,7 +4228,7 @@ void Spell::SendSpellGo()
     uint32 castFlags = CAST_FLAG_UNKNOWN_9;
 
     // triggered spells with spell visual != 0
-    if (((IsTriggered() && !m_spellInfo->IsAutoRepeatRangedSpell()) || m_triggeredByAuraSpell) && !m_cast_count)
+    if (((IsTriggered() && !m_spellInfo->IsAutoRepeatRangedSpell()) || m_triggeredByAuraSpell) && !m_fromClient)
         castFlags |= CAST_FLAG_PENDING;
 
     if (m_spellInfo->HasAttribute(SPELL_ATTR0_REQ_AMMO) || m_spellInfo->HasAttribute(SPELL_ATTR0_CU_NEEDS_AMMO_DATA))
@@ -4319,10 +4319,9 @@ void Spell::SendSpellGo()
     }
 
     // should be sent to self only
-    if (castFlags & CAST_FLAG_POWER_LEFT_SELF)
+    if (castFlags & CAST_FLAG_POWER_LEFT_SELF && m_caster->IsPlayer())
     {
-        if (Player* player = m_caster->GetAffectingPlayer())
-            player->SendDirectMessage(packet.Write());
+        m_caster->ToPlayer()->SendDirectMessage(packet.Write());
 
         packet.Clear();
 
@@ -4430,7 +4429,7 @@ void Spell::UpdateSpellCastDataTargets(WorldPackets::Spells::SpellCastData& data
             // possibly SPELL_MISS_IMMUNE2 for this??
             targetInfo.MissCondition = SPELL_MISS_IMMUNE2;
 
-        if (targetInfo.MissCondition == SPELL_MISS_NONE)       // Add only hits
+        if (targetInfo.MissCondition == SPELL_MISS_NONE || (targetInfo.MissCondition == SPELL_MISS_BLOCK && !m_spellInfo->HasAttribute(SPELL_ATTR3_COMPLETELY_BLOCKED))) // Add only hits and partial blocked
         {
             data.HitTargets->push_back(targetInfo.TargetGUID);
 
@@ -4438,6 +4437,11 @@ void Spell::UpdateSpellCastDataTargets(WorldPackets::Spells::SpellCastData& data
         }
         else // misses
         {
+            // Only send blocks in spell_go packets if we know that the spell is not going to do anything to the target.
+            // Spells that are partially blocked will send their block result in their according combat log packet.
+            if (targetInfo.MissCondition == SPELL_MISS_BLOCK && !m_spellInfo->HasAttribute(SPELL_ATTR3_COMPLETELY_BLOCKED))
+                continue;
+
             WorldPackets::Spells::SpellMissStatus missStatus;
             missStatus.TargetGUID = targetInfo.TargetGUID;
             missStatus.Reason = targetInfo.MissCondition;
@@ -5217,6 +5221,9 @@ SpellCastResult Spell::CheckCast(bool strict, uint32* param1 /*= nullptr*/, uint
                 return SPELL_FAILED_MOVING;
         }
 
+        if (unitCaster->IsCharmed() && m_spellInfo->HasAttribute(SPELL_ATTR5_NOT_USABLE_WHILE_CHARMED))
+            return SPELL_FAILED_CHARMED;
+
         // Check vehicle flags
         if (!(_triggeredCastFlags & TRIGGERED_IGNORE_CASTER_MOUNTED_OR_ON_VEHICLE))
         {
@@ -5666,7 +5673,8 @@ SpellCastResult Spell::CheckCast(bool strict, uint32* param1 /*= nullptr*/, uint
 
                 // chance for fail at lockpicking attempt
                 // second check prevent fail at rechecks
-                if (skillId != SKILL_NONE && (!m_selfContainer || ((*m_selfContainer) != this)))
+                // herbalism and mining cannot fail as of patch 3.1.0
+                if (skillId != SKILL_NONE && skillId != SKILL_HERBALISM && skillId != SKILL_MINING && (!m_selfContainer || ((*m_selfContainer) != this)))
                 {
                     bool canFailAtMax = skillId == SKILL_LOCKPICKING;
 
@@ -5926,7 +5934,7 @@ SpellCastResult Spell::CheckCast(bool strict, uint32* param1 /*= nullptr*/, uint
                     return SPELL_FAILED_NO_PET;
 
                 if (pet->GetCharmerGUID())
-                    return SPELL_FAILED_CHARMED;
+                    return SPELL_FAILED_ALREADY_HAVE_CHARM;
                 break;
             }
             case SPELL_AURA_MOD_POSSESS:
@@ -5959,7 +5967,7 @@ SpellCastResult Spell::CheckCast(bool strict, uint32* param1 /*= nullptr*/, uint
                         return SPELL_FAILED_CANT_BE_CHARMED;
 
                     if (target->GetCharmerGUID())
-                        return SPELL_FAILED_CHARMED;
+                        return SPELL_FAILED_CANT_BE_CHARMED;
 
                     if (target->GetOwner() && target->GetOwner()->GetTypeId() == TYPEID_PLAYER)
                         return SPELL_FAILED_TARGET_IS_PLAYER_CONTROLLED;
@@ -6165,16 +6173,8 @@ SpellCastResult Spell::CheckCasterAuras(uint32* param1) const
     // Get unit state
     uint32 const unitflag = unitCaster->GetUnitFlags();
 
-    // this check should only be done when player does cast directly
-    // (ie not when it's called from a script) Breaks for example PlayerAI when charmed
-    /*
-    if (unitCaster->GetCharmerGUID())
-    {
-        if (Unit* charmer = unitCaster->GetCharmer())
-            if (charmer->GetCharmed() != unitCaster && !CheckSpellCancelsCharm(param1))
-                result = SPELL_FAILED_CHARMED;
-    }
-    */
+    if (m_fromClient && unitCaster->IsCharmed() && unitCaster->IsPlayer() && !CheckSpellCancelsCharm(param1))
+        result = SPELL_FAILED_CHARMED;
 
     // spell has attribute usable while having a cc state, check if caster has allowed mechanic auras, another mechanic types must prevent cast spell
     auto mechanicCheck = [&](AuraType type) -> SpellCastResult
@@ -7584,6 +7584,9 @@ void Spell::HandleLaunchPhase()
             TakeAmmo();
     }
 
+    for (TargetInfo& target : m_UniqueTargetInfo)
+        PreprocessSpellLaunch(target);
+
     for (SpellEffectInfo const& spellEffectInfo : m_spellInfo->GetEffects())
     {
         float multiplier = 1.0f;
@@ -7603,12 +7606,20 @@ void Spell::HandleLaunchPhase()
     FinishTargetProcessing();
 }
 
-void Spell::DoEffectOnLaunchTarget(TargetInfo& targetInfo, float multiplier, SpellEffectInfo const& spellEffectInfo)
+void Spell::PreprocessSpellLaunch(TargetInfo& targetInfo)
 {
+    Unit* targetUnit = m_caster->GetGUID() == targetInfo.TargetGUID ? m_caster->ToUnit() : ObjectAccessor::GetUnit(*m_caster, targetInfo.TargetGUID);
+    if (!targetUnit)
+        return;
+
+    // This will only cause combat - the target will engage once the projectile hits (in Spell::TargetInfo::PreprocessTarget)
+    if (m_originalCaster && targetInfo.MissCondition != SPELL_MISS_EVADE && !m_originalCaster->IsFriendlyTo(targetUnit) && (!m_spellInfo->IsPositive() || m_spellInfo->HasEffect(SPELL_EFFECT_DISPEL)) && (m_spellInfo->HasInitialAggro() || targetUnit->IsEngaged()))
+        m_originalCaster->SetInCombatWith(targetUnit, true);
+
     Unit* unit = nullptr;
     // In case spell hit target, do all effect on that target
     if (targetInfo.MissCondition == SPELL_MISS_NONE)
-        unit = m_caster->GetGUID() == targetInfo.TargetGUID ? m_caster->ToUnit() : ObjectAccessor::GetUnit(*m_caster, targetInfo.TargetGUID);
+        unit = targetUnit;
     // In case spell reflect from target, do all effect on caster (if hit)
     else if (targetInfo.MissCondition == SPELL_MISS_REFLECT && targetInfo.ReflectResult == SPELL_MISS_NONE)
         unit = m_caster->ToUnit();
@@ -7616,9 +7627,29 @@ void Spell::DoEffectOnLaunchTarget(TargetInfo& targetInfo, float multiplier, Spe
     if (!unit)
         return;
 
-    // This will only cause combat - the target will engage once the projectile hits (in DoAllEffectOnTarget)
-    if (m_originalCaster && targetInfo.MissCondition != SPELL_MISS_EVADE && !m_originalCaster->IsFriendlyTo(unit) && (!m_spellInfo->IsPositive() || m_spellInfo->HasEffect(SPELL_EFFECT_DISPEL)) && (m_spellInfo->HasInitialAggro() || unit->IsEngaged()))
-        m_originalCaster->SetInCombatWith(unit);
+    float critChance = m_spellValue->CriticalChance;
+    if (m_originalCaster)
+    {
+        if (!critChance)
+            critChance = m_originalCaster->SpellCritChanceDone(m_spellInfo, m_spellSchoolMask, m_attackType);
+        critChance = unit->SpellCritChanceTaken(m_originalCaster, m_spellInfo, m_spellSchoolMask, critChance, m_attackType);
+    }
+
+    targetInfo.IsCrit = roll_chance_f(critChance);
+}
+
+void Spell::DoEffectOnLaunchTarget(TargetInfo& targetInfo, float multiplier, SpellEffectInfo const& spellEffectInfo)
+{
+    Unit* unit = nullptr;
+    // In case spell hit target, do all effect on that target
+    if (targetInfo.MissCondition == SPELL_MISS_NONE || (targetInfo.MissCondition == SPELL_MISS_BLOCK && !m_spellInfo->HasAttribute(SPELL_ATTR3_COMPLETELY_BLOCKED)))
+        unit = m_caster->GetGUID() == targetInfo.TargetGUID ? m_caster->ToUnit() : ObjectAccessor::GetUnit(*m_caster, targetInfo.TargetGUID);
+    // In case spell reflect from target, do all effect on caster (if hit)
+    else if (targetInfo.MissCondition == SPELL_MISS_REFLECT && targetInfo.ReflectResult == SPELL_MISS_NONE)
+        unit = m_caster->ToUnit();
+
+    if (!unit)
+        return;
 
     m_damage = 0;
     m_healing = 0;
@@ -7651,16 +7682,6 @@ void Spell::DoEffectOnLaunchTarget(TargetInfo& targetInfo, float multiplier, Spe
 
     targetInfo.Damage += m_damage;
     targetInfo.Healing += m_healing;
-
-    float critChance = m_spellValue->CriticalChance;
-    if (m_originalCaster)
-    {
-        if (!critChance)
-            critChance = m_originalCaster->SpellCritChanceDone(m_spellInfo, m_spellSchoolMask, m_attackType);
-        critChance = unit->SpellCritChanceTaken(m_originalCaster, m_spellInfo, m_spellSchoolMask, critChance, m_attackType);
-    }
-
-    targetInfo.IsCrit = roll_chance_f(critChance);
 }
 
 SpellCastResult Spell::CanOpenLock(SpellEffectInfo const& spellEffectInfo, uint32 lockId, SkillType& skillId, int32& reqSkillValue, int32& skillValue)
