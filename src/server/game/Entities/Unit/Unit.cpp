@@ -29,6 +29,7 @@
 #include "CombatPackets.h"
 #include "Common.h"
 #include "ConditionMgr.h"
+#include "Containers.h"
 #include "CreatureAI.h"
 #include "CreatureAIImpl.h"
 #include "CreatureGroups.h"
@@ -1122,7 +1123,7 @@ void Unit::DealSpellDamage(SpellNonMeleeDamage const* damageInfo, bool durabilit
     SpellInfo const* spellProto = sSpellMgr->GetSpellInfo(damageInfo->SpellID);
     if (spellProto == nullptr)
     {
-        TC_LOG_DEBUG("entities.unit", "Unit::DealSpellDamage has wrong damageInfo->SpellID: %u", damageInfo->SpellID);
+        TC_LOG_DEBUG("entities.unit", "Unit::DealSpellDamage has wrong damageInfo->SpellID: {}", damageInfo->SpellID);
         return;
     }
 
@@ -1339,7 +1340,7 @@ void Unit::CalculateMeleeDamage(Unit* victim, CalcDamageInfo* damageInfo, Weapon
             int32 leveldif = int32(victim->GetLevelForTarget(this)) - int32(GetLevel());
             if (leveldif < 0)
             {
-                TC_LOG_DEBUG("entities.unit", "Unit::CalculateMeleeDamage: (Player) %s attacked %s. Glancing should never happen against lower level target", GetGUID().ToString().c_str(), victim->GetGUID().ToString().c_str());
+                TC_LOG_DEBUG("entities.unit", "Unit::CalculateMeleeDamage: (Player) {} attacked {}. Glancing should never happen against lower level target", GetGUID().ToString(), victim->GetGUID().ToString());
                 break;
             }
             if (leveldif == 0)
@@ -2116,11 +2117,11 @@ void Unit::AttackerStateUpdate(Unit* victim, WeaponAttackType attType, bool extr
         Unit::ProcSkillsAndAuras(damageInfo.Attacker, damageInfo.Target, damageInfo.ProcAttacker, damageInfo.ProcVictim, PROC_SPELL_TYPE_NONE, PROC_SPELL_PHASE_NONE, dmgInfo.GetHitMask(), nullptr, &dmgInfo, nullptr);
 
         if (GetTypeId() == TYPEID_PLAYER)
-            TC_LOG_DEBUG("entities.unit", "AttackerStateUpdate: (Player) %s attacked %s for %u dmg, absorbed %u, blocked %u, resisted %u.",
-                GetGUID().ToString().c_str(), victim->GetGUID().ToString().c_str(), dmgInfo.GetDamage(), dmgInfo.GetAbsorb(), dmgInfo.GetBlock(), dmgInfo.GetResist());
+            TC_LOG_DEBUG("entities.unit", "AttackerStateUpdate: (Player) {} attacked {} for {} dmg, absorbed {}, blocked {}, resisted {}.",
+                GetGUID().ToString(), victim->GetGUID().ToString(), dmgInfo.GetDamage(), dmgInfo.GetAbsorb(), dmgInfo.GetBlock(), dmgInfo.GetResist());
         else
-            TC_LOG_DEBUG("entities.unit", "AttackerStateUpdate: (NPC)    %s attacked %s for %u dmg, absorbed %u, blocked %u, resisted %u.",
-                GetGUID().ToString().c_str(), victim->GetGUID().ToString().c_str(), dmgInfo.GetDamage(), dmgInfo.GetAbsorb(), dmgInfo.GetBlock(), dmgInfo.GetResist());
+            TC_LOG_DEBUG("entities.unit", "AttackerStateUpdate: (NPC)    {} attacked {} for {} dmg, absorbed {}, blocked {}, resisted {}.",
+                GetGUID().ToString(), victim->GetGUID().ToString(), dmgInfo.GetDamage(), dmgInfo.GetAbsorb(), dmgInfo.GetBlock(), dmgInfo.GetResist());
     }
 }
 
@@ -2348,9 +2349,9 @@ void Unit::SendMeleeAttackStop(Unit* victim)
     SendMessageToSet(WorldPackets::Combat::SAttackStop(this, victim).Write(), true);
 
     if (victim)
-        TC_LOG_DEBUG("entities.unit", "%s stopped attacking %s", GetGUID().ToString().c_str(), victim->GetGUID().ToString().c_str());
+        TC_LOG_DEBUG("entities.unit", "{} stopped attacking {}", GetGUID().ToString(), victim->GetGUID().ToString());
     else
-        TC_LOG_DEBUG("entities.unit", "%s stopped attacking", GetGUID().ToString().c_str());
+        TC_LOG_DEBUG("entities.unit", "{} stopped attacking", GetGUID().ToString());
 }
 
 bool Unit::IsBlockCritical()
@@ -2501,7 +2502,7 @@ SpellMissInfo Unit::MeleeSpellHitResult(Unit* victim, SpellInfo const* spellInfo
                 canParry = false;
                 break;
             default:
-                TC_LOG_DEBUG("entities.unit", "Spell %u SPELL_AURA_IGNORE_COMBAT_RESULT has unhandled state %d", aurEff->GetId(), aurEff->GetMiscValue());
+                TC_LOG_DEBUG("entities.unit", "Spell {} SPELL_AURA_IGNORE_COMBAT_RESULT has unhandled state {}", aurEff->GetId(), aurEff->GetMiscValue());
                 break;
         }
     }
@@ -3024,7 +3025,7 @@ void Unit::SetCurrentCastSpell(Spell* pSpell)
 
 void Unit::InterruptSpell(CurrentSpellTypes spellType, bool withDelayed, bool withInstant)
 {
-    //TC_LOG_DEBUG("entities.unit", "Interrupt spell for unit %u.", GetEntry());
+    //TC_LOG_DEBUG("entities.unit", "Interrupt spell for unit {}.", GetEntry());
     Spell* spell = m_currentSpells[spellType];
     if (spell
         && (withDelayed || spell->getState() != SPELL_STATE_DELAYED)
@@ -3319,7 +3320,7 @@ AuraApplication* Unit::_CreateAuraApplication(Aura* aura, uint8 effMask)
     // this can happen if OnEffectHitTarget() script hook killed the unit or the aura owner (which can be different)
     if (aura->IsRemoved())
     {
-        TC_LOG_ERROR("spells", "Unit::_CreateAuraApplication() called with a removed aura. Check if OnEffectHitTarget() is triggering any spell with apply aura effect (that's not allowed!)\nUnit: %s\nAura: %s", GetDebugInfo().c_str(), aura->GetDebugInfo().c_str());
+        TC_LOG_ERROR("spells", "Unit::_CreateAuraApplication() called with a removed aura. Check if OnEffectHitTarget() is triggering any spell with apply aura effect (that's not allowed!)\nUnit: {}\nAura: {}", GetDebugInfo(), aura->GetDebugInfo());
         return nullptr;
     }
 
@@ -3422,7 +3423,7 @@ void Unit::_UnapplyAura(AuraApplicationMap::iterator& i, AuraRemoveMode removeMo
 
     aurApp->SetRemoveMode(removeMode);
     Aura* aura = aurApp->GetBase();
-    TC_LOG_DEBUG("spells", "Aura %u now is remove mode %d", aura->GetId(), removeMode);
+    TC_LOG_DEBUG("spells", "Aura {} now is remove mode {}", aura->GetId(), removeMode);
 
     // dead loop is killing the server probably
     ASSERT(m_removedAurasCount < 0xFFFFFFFF);
@@ -3608,7 +3609,7 @@ void Unit::RemoveOwnedAura(Aura* aura, AuraRemoveMode removeMode)
 
     if (removeMode == AURA_REMOVE_NONE)
     {
-        TC_LOG_ERROR("spells", "Unit::RemoveOwnedAura() called with unallowed removeMode AURA_REMOVE_NONE, spellId %u", aura->GetId());
+        TC_LOG_ERROR("spells", "Unit::RemoveOwnedAura() called with unallowed removeMode AURA_REMOVE_NONE, spellId {}", aura->GetId());
         return;
     }
 
@@ -4201,7 +4202,7 @@ void Unit::RemoveAllAuras()
                     sstr << auraPair.second->GetDebugInfo() << "\n";
             }
 
-            TC_LOG_ERROR("entities.unit", "%s", sstr.str().c_str());
+            TC_LOG_ERROR("entities.unit", "{}", sstr.str());
             ABORT_MSG("%s", sstr.str().c_str());
 
             break;
@@ -4962,8 +4963,8 @@ void Unit::UpdateResistanceBuffModsMod(SpellSchools school)
     modPos *= factor;
     modNeg *= factor;
 
-    SetFloatValue(UNIT_FIELD_RESISTANCEBUFFMODSPOSITIVE + school, modPos);
-    SetFloatValue(UNIT_FIELD_RESISTANCEBUFFMODSNEGATIVE + school, modNeg);
+    SetFloatValue(UNIT_FIELD_RESISTANCEBUFFMODSPOSITIVE + AsUnderlyingType(school), modPos);
+    SetFloatValue(UNIT_FIELD_RESISTANCEBUFFMODSNEGATIVE + AsUnderlyingType(school), modNeg);
 }
 
 void Unit::InitStatBuffMods()
@@ -4980,7 +4981,7 @@ void Unit::UpdateStatBuffMod(Stats stat)
     float modNeg = 0.0f;
     float factor = 0.0f;
 
-    UnitMods const unitMod = static_cast<UnitMods>(UNIT_MOD_STAT_START + stat);
+    UnitMods const unitMod = static_cast<UnitMods>(UNIT_MOD_STAT_START + AsUnderlyingType(stat));
 
     // includes value from items and enchantments
     float modValue = GetFlatModifierValue(unitMod, BASE_VALUE);
@@ -5029,8 +5030,8 @@ void Unit::UpdateStatBuffMod(Stats stat)
     modPos *= factor;
     modNeg *= factor;
 
-    SetFloatValue(UNIT_FIELD_POSSTAT0 + stat, modPos);
-    SetFloatValue(UNIT_FIELD_NEGSTAT0 + stat, modNeg);
+    SetFloatValue(UNIT_FIELD_POSSTAT0 + AsUnderlyingType(stat), modPos);
+    SetFloatValue(UNIT_FIELD_NEGSTAT0 + AsUnderlyingType(stat), modNeg);
 }
 
 void Unit::_RegisterDynObject(DynamicObject* dynObj)
@@ -5297,7 +5298,7 @@ void Unit::SendPeriodicAuraLog(SpellPeriodicAuraLogInfo* pInfo)
             data << float(pInfo->multiplier);               // gain multiplier
             break;
         default:
-            TC_LOG_ERROR("entities.unit", "Unit::SendPeriodicAuraLog: unknown aura %u", uint32(aura->GetAuraType()));
+            TC_LOG_ERROR("entities.unit", "Unit::SendPeriodicAuraLog: unknown aura {}", uint32(aura->GetAuraType()));
             return;
     }
 
@@ -5890,7 +5891,7 @@ Minion* Unit::GetFirstMinion() const
             if (pet->HasUnitTypeMask(UNIT_MASK_MINION))
                 return (Minion*)pet;
 
-        TC_LOG_ERROR("entities.unit", "Unit::GetFirstMinion: Minion %s not exist.", pet_guid.ToString().c_str());
+        TC_LOG_ERROR("entities.unit", "Unit::GetFirstMinion: Minion {} not exist.", pet_guid.ToString());
         const_cast<Unit*>(this)->SetMinionGUID(ObjectGuid::Empty);
     }
 
@@ -5905,7 +5906,7 @@ Guardian* Unit::GetGuardianPet() const
             if (pet->HasUnitTypeMask(UNIT_MASK_GUARDIAN))
                 return (Guardian*)pet;
 
-        TC_LOG_FATAL("entities.unit", "Unit::GetGuardianPet: Guardian %s not exist.", pet_guid.ToString().c_str());
+        TC_LOG_FATAL("entities.unit", "Unit::GetGuardianPet: Guardian {} not exist.", pet_guid.ToString());
         const_cast<Unit*>(this)->SetPetGUID(ObjectGuid::Empty);
     }
 
@@ -5914,19 +5915,19 @@ Guardian* Unit::GetGuardianPet() const
 
 void Unit::SetMinion(Minion *minion, bool apply)
 {
-    TC_LOG_DEBUG("entities.unit", "SetMinion %u for %u, apply %u", minion->GetEntry(), GetEntry(), apply);
+    TC_LOG_DEBUG("entities.unit", "SetMinion {} for {}, apply {}", minion->GetEntry(), GetEntry(), apply);
 
     if (apply)
     {
         if (minion->GetOwnerGUID())
         {
-            TC_LOG_FATAL("entities.unit", "SetMinion: Minion %u is not the minion of owner %u", minion->GetEntry(), GetEntry());
+            TC_LOG_FATAL("entities.unit", "SetMinion: Minion {} is not the minion of owner {}", minion->GetEntry(), GetEntry());
             return;
         }
 
         if (!IsInWorld())
         {
-            TC_LOG_FATAL("entities.unit", "SetMinion: Minion being added to owner not in world. Minion: %s, Owner: %s", minion->GetGUID().ToString().c_str(), GetDebugInfo().c_str());
+            TC_LOG_FATAL("entities.unit", "SetMinion: Minion being added to owner not in world. Minion: {}, Owner: {}", minion->GetGUID().ToString(), GetDebugInfo());
             return;
         }
 
@@ -5986,7 +5987,7 @@ void Unit::SetMinion(Minion *minion, bool apply)
     {
         if (minion->GetOwnerGUID() != GetGUID())
         {
-            TC_LOG_FATAL("entities.unit", "SetMinion: Minion %u is not the minion of owner %u", minion->GetEntry(), GetEntry());
+            TC_LOG_FATAL("entities.unit", "SetMinion: Minion {} is not the minion of owner {}", minion->GetEntry(), GetEntry());
             return;
         }
 
@@ -6273,14 +6274,14 @@ void Unit::RemoveAllControlled()
         else if (target->GetOwnerGUID() == GetGUID() && target->IsSummon())
             target->ToTempSummon()->UnSummon();
         else
-            TC_LOG_ERROR("entities.unit", "Unit %u is trying to release unit %u which is neither charmed nor owned by it", GetEntry(), target->GetEntry());
+            TC_LOG_ERROR("entities.unit", "Unit {} is trying to release unit {} which is neither charmed nor owned by it", GetEntry(), target->GetEntry());
     }
     if (GetPetGUID())
-        TC_LOG_FATAL("entities.unit", "Unit %u is not able to release its pet %s", GetEntry(), GetPetGUID().ToString().c_str());
+        TC_LOG_FATAL("entities.unit", "Unit {} is not able to release its pet {}", GetEntry(), GetPetGUID().ToString());
     if (GetMinionGUID())
-        TC_LOG_FATAL("entities.unit", "Unit %u is not able to release its minion %s", GetEntry(), GetMinionGUID().ToString().c_str());
+        TC_LOG_FATAL("entities.unit", "Unit {} is not able to release its minion {}", GetEntry(), GetMinionGUID().ToString());
     if (GetCharmedGUID())
-        TC_LOG_FATAL("entities.unit", "Unit %u is not able to release its charm %s", GetEntry(), GetCharmedGUID().ToString().c_str());
+        TC_LOG_FATAL("entities.unit", "Unit {} is not able to release its charm {}", GetEntry(), GetCharmedGUID().ToString());
     if (!IsPet()) // pets don't use the flag for this
         RemoveUnitFlag(UNIT_FLAG_PET_IN_COMBAT); // m_controlled is now empty, so we know none of our minions are in combat
 }
@@ -7031,7 +7032,7 @@ float Unit::SpellCritChanceDone(SpellInfo const* spellInfo, SpellSchoolMask scho
                 crit_chance = 0.0f;
             // For other schools
             else if (GetTypeId() == TYPEID_PLAYER)
-                crit_chance = GetFloatValue(PLAYER_SPELL_CRIT_PERCENTAGE1 + GetFirstSchoolInMask(schoolMask));
+                crit_chance = GetFloatValue(PLAYER_SPELL_CRIT_PERCENTAGE1 + AsUnderlyingType(GetFirstSchoolInMask(schoolMask)));
             else
             {
                 crit_chance = (float)m_baseSpellCritChance;
@@ -8469,7 +8470,7 @@ int32 Unit::ModifyPower(Powers power, int32 dVal, bool withPowerUpdate /*= true*
 
 uint32 Unit::GetAttackTime(WeaponAttackType att) const
 {
-    float f_BaseAttackTime = GetFloatValue(UNIT_FIELD_BASEATTACKTIME + att) / m_modAttackSpeedPct[att];
+    float f_BaseAttackTime = GetFloatValue(UNIT_FIELD_BASEATTACKTIME + AsUnderlyingType(att)) / m_modAttackSpeedPct[att];
     return (uint32)f_BaseAttackTime;
 }
 
@@ -8585,7 +8586,7 @@ void Unit::UpdateSpeed(UnitMoveType mtype)
             break;
         }
         default:
-            TC_LOG_ERROR("entities.unit", "Unit::UpdateSpeed: Unsupported move type (%d)", mtype);
+            TC_LOG_ERROR("entities.unit", "Unit::UpdateSpeed: Unsupported move type ({})", mtype);
             return;
     }
 
@@ -9220,7 +9221,7 @@ void Unit::UpdateAllDamagePctDoneMods()
 
 float Unit::GetTotalStatValue(Stats stat) const
 {
-    UnitMods unitMod = UnitMods(UNIT_MOD_STAT_START + stat);
+    UnitMods unitMod = UnitMods(UNIT_MOD_STAT_START + AsUnderlyingType(stat));
 
     // value = ((base_value * base_pct) + total_value) * total_pct
     float value  = GetFlatModifierValue(unitMod, BASE_VALUE) + GetCreateStat(stat);
@@ -9419,7 +9420,7 @@ void Unit::SetPower(Powers power, uint32 val, bool withPowerUpdate /*= true*/)
     if (maxPower < val)
         val = maxPower;
 
-    SetStatInt32Value(UNIT_FIELD_POWER1 + power, val);
+    SetStatInt32Value(UNIT_FIELD_POWER1 + AsUnderlyingType(power), val);
 
     if (withPowerUpdate)
     {
@@ -9454,7 +9455,7 @@ void Unit::SetPower(Powers power, uint32 val, bool withPowerUpdate /*= true*/)
 void Unit::SetMaxPower(Powers power, uint32 val)
 {
     uint32 cur_power = GetPower(power);
-    SetStatInt32Value(UNIT_FIELD_MAXPOWER1 + power, val);
+    SetStatInt32Value(UNIT_FIELD_MAXPOWER1 + AsUnderlyingType(power), val);
 
     // group update
     if (GetTypeId() == TYPEID_PLAYER)
@@ -9629,7 +9630,7 @@ void Unit::RemoveFromWorld()
         {
             if (owner->m_Controlled.find(this) != owner->m_Controlled.end())
             {
-                TC_LOG_FATAL("entities.unit", "Unit %u is in controlled list of %u when removed from world", GetEntry(), owner->GetEntry());
+                TC_LOG_FATAL("entities.unit", "Unit {} is in controlled list of {} when removed from world", GetEntry(), owner->GetEntry());
                 ABORT();
             }
         }
@@ -9686,7 +9687,7 @@ void Unit::UpdateCharmAI()
                         newAI = charmerAI->GetAIForCharmedPlayer(ToPlayer());
                 }
                 else
-                    TC_LOG_ERROR("entities.unit.ai", "Attempt to assign charm AI to player %s who is charmed by non-creature %s.", GetGUID().ToString().c_str(), GetCharmerGUID().ToString().c_str());
+                    TC_LOG_ERROR("entities.unit.ai", "Attempt to assign charm AI to player {} who is charmed by non-creature {}.", GetGUID().ToString(), GetCharmerGUID().ToString());
             }
             if (!newAI) // otherwise, we default to the generic one
                 newAI = new SimpleCharmedPlayerAI(ToPlayer());
@@ -10611,7 +10612,7 @@ void ApplyPercentModFloatVar(float& var, float val, bool apply)
 
 void Unit::ApplyAttackTimePercentMod(WeaponAttackType att, float val, bool apply)
 {
-    float amount = GetFloatValue(UNIT_FIELD_BASEATTACKTIME + att);
+    float amount = GetFloatValue(UNIT_FIELD_BASEATTACKTIME + AsUnderlyingType(att));
 
     float remainingTimePct = (float)m_attackTimer[att] / (GetAttackTime(att) * m_modAttackSpeedPct[att]);
     if (val > 0.f)
@@ -10625,7 +10626,7 @@ void Unit::ApplyAttackTimePercentMod(WeaponAttackType att, float val, bool apply
         ApplyPercentModFloatVar(amount, -val, apply);
     }
 
-    SetFloatValue(UNIT_FIELD_BASEATTACKTIME + att, amount);
+    SetFloatValue(UNIT_FIELD_BASEATTACKTIME + AsUnderlyingType(att), amount);
     m_attackTimer[att] = uint32(GetAttackTime(att) * m_modAttackSpeedPct[att] * remainingTimePct);
 }
 
@@ -10898,7 +10899,7 @@ bool Unit::InitTamedPet(Pet* pet, uint8 level, uint32 spell_id)
 
     if (!pet->InitStatsForLevel(level))
     {
-        TC_LOG_ERROR("entities.unit", "Pet::InitStatsForLevel() failed for creature (Entry: %u)!", pet->GetEntry());
+        TC_LOG_ERROR("entities.unit", "Pet::InitStatsForLevel() failed for creature (Entry: {})!", pet->GetEntry());
         return false;
     }
 
@@ -11093,7 +11094,7 @@ bool Unit::InitTamedPet(Pet* pet, uint8 level, uint32 spell_id)
             if (pet->IsAIEnabled())
                 pet->AI()->KilledUnit(victim);
             else
-                TC_LOG_ERROR("entities.unit", "Pet doesn't have any AI in Unit::Kill(). %s", pet->GetDebugInfo().c_str());
+                TC_LOG_ERROR("entities.unit", "Pet doesn't have any AI in Unit::Kill(). {}", pet->GetDebugInfo());
         }
     }
 
@@ -11107,7 +11108,7 @@ bool Unit::InitTamedPet(Pet* pet, uint8 level, uint32 spell_id)
         // only if not player and not controlled by player pet. And not at BG
         if ((durabilityLoss && !player && !victim->ToPlayer()->InBattleground()) || (player && sWorld->getBoolConfig(CONFIG_DURABILITY_LOSS_IN_PVP)))
         {
-            TC_LOG_DEBUG("entities.unit", "We are dead, losing %f percent durability", sWorld->getRate(RATE_DURABILITY_LOSS_ON_DEATH));
+            TC_LOG_DEBUG("entities.unit", "We are dead, losing {} percent durability", sWorld->getRate(RATE_DURABILITY_LOSS_ON_DEATH));
             plrVictim->DurabilityLossAll(sWorld->getRate(RATE_DURABILITY_LOSS_ON_DEATH), false);
             // durability lost message
             plrVictim->SendDurabilityLoss();
@@ -11529,11 +11530,11 @@ bool Unit::SetCharmedBy(Unit* charmer, CharmType type, AuraApplication const* au
     ASSERT(type != CHARM_TYPE_POSSESS || charmer->GetTypeId() == TYPEID_PLAYER);
     ASSERT((type == CHARM_TYPE_VEHICLE) == (GetVehicleKit() && GetVehicleKit()->IsControllableVehicle()));
 
-    TC_LOG_DEBUG("entities.unit", "SetCharmedBy: charmer %s, charmed %s, type %u.", charmer->GetGUID().ToString().c_str(), GetGUID().ToString().c_str(), uint32(type));
+    TC_LOG_DEBUG("entities.unit", "SetCharmedBy: charmer {}, charmed {}, type {}.", charmer->GetGUID().ToString(), GetGUID().ToString(), uint32(type));
 
     if (this == charmer)
     {
-        TC_LOG_FATAL("entities.unit", "Unit::SetCharmedBy: Unit %s is trying to charm itself!", GetGUID().ToString().c_str());
+        TC_LOG_FATAL("entities.unit", "Unit::SetCharmedBy: Unit {} is trying to charm itself!", GetGUID().ToString());
         return false;
     }
 
@@ -11542,14 +11543,14 @@ bool Unit::SetCharmedBy(Unit* charmer, CharmType type, AuraApplication const* au
 
     if (GetTypeId() == TYPEID_PLAYER && ToPlayer()->GetTransport())
     {
-        TC_LOG_FATAL("entities.unit", "Unit::SetCharmedBy: %s is trying to charm Player %s on transport", charmer->GetGUID().ToString().c_str(), GetGUID().ToString().c_str());
+        TC_LOG_FATAL("entities.unit", "Unit::SetCharmedBy: {} is trying to charm Player {} on transport", charmer->GetGUID().ToString(), GetGUID().ToString());
         return false;
     }
 
     // Already charmed
     if (GetCharmerGUID())
     {
-        TC_LOG_FATAL("entities.unit", "Unit::SetCharmedBy: %s has already been charmed but %s is trying to charm it!", GetGUID().ToString().c_str(), charmer->GetGUID().ToString().c_str());
+        TC_LOG_FATAL("entities.unit", "Unit::SetCharmedBy: {} has already been charmed but {} is trying to charm it!", GetGUID().ToString(), charmer->GetGUID().ToString());
         return false;
     }
 
@@ -11575,7 +11576,7 @@ bool Unit::SetCharmedBy(Unit* charmer, CharmType type, AuraApplication const* au
     // StopCastingCharm may remove a possessed pet?
     if (!IsInWorld())
     {
-        TC_LOG_FATAL("entities.unit", "Unit::SetCharmedBy: %s is not in world but %s is trying to charm it!", GetGUID().ToString().c_str(), charmer->GetGUID().ToString().c_str());
+        TC_LOG_FATAL("entities.unit", "Unit::SetCharmedBy: {} is not in world but {} is trying to charm it!", GetGUID().ToString(), charmer->GetGUID().ToString());
         return false;
     }
 
@@ -11761,7 +11762,7 @@ void Unit::RemoveCharmedBy(Unit* charmer)
                         if (GetCharmInfo())
                             GetCharmInfo()->SetPetNumber(0, true);
                         else
-                            TC_LOG_ERROR("entities.unit", "Aura::HandleModCharm: %s has a charm aura but no charm info!", GetGUID().ToString().c_str());
+                            TC_LOG_ERROR("entities.unit", "Aura::HandleModCharm: {} has a charm aura but no charm info!", GetGUID().ToString());
                     }
                 }
                 break;
@@ -12543,7 +12544,7 @@ void Unit::HandleSpellClick(Unit* clicker, int8 seatId /*= -1*/)
 
             if (!valid)
             {
-                TC_LOG_ERROR("sql.sql", "Spell %u specified in npc_spellclick_spells is not a valid vehicle enter aura!", clickPair.second.spellId);
+                TC_LOG_ERROR("sql.sql", "Spell {} specified in npc_spellclick_spells is not a valid vehicle enter aura!", clickPair.second.spellId);
                 continue;
             }
 
@@ -12613,7 +12614,7 @@ void Unit::_EnterVehicle(Vehicle* vehicle, int8 seatId, AuraApplication const* a
     {
         if (m_vehicle != vehicle)
         {
-            TC_LOG_DEBUG("entities.vehicle", "EnterVehicle: %u exit %u and enter %u.", GetEntry(), m_vehicle->GetBase()->GetEntry(), vehicle->GetBase()->GetEntry());
+            TC_LOG_DEBUG("entities.vehicle", "EnterVehicle: {} exit {} and enter {}.", GetEntry(), m_vehicle->GetBase()->GetEntry(), vehicle->GetBase()->GetEntry());
             ExitVehicle();
         }
         else if (seatId >= 0 && seatId == GetTransSeat())
@@ -12719,7 +12720,7 @@ void Unit::_ExitVehicle(Position const* exitPosition)
 
     if (!vehicle)
     {
-        TC_LOG_ERROR("entities.vehicle", "RemovePassenger() couldn't remove current unit from vehicle. Debug info: %s", GetDebugInfo().c_str());
+        TC_LOG_ERROR("entities.vehicle", "RemovePassenger() couldn't remove current unit from vehicle. Debug info: {}", GetDebugInfo());
         return;
     }
 
@@ -12762,7 +12763,7 @@ void Unit::_ExitVehicle(Position const* exitPosition)
         }
     }
 
-    std::function<void(Movement::MoveSplineInit&)> initializer = [=, vehicleCollisionHeight = vehicle->GetBase()->GetCollisionHeight()](Movement::MoveSplineInit& init)
+    std::function<void(Movement::MoveSplineInit&)> initializer = [=, this, vehicleCollisionHeight = vehicle->GetBase()->GetCollisionHeight()](Movement::MoveSplineInit& init)
     {
         float height = pos.GetPositionZ() + vehicleCollisionHeight;
 
@@ -12921,7 +12922,7 @@ bool Unit::UpdatePosition(float x, float y, float z, float orientation, bool tel
     // prevent crash when a bad coord is sent by the client
     if (!Trinity::IsValidMapCoord(x, y, z, orientation))
     {
-        TC_LOG_DEBUG("entities.unit", "Unit::UpdatePosition(%f, %f, %f) .. bad coordinates!", x, y, z);
+        TC_LOG_DEBUG("entities.unit", "Unit::UpdatePosition({}, {}, {}) .. bad coordinates!", x, y, z);
         return false;
     }
 
@@ -13027,7 +13028,7 @@ void Unit::CheckPendingMovementAcks()
 
         GameClient* controller = GetGameClientMovingMe();
         controller->GetWorldSession()->KickPlayer("Took too long to ack a movement change");
-        TC_LOG_INFO("cheat", "Unit::CheckPendingMovementAcks: Player GUID: %s took too long to acknowledge a movement change. He was therefore kicked.", controller->GetBasePlayer()->GetGUID().ToString().c_str());
+        TC_LOG_INFO("cheat", "Unit::CheckPendingMovementAcks: Player GUID: {} took too long to acknowledge a movement change. He was therefore kicked.", controller->GetBasePlayer()->GetGUID().ToString());
     }
 }
 
@@ -13142,30 +13143,30 @@ void Unit::StopAttackFaction(uint32 faction_id)
 void Unit::OutDebugInfo() const
 {
     TC_LOG_ERROR("entities.unit", "Unit::OutDebugInfo");
-    TC_LOG_DEBUG("entities.unit", "%s name %s", GetGUID().ToString().c_str(), GetName().c_str());
-    TC_LOG_DEBUG("entities.unit", "Owner %s, Minion %s, Charmer %s, Charmed %s", GetOwnerGUID().ToString().c_str(), GetMinionGUID().ToString().c_str(), GetCharmerGUID().ToString().c_str(), GetCharmedGUID().ToString().c_str());
-    TC_LOG_DEBUG("entities.unit", "In world %u, unit type mask %u", (uint32)(IsInWorld() ? 1 : 0), m_unitTypeMask);
+    TC_LOG_DEBUG("entities.unit", "{} name {}", GetGUID().ToString(), GetName());
+    TC_LOG_DEBUG("entities.unit", "Owner {}, Minion {}, Charmer {}, Charmed {}", GetOwnerGUID().ToString(), GetMinionGUID().ToString(), GetCharmerGUID().ToString(), GetCharmedGUID().ToString());
+    TC_LOG_DEBUG("entities.unit", "In world {}, unit type mask {}", (uint32)(IsInWorld() ? 1 : 0), m_unitTypeMask);
     if (IsInWorld())
-        TC_LOG_DEBUG("entities.unit", "Mapid %u", GetMapId());
+        TC_LOG_DEBUG("entities.unit", "Mapid {}", GetMapId());
 
     std::ostringstream o;
     o << "Summon Slot: ";
     for (uint32 i = 0; i < MAX_SUMMON_SLOT; ++i)
         o << m_SummonSlot[i].ToString() << ", ";
 
-    TC_LOG_DEBUG("entities.unit", "%s", o.str().c_str());
+    TC_LOG_DEBUG("entities.unit", "{}", o.str());
     o.str("");
 
     o << "Controlled List: ";
     for (ControlList::const_iterator itr = m_Controlled.begin(); itr != m_Controlled.end(); ++itr)
         o << (*itr)->GetGUID().ToString() << ", ";
-    TC_LOG_DEBUG("entities.unit", "%s", o.str().c_str());
+    TC_LOG_DEBUG("entities.unit", "{}", o.str());
     o.str("");
 
     o << "Aura List: ";
     for (AuraApplicationMap::const_iterator itr = m_appliedAuras.begin(); itr != m_appliedAuras.end(); ++itr)
         o << itr->first << ", ";
-    TC_LOG_DEBUG("entities.unit", "%s", o.str().c_str());
+    TC_LOG_DEBUG("entities.unit", "{}", o.str());
     o.str("");
 
     if (IsVehicle())
@@ -13174,11 +13175,11 @@ void Unit::OutDebugInfo() const
         for (SeatMap::iterator itr = GetVehicleKit()->Seats.begin(); itr != GetVehicleKit()->Seats.end(); ++itr)
             if (Unit* passenger = ObjectAccessor::GetUnit(*GetVehicleBase(), itr->second.Passenger.Guid))
                 o << passenger->GetGUID().ToString() << ", ";
-        TC_LOG_DEBUG("entities.unit", "%s", o.str().c_str());
+        TC_LOG_DEBUG("entities.unit", "{}", o.str());
     }
 
     if (GetVehicle())
-        TC_LOG_DEBUG("entities.unit", "On vehicle %u.", GetVehicleBase()->GetEntry());
+        TC_LOG_DEBUG("entities.unit", "On vehicle {}.", GetVehicleBase()->GetEntry());
 }
 
 void Unit::SendClearTarget()
@@ -13710,7 +13711,7 @@ void Unit::Talk(uint32 textId, ChatMsg msgType, float textRange, WorldObject con
 {
     if (!sObjectMgr->GetBroadcastText(textId))
     {
-        TC_LOG_ERROR("entities.unit", "WorldObject::MonsterText: `broadcast_text` (ID: %u) was not found", textId);
+        TC_LOG_ERROR("entities.unit", "WorldObject::MonsterText: `broadcast_text` (ID: {}) was not found", textId);
         return;
     }
 
@@ -13743,7 +13744,7 @@ void Unit::Whisper(uint32 textId, Player* target, bool isBossWhisper /*= false*/
     BroadcastText const* bct = sObjectMgr->GetBroadcastText(textId);
     if (!bct)
     {
-        TC_LOG_ERROR("entities.unit", "WorldObject::MonsterWhisper: `broadcast_text` was not %u found", textId);
+        TC_LOG_ERROR("entities.unit", "WorldObject::MonsterWhisper: `broadcast_text` was not {} found", textId);
         return;
     }
 
