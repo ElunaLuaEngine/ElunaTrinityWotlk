@@ -782,6 +782,10 @@ uint32 Player::EnvironmentalDamage(EnviromentalDamage type, uint32 damage)
         }
 
         UpdateAchievementCriteria(ACHIEVEMENT_CRITERIA_TYPE_DEATHS_FROM, 1, type);
+
+#ifdef ELUNA
+        sEluna->OnPlayerKilledByEnvironment(this, type);
+#endif
     }
 
     return final_damage;
