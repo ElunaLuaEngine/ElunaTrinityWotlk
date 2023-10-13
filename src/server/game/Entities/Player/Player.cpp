@@ -7047,7 +7047,9 @@ void Player::UpdateArea(uint32 newArea)
         RemoveRestFlag(REST_FLAG_IN_FACTION_AREA);
 
 #ifdef ELUNA
-    sEluna->OnUpdateArea(this, oldArea, newArea);
+    // We only want the hook to trigger when the old and new area is actually different
+    if(oldArea != newArea)
+        sEluna->OnUpdateArea(this, oldArea, newArea);
 #endif
 }
 
