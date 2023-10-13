@@ -11998,6 +11998,10 @@ Item* Player::StoreNewItem(ItemPosCountVec const& dest, uint32 item, bool update
             stmt->setString(1, ss.str());
             CharacterDatabase.Execute(stmt);
         }
+
+#ifdef ELUNA
+        sEluna->OnAdd(this, pItem);
+#endif
     }
     return pItem;
 }
@@ -26403,10 +26407,6 @@ bool Player::AddItem(uint32 itemId, uint32 count)
         SendNewItem(item, count, true, false);
     else
         return false;
-
-#ifdef ELUNA
-    sEluna->OnAdd(this, item);
-#endif
 
     return true;
 }
