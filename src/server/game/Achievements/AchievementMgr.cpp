@@ -44,6 +44,9 @@
 #include "SpellMgr.h"
 #include "World.h"
 #include "WorldSession.h"
+#ifdef ELUNA
+#include "LuaEngine.h"
+#endif
 
 bool AchievementCriteriaData::IsValid(AchievementCriteriaEntry const* criteria)
 {
@@ -1570,6 +1573,10 @@ void AchievementMgr::CompletedAchievement(AchievementEntry const* achievement)
         draft.SendMailTo(trans, GetPlayer(), MailSender(MAIL_CREATURE, reward->SenderCreatureId));
         CharacterDatabase.CommitTransaction(trans);
     }
+
+#ifdef ELUNA
+    sEluna->OnAchievementComplete(GetPlayer(), achievement->ID);
+#endif
 }
 
 void AchievementMgr::SendAllAchievementData() const

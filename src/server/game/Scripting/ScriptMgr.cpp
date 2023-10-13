@@ -2176,6 +2176,11 @@ void ScriptMgr::OnGossipSelectCode(Player* player, uint32 menu_id, uint32 sender
 
 void ScriptMgr::OnQuestStatusChange(Player* player, uint32 questId)
 {
+#ifdef ELUNA
+    // we can potentially add more quest status hooks here later on
+    QuestStatus qStatus = player->GetQuestStatus(questId);
+    sEluna->OnQuestStatusChanged(player, questId, qStatus);
+#endif
     FOREACH_SCRIPT(PlayerScript)->OnQuestStatusChange(player, questId);
 }
 
