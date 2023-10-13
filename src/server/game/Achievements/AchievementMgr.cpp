@@ -1518,6 +1518,10 @@ void AchievementMgr::CompletedAchievement(AchievementEntry const* achievement)
     UpdateAchievementCriteria(ACHIEVEMENT_CRITERIA_TYPE_COMPLETE_ACHIEVEMENT, achievement->ID);
     UpdateAchievementCriteria(ACHIEVEMENT_CRITERIA_TYPE_EARN_ACHIEVEMENT_POINTS, achievement->Points);
 
+#ifdef ELUNA
+    sEluna->OnAchievementComplete(GetPlayer(), achievement->ID);
+#endif
+
     // reward items and titles if any
     AchievementReward const* reward = sAchievementMgr->GetAchievementReward(achievement);
 
@@ -1573,10 +1577,6 @@ void AchievementMgr::CompletedAchievement(AchievementEntry const* achievement)
         draft.SendMailTo(trans, GetPlayer(), MailSender(MAIL_CREATURE, reward->SenderCreatureId));
         CharacterDatabase.CommitTransaction(trans);
     }
-
-#ifdef ELUNA
-    sEluna->OnAchievementComplete(GetPlayer(), achievement->ID);
-#endif
 }
 
 void AchievementMgr::SendAllAchievementData() const
