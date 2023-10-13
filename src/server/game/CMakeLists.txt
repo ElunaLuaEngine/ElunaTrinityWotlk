@@ -8,14 +8,15 @@
 # WITHOUT ANY WARRANTY, to the extent permitted by law; without even the
 # implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.
 
-# Exclude files in the LuaEngine directory for Mangos and CMangos
+# Exclude files in the LuaEngine directory for Mangos, CMangos and VMangos
 CollectSourceFiles(
   ${CMAKE_CURRENT_SOURCE_DIR}
   PRIVATE_SOURCES
   # Exclude
   ${CMAKE_CURRENT_SOURCE_DIR}/PrecompiledHeaders
   ${CMAKE_CURRENT_SOURCE_DIR}/LuaEngine/Mangos
-  ${CMAKE_CURRENT_SOURCE_DIR}/LuaEngine/CMangos)
+  ${CMAKE_CURRENT_SOURCE_DIR}/LuaEngine/CMangos
+  ${CMAKE_CURRENT_SOURCE_DIR}/LuaEngine/VMangos)
 
 if(USE_COREPCH)
   set(PRIVATE_PCH_HEADER PrecompiledHeaders/gamePCH.h)
@@ -25,7 +26,7 @@ GroupSources(${CMAKE_CURRENT_SOURCE_DIR})
 
 add_definitions(-DTRINITY_API_EXPORT_GAME)
 
-# Exclude files in the LuaEngine directory for Mangos and CMangos
+# Exclude files in the LuaEngine directory for Mangos, CMangos and VMangos
 CollectIncludeDirectories(
   ${CMAKE_CURRENT_SOURCE_DIR}
   PUBLIC_INCLUDES
@@ -33,6 +34,7 @@ CollectIncludeDirectories(
   ${CMAKE_CURRENT_SOURCE_DIR}/PrecompiledHeaders
   ${CMAKE_CURRENT_SOURCE_DIR}/LuaEngine/Mangos
   ${CMAKE_CURRENT_SOURCE_DIR}/LuaEngine/CMangos
+  ${CMAKE_CURRENT_SOURCE_DIR}/LuaEngine/VMangos
   )
 
 # Provide an interface target for the game project to allow
