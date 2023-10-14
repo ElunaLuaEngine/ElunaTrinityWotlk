@@ -56,7 +56,7 @@ void MapManager::Initialize()
     {
         // Force 1 thread for Eluna as lua is single threaded. By default thread count is 1
         // This should allow us not to use mutex locks
-        TC_LOG_ERROR("maps", "Map update threads set to %i, when Eluna only allows 1, changing to 1", num_threads);
+        TC_LOG_ERROR("maps", "Map update threads set to {}, when Eluna only allows 1, changing to 1", num_threads);
         num_threads = 1;
     }
 #endif
