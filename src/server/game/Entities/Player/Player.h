@@ -114,7 +114,7 @@ enum BuyBankSlotResult
     ERR_BANKSLOT_OK                 = 3
 };
 
-enum PlayerSpellState
+enum PlayerSpellState : uint8
 {
     PLAYERSPELL_UNCHANGED = 0,
     PLAYERSPELL_CHANGED   = 1,
@@ -125,7 +125,7 @@ enum PlayerSpellState
 
 struct PlayerSpell
 {
-    PlayerSpellState state : 8;
+    PlayerSpellState state;
     bool active            : 1;                             // show in spellbook
     bool dependent         : 1;                             // learned as result another spell learn, skill grow, quest reward, etc
     bool disabled          : 1;                             // first rank has been learned in result talent learn but currently talent unlearned, save max learned ranks
@@ -133,8 +133,8 @@ struct PlayerSpell
 
 struct PlayerTalent
 {
-    PlayerSpellState state : 8;
-    uint8 spec             : 8;
+    PlayerSpellState state;
+    uint8 spec;
 };
 
 // Spell modifier (used for modify other spells)
@@ -1700,7 +1700,7 @@ class TC_GAME_API Player : public Unit, public GridObject<Player>
         void KillPlayer();
         static void OfflineResurrect(ObjectGuid const& guid, CharacterDatabaseTransaction trans);
         bool HasCorpse() const { return _corpseLocation.GetMapId() != MAPID_INVALID; }
-        WorldLocation GetCorpseLocation() const { return _corpseLocation; }
+        WorldLocation const& GetCorpseLocation() const { return _corpseLocation; }
         uint32 GetResurrectionSpellId();
         void ResurrectPlayer(float restore_percent, bool applySickness = false);
         void BuildPlayerRepop();
