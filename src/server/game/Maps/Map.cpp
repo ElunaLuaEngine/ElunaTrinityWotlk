@@ -300,7 +300,7 @@ i_scriptLock(false), _respawnTimes(std::make_unique<RespawnListContainer>()), _r
     eluna = nullptr;
 
     if (sElunaLoader->ShouldMapLoadEluna(id))
-        if (!IsParent() || (IsParent() && !Instanceable()))
+        if (!IsParentMap() || (IsParentMap() && !Instanceable()))
             eluna = new Eluna(id);
 #endif
     for (unsigned int idx=0; idx < MAX_NUMBER_OF_GRIDS; ++idx)

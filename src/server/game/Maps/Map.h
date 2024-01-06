@@ -400,7 +400,6 @@ class TC_GAME_API Map : public GridRefManager<NGridType>
         static void DeleteStateMachine();
 
         Map const* GetParent() const { return m_parentMap; }
-        bool IsParent() const { return this == m_parentMap; }
 
         void GetFullTerrainStatusForPosition(uint32 phaseMask, float x, float y, float z, PositionFullTerrainStatus& data, uint8 reqLiquidType, float collisionHeight) const;
         ZLiquidStatus GetLiquidStatus(uint32 phaseMask, float x, float y, float z, uint8 ReqLiquidType, LiquidData* data = nullptr, float collisionHeight = 2.03128f) const; // DEFAULT_COLLISION_HEIGHT in Object.h
