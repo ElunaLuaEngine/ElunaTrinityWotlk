@@ -98,6 +98,11 @@ Map::~Map()
 
     sScriptMgr->OnDestroyMap(this);
 
+#ifdef ELUNA
+    delete eluna;
+    eluna = nullptr;
+#endif
+
     // Delete all waiting spawns, else there will be a memory leak
     // This doesn't delete from database.
     UnloadAllRespawnInfos();
@@ -291,12 +296,12 @@ i_scriptLock(false), _respawnTimes(std::make_unique<RespawnListContainer>()), _r
 {
     m_parentMap = (_parent ? _parent : this);
 #ifdef ELUNA
+    // lua state begins uninitialized
+    eluna = nullptr;
+
     if (sElunaLoader->ShouldMapLoadEluna(id))
-    {
-        //Remove check to have per instance eluna states.
-        if (IsParentMap())
+        if (!IsParent() || (IsParent() && !Instanceable()))
             eluna = new Eluna(id);
-    }
 #endif
     for (unsigned int idx=0; idx < MAX_NUMBER_OF_GRIDS; ++idx)
     {

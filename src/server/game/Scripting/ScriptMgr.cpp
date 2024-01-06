@@ -1551,9 +1551,7 @@ void ScriptMgr::OnMapUpdate(Map* map, uint32 diff)
 #ifdef ELUNA
     if (Eluna* e = map->GetEluna())
     {
-        // only update the globalProcessor if the map being updated is the parent map
-        if (map->IsParentMap())
-            e->UpdateEluna(diff);
+        e->UpdateEluna(diff);
         e->OnUpdate(map, diff);
     }
 #endif

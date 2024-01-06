@@ -400,6 +400,7 @@ class TC_GAME_API Map : public GridRefManager<NGridType>
         static void DeleteStateMachine();
 
         Map const* GetParent() const { return m_parentMap; }
+        bool IsParent() const { return this == m_parentMap; }
 
         void GetFullTerrainStatusForPosition(uint32 phaseMask, float x, float y, float z, PositionFullTerrainStatus& data, uint8 reqLiquidType, float collisionHeight) const;
         ZLiquidStatus GetLiquidStatus(uint32 phaseMask, float x, float y, float z, uint8 ReqLiquidType, LiquidData* data = nullptr, float collisionHeight = 2.03128f) const; // DEFAULT_COLLISION_HEIGHT in Object.h
@@ -820,14 +821,7 @@ class TC_GAME_API Map : public GridRefManager<NGridType>
         void AddFarSpellCallback(FarSpellCallback&& callback);
         bool IsParentMap() const { return GetParent() == this; }
 #ifdef ELUNA
-        Eluna* GetEluna() const
-        {
-            // For per instance eluna states remove IsParent() check.
-            if (IsParentMap())
-                return eluna;
-
-            return GetParent()->GetEluna();
-        }
+        Eluna* GetEluna() const { return eluna; }
 #endif
     private:
         // Type specific code for add/remove to/from grid
