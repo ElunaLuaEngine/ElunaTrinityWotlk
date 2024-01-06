@@ -229,10 +229,13 @@ void WorldSession::HandleSendMail(WorldPackets::Mail::SendMail& sendMail)
         }
 
 #ifdef ELUNA
-        if (!sEluna->OnSendMail(player, receiverGuid))
+        if (Eluna* e = player->GetEluna())
         {
-            player->SendMailResult(0, MAIL_SEND, MAIL_ERR_EQUIP_ERROR, EQUIP_ERR_CANT_DO_RIGHT_NOW);
-            return;
+            if (!e->OnSendMail(player, receiverGuid))
+            {
+                player->SendMailResult(0, MAIL_SEND, MAIL_ERR_EQUIP_ERROR, EQUIP_ERR_CANT_DO_RIGHT_NOW);
+                return;
+            }
         }
 #endif
 

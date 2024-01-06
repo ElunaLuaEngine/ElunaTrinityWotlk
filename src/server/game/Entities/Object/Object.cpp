@@ -1840,6 +1840,7 @@ void WorldObject::SetMap(Map* map)
     m_mapId = map->GetId();
     m_InstanceId = map->GetInstanceId();
 
+#ifdef ELUNA
     //@todo: possibly look into cleanly clearing all pending events from previous map's event mgr.
     delete elunaEvents;
     elunaEvents = nullptr; // set to null in case map doesn't use eluna

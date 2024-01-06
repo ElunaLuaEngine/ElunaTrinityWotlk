@@ -2224,8 +2224,11 @@ void ScriptMgr::OnQuestStatusChange(Player* player, uint32 questId)
 {
 #ifdef ELUNA
     // we can potentially add more quest status hooks here later on
-    QuestStatus qStatus = player->GetQuestStatus(questId);
-    sEluna->OnQuestStatusChanged(player, questId, qStatus);
+    if (Eluna* e = player->GetEluna())
+    {
+        QuestStatus qStatus = player->GetQuestStatus(questId);
+        e->OnQuestStatusChanged(player, questId, qStatus);
+    }
 #endif
     FOREACH_SCRIPT(PlayerScript)->OnQuestStatusChange(player, questId);
 }

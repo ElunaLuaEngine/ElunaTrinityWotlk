@@ -264,7 +264,7 @@ void WorldSession::HandleAcceptTradeOpcode(WorldPacket& /*recvPacket*/)
     if (!his_trade)
         return;
 
-    Item* myItems[TRADE_SLOT_TRADED_COUNT]  = { };
+    Item* myItems[TRADE_SLOT_TRADED_COUNT] = { };
     Item* hisItems[TRADE_SLOT_TRADED_COUNT] = { };
 
     // set before checks for propertly undo at problems (it already set in to client)
@@ -356,13 +356,16 @@ void WorldSession::HandleAcceptTradeOpcode(WorldPacket& /*recvPacket*/)
     }
 
 #ifdef ELUNA
-    if (!sEluna->OnTradeAccept(_player, trader))
+    if (Eluna* e = _player->GetEluna())
     {
-        info.Status = TRADE_STATUS_CLOSE_WINDOW;
-        info.Result = EQUIP_ERR_CANT_DO_RIGHT_NOW;
-        SendTradeStatus(info);
-        my_trade->SetAccepted(false, true);
-        return;
+        if (!e->OnTradeAccept(_player, trader))
+        {
+            info.Status = TRADE_STATUS_CLOSE_WINDOW;
+            info.Result = EQUIP_ERR_CANT_DO_RIGHT_NOW;
+            SendTradeStatus(info);
+            my_trade->SetAccepted(false, true);
+            return;
+        }
     }
 #endif
 
@@ -714,11 +717,14 @@ void WorldSession::HandleInitiateTradeOpcode(WorldPacket& recvPacket)
     }
 
 #ifdef ELUNA
-    if (!sEluna->OnTradeInit(GetPlayer(), pOther))
+    if (Eluna* e = GetPlayer()->GetEluna())
     {
-        info.Status = TRADE_STATUS_BUSY;
-        SendTradeStatus(info);
-        return;
+        if (!e->OnTradeInit(GetPlayer(), pOther))
+        {
+            info.Status = TRADE_STATUS_BUSY;
+            SendTradeStatus(info);
+            return;
+        }
     }
 #endif
 

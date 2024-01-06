@@ -784,7 +784,8 @@ uint32 Player::EnvironmentalDamage(EnviromentalDamage type, uint32 damage)
         UpdateAchievementCriteria(ACHIEVEMENT_CRITERIA_TYPE_DEATHS_FROM, 1, type);
 
 #ifdef ELUNA
-        sEluna->OnPlayerKilledByEnvironment(this, type);
+        if (Eluna* e = GetEluna())
+            e->OnPlayerKilledByEnvironment(this, type);
 #endif
     }
 
@@ -3561,7 +3562,8 @@ void Player::LearnSpell(uint32 spell_id, bool dependent, uint32 fromSkill /*= 0*
         SendDirectMessage(&data);
 
 #ifdef ELUNA
-        sEluna->OnLearnSpell(this, spell_id);
+        if (Eluna* e = GetEluna())
+            e->OnLearnSpell(this, spell_id);
 #endif
     }
 
@@ -5822,7 +5824,8 @@ bool Player::UpdateSkillPro(uint16 SkillId, int32 Chance, uint32 step)
             }
         }
 #ifdef ELUNA
-        sEluna->OnSkillChange(this, SkillId, new_value);
+        if (Eluna* e = GetEluna())
+            e->OnSkillChange(this, SkillId, new_value);
 #endif
         UpdateSkillEnchantments(SkillId, SkillValue, new_value);
         UpdateAchievementCriteria(ACHIEVEMENT_CRITERIA_TYPE_REACH_SKILL_LEVEL, SkillId);
@@ -7052,8 +7055,9 @@ void Player::UpdateArea(uint32 newArea)
 
 #ifdef ELUNA
     // We only want the hook to trigger when the old and new area is actually different
-    if(oldArea != newArea)
-        sEluna->OnUpdateArea(this, oldArea, newArea);
+    if (Eluna* e = GetEluna())
+        if(oldArea != newArea)
+            e->OnUpdateArea(this, oldArea, newArea);
 #endif
 }
 
@@ -12008,7 +12012,8 @@ Item* Player::StoreNewItem(ItemPosCountVec const& dest, uint32 item, bool update
         }
 
 #ifdef ELUNA
-        sEluna->OnAdd(this, pItem);
+        if (Eluna* e = GetEluna())
+            e->OnAdd(this, pItem);
 #endif
     }
     return pItem;

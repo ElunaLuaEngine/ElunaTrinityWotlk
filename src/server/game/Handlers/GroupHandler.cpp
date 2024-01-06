@@ -245,8 +245,9 @@ void WorldSession::HandleGroupAcceptOpcode(WorldPacket& recvData)
     }
 
 #ifdef ELUNA
-    if (!sEluna->OnMemberAccept(group, GetPlayer()))
-        return;
+    if (Eluna* e = GetPlayer()->GetEluna())
+        if (!e->OnMemberAccept(group, GetPlayer()))
+            return;
 #endif
 
     Player* leader = ObjectAccessor::FindPlayer(group->GetLeaderGUID());
