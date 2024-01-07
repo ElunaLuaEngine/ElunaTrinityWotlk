@@ -53,6 +53,8 @@ public:
         _callbacks.insert(_callbacks.end(), std::make_move_iterator(updateCallbacks.begin()), std::make_move_iterator(updateCallbacks.end()));
     }
 
+    bool HasPendingCallbacks() { return !_callbacks.empty(); }
+
 private:
     AsyncCallbackProcessor(AsyncCallbackProcessor const&) = delete;
     AsyncCallbackProcessor& operator=(AsyncCallbackProcessor const&) = delete;
