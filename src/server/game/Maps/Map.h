@@ -36,6 +36,9 @@
 #include <list>
 #include <memory>
 #include <mutex>
+#ifdef ELUNA
+#include "LuaValue.h"
+#endif
 
 class Battleground;
 class BattlegroundMap;
@@ -821,6 +824,8 @@ class TC_GAME_API Map : public GridRefManager<NGridType>
         bool IsParentMap() const { return GetParent() == this; }
 #ifdef ELUNA
         Eluna* GetEluna() const { return eluna; }
+
+        LuaVal lua_data = LuaVal({});
 #endif
     private:
         // Type specific code for add/remove to/from grid

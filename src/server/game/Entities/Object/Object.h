@@ -34,6 +34,9 @@
 #include <list>
 #include <set>
 #include <unordered_map>
+#ifdef ELUNA
+#include "LuaValue.h"
+#endif
 
 class Corpse;
 class Creature;
@@ -504,6 +507,8 @@ class TC_GAME_API WorldObject : public Object, public WorldLocation
         ElunaEventProcessor* elunaEvents;
 
         Eluna* GetEluna() const;
+
+        LuaVal lua_data = LuaVal({});
 #endif
 
         // Transports

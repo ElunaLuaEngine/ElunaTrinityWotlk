@@ -30,7 +30,6 @@
 #include "PetDefines.h"
 #include "PlayerTaxi.h"
 #include "QuestDef.h"
-#include "LuaValue.h"
 #include <memory>
 #include <queue>
 #include <unordered_set>
@@ -2195,8 +2194,6 @@ class TC_GAME_API Player : public Unit, public GridObject<Player>
         std::string GetCoordsMapAreaAndZoneString() const;
 
         std::string GetDebugInfo() const override;
-
-        LuaVal lua_data = LuaVal({});
 
     protected:
         // Gamemaster whisper whitelist
