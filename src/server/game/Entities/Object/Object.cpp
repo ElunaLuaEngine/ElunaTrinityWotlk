@@ -21,6 +21,7 @@
 #include "CellImpl.h"
 #include "CinematicMgr.h"
 #include "Common.h"
+#include "Config.h"
 #include "Creature.h"
 #include "GameTime.h"
 #include "GridNotifiersImpl.h"
@@ -1842,10 +1843,19 @@ void WorldObject::SetMap(Map* map)
 
 #ifdef ELUNA
     //@todo: possibly look into cleanly clearing all pending events from previous map's event mgr.
-    delete elunaEvents;
-    elunaEvents = nullptr; // set to null in case map doesn't use eluna
+
+    // if multistate, delete elunaEvents and set to nullptr. events shouldn't move across states.
+    // in single state, the timed events should move across maps
+    bool compatMode = sConfigMgr->GetBoolDefault("Eluna.CompatibilityMode", true);
+    if (!compatMode)
+    {
+        delete elunaEvents;
+        elunaEvents = nullptr; // set to null in case map doesn't use eluna
+    }
+
     if(Eluna * e = map->GetEluna())
-        elunaEvents = new ElunaEventProcessor(e, this);
+        if(!elunaEvents)
+            elunaEvents = new ElunaEventProcessor(e, this);
 #endif
 
     if (IsWorldObject())
