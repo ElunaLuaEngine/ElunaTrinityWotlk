@@ -823,7 +823,7 @@ class TC_GAME_API Map : public GridRefManager<NGridType>
         void AddFarSpellCallback(FarSpellCallback&& callback);
         bool IsParentMap() const { return GetParent() == this; }
 #ifdef ELUNA
-        Eluna* GetEluna() const { return eluna; }
+        Eluna* GetEluna() const;
 
         LuaVal lua_data = LuaVal({});
 #endif

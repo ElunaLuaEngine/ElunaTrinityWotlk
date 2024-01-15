@@ -1608,10 +1608,6 @@ void World::SetInitialWorldSettings()
     ///- Initialize Lua Engine
     TC_LOG_INFO("server.loading", "Loading Lua scripts...");
     sElunaLoader->LoadScripts();
-
-    TC_LOG_INFO("server.loading", "Starting Eluna world state...");
-    // use map id -1 for the global Eluna state
-    eluna = new Eluna(-1);
 #endif
 
     ///- Initialize pool manager
@@ -2098,6 +2094,12 @@ void World::SetInitialWorldSettings()
     TC_LOG_INFO("server.loading", "Loading Creature Text Locales...");
     sCreatureTextMgr->LoadCreatureTextLocales();
 
+#ifdef ELUNA
+    TC_LOG_INFO("server.loading", "Starting Eluna world state...");
+    // use map id -1 for the global Eluna state
+    eluna = new Eluna(-1);
+#endif
+
     TC_LOG_INFO("server.loading", "Initializing Scripts...");
     sScriptMgr->Initialize();
     sScriptMgr->OnConfigLoad(false);                                // must be done after the ScriptMgr has been properly initialized
@@ -2234,7 +2236,6 @@ void World::SetInitialWorldSettings()
 
 #ifdef ELUNA
     eluna->OnConfigLoad(false); // Must be done after Eluna is initialized and scripts have run.
-    sElunaLoader->PreloadElunaMaps();
 #endif
 
     // Preload all cells, if required for the base maps

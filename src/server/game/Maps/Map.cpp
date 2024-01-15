@@ -18,6 +18,7 @@
 #include "Map.h"
 #include "Battleground.h"
 #include "CellImpl.h"
+#include "Config.h"
 #include "DatabaseEnv.h"
 #include "DisableMgr.h"
 #include "DynamicTree.h"
@@ -299,7 +300,8 @@ i_scriptLock(false), _respawnTimes(std::make_unique<RespawnListContainer>()), _r
     // lua state begins uninitialized
     eluna = nullptr;
 
-    if (sElunaLoader->ShouldMapLoadEluna(id))
+    bool compatMode = sConfigMgr->GetBoolDefault("Eluna.CompatibilityMode", true);
+    if (sElunaLoader->ShouldMapLoadEluna(id) && !compatMode)
         if (!IsParentMap() || (IsParentMap() && !Instanceable()))
             eluna = new Eluna(id);
 #endif
@@ -4899,6 +4901,15 @@ std::string InstanceMap::GetDebugInfo() const
         << std::boolalpha
         << "ScriptId: " << GetScriptId() << " ScriptName: " << GetScriptName();
     return sstr.str();
+}
+
+Eluna *Map::GetEluna() const
+{
+    bool compatMode = sConfigMgr->GetBoolDefault("Eluna.CompatibilityMode", true);
+    if(compatMode)
+        return sWorld->GetEluna();
+
+    return eluna;
 }
 
 template class TC_GAME_API TypeUnorderedMapContainer<AllMapStoredObjectTypes, ObjectGuid>;
