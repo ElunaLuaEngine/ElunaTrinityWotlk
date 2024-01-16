@@ -2097,7 +2097,8 @@ void World::SetInitialWorldSettings()
 #ifdef ELUNA
     TC_LOG_INFO("server.loading", "Starting Eluna world state...");
     // use map id -1 for the global Eluna state
-    eluna = new Eluna(-1);
+    bool compatMode = sConfigMgr->GetBoolDefault("Eluna.CompatibilityMode", true);
+    eluna = new Eluna(-1, compatMode);
 #endif
 
     TC_LOG_INFO("server.loading", "Initializing Scripts...");
