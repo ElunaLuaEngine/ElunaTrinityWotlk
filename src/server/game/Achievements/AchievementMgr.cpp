@@ -44,13 +44,10 @@
 #include "SpellMgr.h"
 #include "World.h"
 #include "WorldSession.h"
-<<<<<<< HEAD
 #ifdef ELUNA
 #include "LuaEngine.h"
 #endif
-=======
 #include "WowTime.h"
->>>>>>> 970351eb16158a9083a3477d52aadbb85fa322cc
 
 bool AchievementCriteriaData::IsValid(AchievementCriteriaEntry const* criteria)
 {
