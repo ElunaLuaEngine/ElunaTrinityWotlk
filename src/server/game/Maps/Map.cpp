@@ -303,7 +303,7 @@ i_scriptLock(false), _respawnTimes(std::make_unique<RespawnListContainer>()), _r
     bool compatMode = sConfigMgr->GetBoolDefault("Eluna.CompatibilityMode", true);
     if (sElunaLoader->ShouldMapLoadEluna(id) && !compatMode)
         if (!IsParentMap() || (IsParentMap() && !Instanceable()))
-            eluna = new Eluna(id);
+            eluna = new Eluna(id, InstanceId);
 #endif
     for (unsigned int idx=0; idx < MAX_NUMBER_OF_GRIDS; ++idx)
     {
