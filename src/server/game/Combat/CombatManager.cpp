@@ -78,7 +78,7 @@ void CombatReference::EndCombat()
     bool const needSecondAI = second->GetCombatManager().UpdateOwnerCombatState();
 
     // ...and if that happened, also notify the AI of it...
-#ifdef ELUNA  
+#ifdef ELUNA
     if (needFirstAI)
     {
         if (Player* player = first->ToPlayer())

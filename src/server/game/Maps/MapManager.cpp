@@ -375,10 +375,13 @@ void MapManager::FreeInstanceId(uint32 instanceId)
 #ifdef ELUNA
     for (MapMapType::iterator itr = i_maps.begin(); itr != i_maps.end(); ++itr)
     {
-        Map * iMap = ((MapInstanced*)itr->second)->FindInstanceMap(instanceId);
-        if (iMap)
-            if (iMap->GetEluna())
-                iMap->GetEluna()->FreeInstanceId(instanceId);
+        Map* map = itr->second;
+        if (!map->Instanceable())
+            continue;
+
+        Map* iMap = ((MapInstanced*)map)->FindInstanceMap(instanceId);
+        if (iMap && iMap->GetEluna())
+            iMap->GetEluna()->FreeInstanceId(instanceId);
     }
 #endif
 }
