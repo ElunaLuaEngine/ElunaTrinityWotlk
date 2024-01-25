@@ -264,7 +264,7 @@ void WorldSession::HandleAcceptTradeOpcode(WorldPacket& /*recvPacket*/)
     if (!his_trade)
         return;
 
-    Item* myItems[TRADE_SLOT_TRADED_COUNT] = { };
+    Item* myItems[TRADE_SLOT_TRADED_COUNT]  = { };
     Item* hisItems[TRADE_SLOT_TRADED_COUNT] = { };
 
     // set before checks for propertly undo at problems (it already set in to client)

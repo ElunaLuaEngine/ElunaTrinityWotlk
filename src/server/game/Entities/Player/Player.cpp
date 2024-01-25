@@ -11829,7 +11829,6 @@ InventoryResult Player::CanUseItem(ItemTemplate const* proto) const
     }
 #endif
 
-
     return EQUIP_ERR_OK;
 }
 
