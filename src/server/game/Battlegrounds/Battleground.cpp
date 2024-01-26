@@ -149,7 +149,9 @@ Battleground::~Battleground()
         DelObject(i);
 
 #ifdef ELUNA
-    sEluna->OnBGDestroy(this, GetTypeID(), GetInstanceID());
+    if (BattlegroundMap* bg = FindBgMap())
+        if (Eluna* e = bg->GetEluna())
+            e->OnBGDestroy(this, GetTypeID(), GetInstanceID());
 #endif
 
     sBattlegroundMgr->RemoveBattleground(GetTypeID(), GetInstanceID());
@@ -457,7 +459,8 @@ inline void Battleground::_ProcessJoin(uint32 diff)
         StartingEventOpenDoors();
 
 #ifdef ELUNA
-        sEluna->OnBGStart(this, GetTypeID(), GetInstanceID());
+        if (Eluna* e = GetBgMap()->GetEluna())
+            e->OnBGStart(this, GetTypeID(), GetInstanceID());
 #endif
 
         if (StartMessageIds[BG_STARTING_EVENT_FOURTH])
@@ -815,7 +818,8 @@ void Battleground::EndBattleground(uint32 winner)
     }
 #ifdef ELUNA
     //the type of the winner,change Team to BattlegroundTeamId,it could be better.
-    sEluna->OnBGEnd(this, GetTypeID(), GetInstanceID(), Team(winner));
+    if (Eluna* e = GetBgMap()->GetEluna())
+        e->OnBGEnd(this, GetTypeID(), GetInstanceID(), Team(winner));
 #endif
 }
 
@@ -990,7 +994,8 @@ void Battleground::StartBattleground()
     sBattlegroundMgr->AddBattleground(this);
 
 #ifdef ELUNA
-    sEluna->OnBGCreate(this, GetTypeID(), GetInstanceID());
+    if (Eluna* e = GetBgMap()->GetEluna())
+        e->OnBGCreate(this, GetTypeID(), GetInstanceID());
 #endif
 
     if (m_IsRated)

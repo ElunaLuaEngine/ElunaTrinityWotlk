@@ -102,8 +102,9 @@ void WorldSession::HandleQuestgiverHelloOpcode(WorldPacket& recvData)
     _player->PlayerTalkClass->ClearMenus();
 
 #ifdef ELUNA
-    if (sEluna->OnGossipHello(_player, creature))
-        return;
+    if (Eluna* e = GetPlayer()->GetEluna())
+        if (e->OnGossipHello(_player, creature))
+            return;
 #endif
 
     if (creature->AI()->OnGossipHello(_player))
@@ -328,7 +329,8 @@ void WorldSession::HandleQuestgiverChooseRewardOpcode(WorldPacket& recvData)
 
                         _player->PlayerTalkClass->ClearMenus();
 #ifdef ELUNA
-                        sEluna->OnQuestReward(_player, questgiver, quest, reward);
+                        if (Eluna* e = GetPlayer()->GetEluna())
+                            e->OnQuestReward(_player, questgiver, quest, reward);
 #endif
                         questgiver->AI()->OnQuestReward(_player, quest, reward);
 
@@ -352,7 +354,8 @@ void WorldSession::HandleQuestgiverChooseRewardOpcode(WorldPacket& recvData)
 
                         _player->PlayerTalkClass->ClearMenus();
 #ifdef ELUNA
-                        sEluna->OnQuestReward(_player, questGiver, quest, reward);
+                        if (Eluna* e = GetPlayer()->GetEluna())
+                            e->OnQuestReward(_player, questGiver, quest, reward);
 #endif
                         questGiver->AI()->OnQuestReward(_player, quest, reward);
                         break;
@@ -445,7 +448,8 @@ void WorldSession::HandleQuestLogRemoveQuest(WorldPacket& recvData)
             _player->RemoveTimedAchievement(ACHIEVEMENT_TIMED_TYPE_QUEST, questId);
 
 #ifdef ELUNA
-            sEluna->OnQuestAbandon(_player, questId);
+            if (Eluna* e = GetPlayer()->GetEluna())
+                e->OnQuestAbandon(_player, questId);
 #endif
 
             TC_LOG_INFO("network", "Player {} abandoned quest {}", _player->GetGUID().ToString(), questId);

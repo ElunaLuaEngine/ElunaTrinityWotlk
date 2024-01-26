@@ -320,8 +320,9 @@ void WorldSession::HandleGameobjectReportUse(WorldPacket& recvPacket)
     if (GameObject* go = GetPlayer()->GetGameObjectIfCanInteractWith(guid))
     {
 #ifdef ELUNA
-        if (sEluna->OnGameObjectUse(_player, go))
-            return;
+        if (Eluna* e = GetPlayer()->GetEluna())
+            if (e->OnGameObjectUse(_player, go))
+                return;
 #endif
         if (go->AI()->OnReportUse(_player))
             return;

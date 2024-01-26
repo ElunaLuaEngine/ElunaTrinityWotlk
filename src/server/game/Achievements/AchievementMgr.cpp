@@ -1534,7 +1534,8 @@ void AchievementMgr::CompletedAchievement(AchievementEntry const* achievement)
     UpdateAchievementCriteria(ACHIEVEMENT_CRITERIA_TYPE_EARN_ACHIEVEMENT_POINTS, achievement->Points);
 
 #ifdef ELUNA
-    sEluna->OnAchievementComplete(GetPlayer(), achievement->ID);
+    if (Eluna* e = GetPlayer()->GetEluna())
+        e->OnAchievementComplete(GetPlayer(), achievement->ID);
 #endif
 
     // reward items and titles if any

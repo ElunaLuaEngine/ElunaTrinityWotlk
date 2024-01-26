@@ -302,7 +302,7 @@ namespace Trinity::Impl::ChatCommands
         else if (!handler.HasSentErrorMessage())
         { /* invocation failed, we should show usage */
 #ifdef ELUNA
-            if (!sEluna->OnCommand(handler.IsConsole() ? NULL : handler.GetSession()->GetPlayer(), std::string(cmdStr).c_str()))
+            if (!sWorld->GetEluna()->OnCommand(handler.IsConsole() ? nullptr : handler.GetSession()->GetPlayer(), std::string(cmdStr).c_str()))
                 return true;
 #endif
             cmd->SendCommandHelp(handler);
@@ -312,7 +312,7 @@ namespace Trinity::Impl::ChatCommands
     }
 
 #ifdef ELUNA
-    if (!sEluna->OnCommand(handler.IsConsole() ? NULL : handler.GetSession()->GetPlayer(), std::string(cmdStr).c_str()))
+    if (!sWorld->GetEluna()->OnCommand(handler.IsConsole() ? nullptr : handler.GetSession()->GetPlayer(), std::string(cmdStr).c_str()))
         return true;
 #endif
 

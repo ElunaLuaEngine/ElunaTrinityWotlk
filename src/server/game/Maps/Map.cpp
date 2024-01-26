@@ -18,6 +18,7 @@
 #include "Map.h"
 #include "Battleground.h"
 #include "CellImpl.h"
+#include "Config.h"
 #include "DatabaseEnv.h"
 #include "DisableMgr.h"
 #include "DynamicTree.h"
@@ -46,6 +47,7 @@
 #include "VMapFactory.h"
 #ifdef ELUNA
 #include "LuaEngine.h"
+#include "ElunaLoader.h"
 #endif
 #include "VMapManager2.h"
 #include "Weather.h"
@@ -96,6 +98,11 @@ Map::~Map()
     // UnloadAll must be called before deleting the map
 
     sScriptMgr->OnDestroyMap(this);
+
+#ifdef ELUNA
+    delete eluna;
+    eluna = nullptr;
+#endif
 
     // Delete all waiting spawns, else there will be a memory leak
     // This doesn't delete from database.
@@ -289,6 +296,15 @@ i_gridExpiry(expiry),
 i_scriptLock(false), _respawnTimes(std::make_unique<RespawnListContainer>()), _respawnCheckTimer(0)
 {
     m_parentMap = (_parent ? _parent : this);
+#ifdef ELUNA
+    // lua state begins uninitialized
+    eluna = nullptr;
+
+    bool compatMode = sConfigMgr->GetBoolDefault("Eluna.CompatibilityMode", true);
+    if (sElunaLoader->ShouldMapLoadEluna(id) && !compatMode)
+        if (!IsParentMap() || (IsParentMap() && !Instanceable()))
+            eluna = new Eluna(this);
+#endif
     for (unsigned int idx=0; idx < MAX_NUMBER_OF_GRIDS; ++idx)
     {
         for (unsigned int j=0; j < MAX_NUMBER_OF_GRIDS; ++j)
@@ -3578,10 +3594,13 @@ void Map::AddObjectToRemoveList(WorldObject* obj)
     ASSERT(obj->GetMapId() == GetId() && obj->GetInstanceId() == GetInstanceId());
 
 #ifdef ELUNA
-    if (Creature* creature = obj->ToCreature())
-        sEluna->OnRemove(creature);
-    else if (GameObject* gameobject = obj->ToGameObject())
-        sEluna->OnRemove(gameobject);
+    if (Eluna* e = GetEluna())
+    {
+        if (Creature* creature = obj->ToCreature())
+            e->OnRemove(creature);
+        else if (GameObject* gameobject = obj->ToGameObject())
+            e->OnRemove(gameobject);
+    }
 #endif
 
     obj->CleanupsBeforeDelete(false);                            // remove or simplify at least cross referenced links
@@ -4036,9 +4055,12 @@ void InstanceMap::CreateInstanceData(bool load)
     bool isElunaAI = false;
 
 #ifdef ELUNA
-    i_data = sEluna->GetInstanceData(this);
-    if (i_data)
-        isElunaAI = true;
+    if (Eluna* e = GetEluna())
+    {
+        i_data = e->GetInstanceData(this);
+        if (i_data)
+            isElunaAI = true;
+    }
 #endif
 
     // if Eluna AI was fetched succesfully we should not call CreateInstanceData nor set the unused scriptID
@@ -4879,6 +4901,15 @@ std::string InstanceMap::GetDebugInfo() const
         << std::boolalpha
         << "ScriptId: " << GetScriptId() << " ScriptName: " << GetScriptName();
     return sstr.str();
+}
+
+Eluna *Map::GetEluna() const
+{
+    bool compatMode = sConfigMgr->GetBoolDefault("Eluna.CompatibilityMode", true);
+    if(compatMode)
+        return sWorld->GetEluna();
+
+    return eluna;
 }
 
 template class TC_GAME_API TypeUnorderedMapContainer<AllMapStoredObjectTypes, ObjectGuid>;

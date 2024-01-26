@@ -21,6 +21,7 @@
 #include "CellImpl.h"
 #include "CinematicMgr.h"
 #include "Common.h"
+#include "Config.h"
 #include "Creature.h"
 #include "GameTime.h"
 #include "GridNotifiersImpl.h"
@@ -1057,7 +1058,8 @@ void WorldObject::CleanupsBeforeDelete(bool /*finalCleanup*/)
 void WorldObject::Update (uint32 time_diff)
 {
 #ifdef ELUNA
-    elunaEvents->Update(time_diff);
+    if(elunaEvents) // can be null on maps without eluna
+        elunaEvents->Update(time_diff);
 #endif
 }
 
@@ -1840,8 +1842,20 @@ void WorldObject::SetMap(Map* map)
     m_InstanceId = map->GetInstanceId();
 
 #ifdef ELUNA
-    if (!elunaEvents)
-        elunaEvents = new ElunaEventProcessor(&Eluna::GEluna, this);
+    //@todo: possibly look into cleanly clearing all pending events from previous map's event mgr.
+
+    // if multistate, delete elunaEvents and set to nullptr. events shouldn't move across states.
+    // in single state, the timed events should move across maps
+    bool compatMode = sConfigMgr->GetBoolDefault("Eluna.CompatibilityMode", true);
+    if (!compatMode)
+    {
+        delete elunaEvents;
+        elunaEvents = nullptr; // set to null in case map doesn't use eluna
+    }
+
+    if(Eluna * e = map->GetEluna())
+        if(!elunaEvents)
+            elunaEvents = new ElunaEventProcessor(e, this);
 #endif
 
     if (IsWorldObject())
@@ -3586,6 +3600,16 @@ std::string WorldObject::GetDebugInfo() const
          << "Name: " << GetName();
     return sstr.str();
 }
+
+#ifdef ELUNA
+Eluna* WorldObject::GetEluna() const
+{
+    if (IsInWorld())
+        return GetMap()->GetEluna();
+
+    return nullptr;
+}
+#endif
 
 template TC_GAME_API void WorldObject::GetGameObjectListWithEntryInGrid(std::list<GameObject*>&, uint32, float) const;
 template TC_GAME_API void WorldObject::GetGameObjectListWithEntryInGrid(std::deque<GameObject*>&, uint32, float) const;
