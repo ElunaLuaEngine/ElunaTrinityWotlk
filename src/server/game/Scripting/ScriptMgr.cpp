@@ -43,6 +43,7 @@
 #include "WorldPacket.h"
 #ifdef ELUNA
 #include "LuaEngine.h"
+#include "ElunaConfig.h"
 #include "ElunaUtility.h"
 #endif
 #include "WorldSession.h"
@@ -1558,8 +1559,7 @@ void ScriptMgr::OnMapUpdate(Map* map, uint32 diff)
 #ifdef ELUNA
     if (Eluna* e = map->GetEluna())
     {
-        bool compatMode = sConfigMgr->GetBoolDefault("Eluna.CompatibilityMode", true);
-        if(!compatMode)
+        if(!sElunaConfig->IsElunaCompatibilityMode())
             e->UpdateEluna(diff);
 
         e->OnUpdate(map, diff);

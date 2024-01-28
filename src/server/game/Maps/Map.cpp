@@ -47,6 +47,7 @@
 #include "VMapFactory.h"
 #ifdef ELUNA
 #include "LuaEngine.h"
+#include "ElunaConfig.h"
 #include "ElunaLoader.h"
 #endif
 #include "VMapManager2.h"
@@ -300,8 +301,7 @@ i_scriptLock(false), _respawnTimes(std::make_unique<RespawnListContainer>()), _r
     // lua state begins uninitialized
     eluna = nullptr;
 
-    bool compatMode = sConfigMgr->GetBoolDefault("Eluna.CompatibilityMode", true);
-    if (sElunaLoader->ShouldMapLoadEluna(id) && !compatMode)
+    if (sElunaConfig->IsElunaEnabled() && !sElunaConfig->IsElunaCompatibilityMode() && sElunaLoader->ShouldMapLoadEluna(id))
         if (!IsParentMap() || (IsParentMap() && !Instanceable()))
             eluna = new Eluna(this);
 #endif
@@ -4905,8 +4905,7 @@ std::string InstanceMap::GetDebugInfo() const
 
 Eluna *Map::GetEluna() const
 {
-    bool compatMode = sConfigMgr->GetBoolDefault("Eluna.CompatibilityMode", true);
-    if(compatMode)
+    if(sElunaConfig->IsElunaCompatibilityMode())
         return sWorld->GetEluna();
 
     return eluna;

@@ -89,6 +89,7 @@
 #ifdef ELUNA
 #include "LuaEngine.h"
 #include "ElunaLoader.h"
+#include "ElunaConfig.h"
 #endif
 #include "WhoListStorage.h"
 #include "WorldSession.h"
@@ -1606,8 +1607,15 @@ void World::SetInitialWorldSettings()
 
 #ifdef ELUNA
     ///- Initialize Lua Engine
-    TC_LOG_INFO("server.loading", "Loading Lua scripts...");
-    sElunaLoader->LoadScripts();
+    TC_LOG_INFO("server.loading", "Loading Eluna config...");
+    sElunaConfig->Initialize();
+
+    ///- Initialize Lua Engine
+    if (sElunaConfig->IsElunaEnabled())
+    {
+        TC_LOG_INFO("server.loading", "Loading Lua scripts...");
+        sElunaLoader->LoadScripts();
+    }
 #endif
 
     ///- Initialize pool manager
@@ -2095,10 +2103,11 @@ void World::SetInitialWorldSettings()
     sCreatureTextMgr->LoadCreatureTextLocales();
 
 #ifdef ELUNA
-    TC_LOG_INFO("server.loading", "Starting Eluna world state...");
-    // use map id -1 for the global Eluna state
-    bool compatMode = sConfigMgr->GetBoolDefault("Eluna.CompatibilityMode", true);
-    eluna = new Eluna(nullptr, compatMode);
+    if (sElunaConfig->IsElunaEnabled())
+    {
+        TC_LOG_INFO("server.loading", "Starting Eluna world state...");
+        eluna = new Eluna(nullptr, sElunaConfig->IsElunaCompatibilityMode());
+    }
 #endif
 
     TC_LOG_INFO("server.loading", "Initializing Scripts...");
@@ -2236,7 +2245,8 @@ void World::SetInitialWorldSettings()
     InitGuildResetTime();
 
 #ifdef ELUNA
-    eluna->OnConfigLoad(false); // Must be done after Eluna is initialized and scripts have run.
+    if(GetEluna())
+        GetEluna()->OnConfigLoad(false); // Must be done after Eluna is initialized and scripts have run.
 #endif
 
     // Preload all cells, if required for the base maps

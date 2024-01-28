@@ -45,6 +45,7 @@
 #include "Totem.h"
 #ifdef ELUNA
 #include "LuaEngine.h"
+#include "ElunaConfig.h"
 #include "ElunaEventMgr.h"
 #endif
 #include "Transport.h"
@@ -1846,8 +1847,7 @@ void WorldObject::SetMap(Map* map)
 
     // if multistate, delete elunaEvents and set to nullptr. events shouldn't move across states.
     // in single state, the timed events should move across maps
-    bool compatMode = sConfigMgr->GetBoolDefault("Eluna.CompatibilityMode", true);
-    if (!compatMode)
+    if (!sElunaConfig->IsElunaCompatibilityMode())
     {
         delete elunaEvents;
         elunaEvents = nullptr; // set to null in case map doesn't use eluna
