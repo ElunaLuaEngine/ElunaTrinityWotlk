@@ -149,7 +149,8 @@ bool GameEventMgr::StartEvent(uint16 event_id, bool overwrite)
         sWorld->setWorldState(event_id, GameTime::GetGameTime());
 #ifdef ELUNA
         if (IsActiveEvent(event_id))
-            sWorld->GetEluna()->OnGameEventStart(event_id);
+            if (Eluna* e = sWorld->GetEluna())
+                e->OnGameEventStart(event_id);
 #endif
         return false;
     }
@@ -176,7 +177,8 @@ bool GameEventMgr::StartEvent(uint16 event_id, bool overwrite)
 
 #ifdef ELUNA
         if (IsActiveEvent(event_id))
-            sWorld->GetEluna()->OnGameEventStart(event_id);
+            if (Eluna* e = sWorld->GetEluna())
+                e->OnGameEventStart(event_id);
 #endif
         return conditions_met;
     }
@@ -226,7 +228,8 @@ void GameEventMgr::StopEvent(uint16 event_id, bool overwrite)
 
 #ifdef ELUNA
     if (!IsActiveEvent(event_id))
-        sWorld->GetEluna()->OnGameEventStop(event_id);
+        if (Eluna* e = sWorld->GetEluna())
+            e->OnGameEventStop(event_id);
 #endif
 }
 

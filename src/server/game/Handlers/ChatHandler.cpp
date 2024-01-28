@@ -294,8 +294,9 @@ void WorldSession::HandleMessagechatOpcode(WorldPacket& recvData)
             }
 
 #ifdef ELUNA
-            if (!sWorld->GetEluna()->OnChat(sender, type, lang, msg))
-                return;
+            if (Eluna* e = sWorld->GetEluna())
+                if (!e->OnChat(sender, type, lang, msg))
+                    return;
 #endif
 
             sender->Say(msg, Language(lang));
@@ -314,8 +315,9 @@ void WorldSession::HandleMessagechatOpcode(WorldPacket& recvData)
             }
 
 #ifdef ELUNA
-            if (!sWorld->GetEluna()->OnChat(sender, type, LANG_UNIVERSAL, msg))
-                return;
+            if (Eluna* e = sWorld->GetEluna())
+                if (!e->OnChat(sender, type, LANG_UNIVERSAL, msg))
+                    return;
 #endif
 
             sender->TextEmote(msg);
@@ -334,8 +336,9 @@ void WorldSession::HandleMessagechatOpcode(WorldPacket& recvData)
             }
 
 #ifdef ELUNA
-            if (!sWorld->GetEluna()->OnChat(sender, type, lang, msg))
-                return;
+            if (Eluna* e = sWorld->GetEluna())
+                if (!e->OnChat(sender, type, lang, msg))
+                    return;
 #endif
 
             sender->Yell(msg, Language(lang));
@@ -385,8 +388,9 @@ void WorldSession::HandleMessagechatOpcode(WorldPacket& recvData)
                 sender->AddWhisperWhiteList(receiver->GetGUID());
 
 #ifdef ELUNA
-            if (!sWorld->GetEluna()->OnChat(GetPlayer(), type, lang, msg, receiver))
-                return;
+            if (Eluna* e = sWorld->GetEluna())
+                if (!e->OnChat(GetPlayer(), type, lang, msg, receiver))
+                    return;
 #endif
             GetPlayer()->Whisper(msg, Language(lang), receiver);
             break;
@@ -408,8 +412,9 @@ void WorldSession::HandleMessagechatOpcode(WorldPacket& recvData)
 
             sScriptMgr->OnPlayerChat(GetPlayer(), type, lang, msg, group);
 #ifdef ELUNA
-            if(!sWorld->GetEluna()->OnChat(sender, type, lang, msg, group))
-                return;
+            if (Eluna* e = sWorld->GetEluna())
+                if(!e->OnChat(sender, type, lang, msg, group))
+                    return;
 #endif
 
             WorldPacket data;
@@ -425,8 +430,9 @@ void WorldSession::HandleMessagechatOpcode(WorldPacket& recvData)
                 {
                     sScriptMgr->OnPlayerChat(GetPlayer(), type, lang, msg, guild);
 #ifdef ELUNA
-                    if(!sWorld->GetEluna()->OnChat(sender, type, lang, msg, guild))
-                        return;
+                    if (Eluna* e = sWorld->GetEluna())
+                        if(!e->OnChat(sender, type, lang, msg, guild))
+                            return;
 #endif
 
                     guild->BroadcastToGuild(this, false, msg, lang == LANG_ADDON ? LANG_ADDON : LANG_UNIVERSAL);
@@ -442,8 +448,9 @@ void WorldSession::HandleMessagechatOpcode(WorldPacket& recvData)
                 {
                     sScriptMgr->OnPlayerChat(GetPlayer(), type, lang, msg, guild);
 #ifdef ELUNA
-                    if(!sWorld->GetEluna()->OnChat(sender, type, lang, msg, guild))
-                        return;
+                    if (Eluna* e = sWorld->GetEluna())
+                        if(!e->OnChat(sender, type, lang, msg, guild))
+                            return;
 #endif
 
                     guild->BroadcastToGuild(this, true, msg, lang == LANG_ADDON ? LANG_ADDON : LANG_UNIVERSAL);
@@ -464,8 +471,9 @@ void WorldSession::HandleMessagechatOpcode(WorldPacket& recvData)
 
             sScriptMgr->OnPlayerChat(GetPlayer(), type, lang, msg, group);
 #ifdef ELUNA
-            if(!sWorld->GetEluna()->OnChat(sender, type, lang, msg, group))
-                return;
+            if (Eluna* e = sWorld->GetEluna())
+                if(!e->OnChat(sender, type, lang, msg, group))
+                    return;
 #endif
 
             WorldPacket data;
@@ -486,8 +494,9 @@ void WorldSession::HandleMessagechatOpcode(WorldPacket& recvData)
 
             sScriptMgr->OnPlayerChat(GetPlayer(), type, lang, msg, group);
 #ifdef ELUNA
-            if(!sWorld->GetEluna()->OnChat(sender, type, lang, msg, group))
-                return;
+            if (Eluna* e = sWorld->GetEluna())
+                if(!e->OnChat(sender, type, lang, msg, group))
+                    return;
 #endif
 
             WorldPacket data;
@@ -503,8 +512,9 @@ void WorldSession::HandleMessagechatOpcode(WorldPacket& recvData)
 
             sScriptMgr->OnPlayerChat(GetPlayer(), type, lang, msg, group);
 #ifdef ELUNA
-            if(!sWorld->GetEluna()->OnChat(sender, type, lang, msg, group))
-                return;
+            if (Eluna* e = sWorld->GetEluna())
+                if(!e->OnChat(sender, type, lang, msg, group))
+                    return;
 #endif
 
             WorldPacket data;
@@ -522,8 +532,9 @@ void WorldSession::HandleMessagechatOpcode(WorldPacket& recvData)
 
             sScriptMgr->OnPlayerChat(GetPlayer(), type, lang, msg, group);
 #ifdef ELUNA
-            if(!sWorld->GetEluna()->OnChat(sender, type, lang, msg, group))
-                return;
+            if (Eluna* e = sWorld->GetEluna())
+                if(!e->OnChat(sender, type, lang, msg, group))
+                    return;
 #endif
 
             WorldPacket data;
@@ -540,8 +551,9 @@ void WorldSession::HandleMessagechatOpcode(WorldPacket& recvData)
 
             sScriptMgr->OnPlayerChat(GetPlayer(), type, lang, msg, group);
 #ifdef ELUNA
-            if(!sWorld->GetEluna()->OnChat(sender, type, lang, msg, group))
-                return;
+            if (Eluna* e = sWorld->GetEluna())
+                if(!e->OnChat(sender, type, lang, msg, group))
+                    return;
 #endif
 
             WorldPacket data;
@@ -564,8 +576,9 @@ void WorldSession::HandleMessagechatOpcode(WorldPacket& recvData)
             {
                 sScriptMgr->OnPlayerChat(sender, type, lang, msg, chn);
 #ifdef ELUNA
-                if(!sWorld->GetEluna()->OnChat(sender, type, lang, msg, chn))
-                    return;
+                if (Eluna* e = sWorld->GetEluna())
+                    if(!e->OnChat(sender, type, lang, msg, chn))
+                        return;
 #endif
                 chn->Say(sender->GetGUID(), msg, lang);
             }
@@ -594,8 +607,9 @@ void WorldSession::HandleMessagechatOpcode(WorldPacket& recvData)
 
                 sScriptMgr->OnPlayerChat(sender, type, lang, msg);
 #ifdef ELUNA
-                if(!sWorld->GetEluna()->OnChat(sender, type, lang, msg))
-                    return;
+                if (Eluna* e = sWorld->GetEluna())
+                    if(!e->OnChat(sender, type, lang, msg))
+                        return;
 #endif
             }
             break;
@@ -621,8 +635,9 @@ void WorldSession::HandleMessagechatOpcode(WorldPacket& recvData)
 
             sScriptMgr->OnPlayerChat(sender, type, lang, msg);
 #ifdef ELUNA
-            if(!sWorld->GetEluna()->OnChat(sender, type, lang, msg))
-                return;
+            if (Eluna* e = sWorld->GetEluna())
+                if(!e->OnChat(sender, type, lang, msg))
+                    return;
 #endif
             break;
         }
