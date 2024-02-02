@@ -993,11 +993,6 @@ void Battleground::StartBattleground()
     // and it doesn't matter if we call StartBattleground() more times, because m_Battlegrounds is a map and instance id never changes
     sBattlegroundMgr->AddBattleground(this);
 
-#ifdef ELUNA
-    if (Eluna* e = GetBgMap()->GetEluna())
-        e->OnBGCreate(this, GetTypeID(), GetInstanceID());
-#endif
-
     if (m_IsRated)
         TC_LOG_DEBUG("bg.arena", "Arena match type: {} for Team1Id: {} - Team2Id: {} started.", m_ArenaType, m_ArenaTeamIds[TEAM_ALLIANCE], m_ArenaTeamIds[TEAM_HORDE]);
 }
