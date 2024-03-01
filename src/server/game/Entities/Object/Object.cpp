@@ -1056,7 +1056,7 @@ void WorldObject::CleanupsBeforeDelete(bool /*finalCleanup*/)
         transport->RemovePassenger(this);
 }
 
-void WorldObject::Update (uint32 time_diff)
+void WorldObject::Update([[maybe_unused]] uint32 time_diff)
 {
 #ifdef ELUNA
     if(elunaEvents) // can be null on maps without eluna
