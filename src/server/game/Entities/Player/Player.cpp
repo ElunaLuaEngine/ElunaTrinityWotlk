@@ -12328,9 +12328,10 @@ void Player::RemoveItem(uint8 bag, uint8 slot, bool update)
                         default:
                             break;
                     }
-
+#ifdef ELUNA
                     if (Eluna* e = GetEluna())
                         e->OnUnEquip(this, pItem, slot);
+#endif
                 }
             }
 
@@ -12470,9 +12471,10 @@ void Player::DestroyItem(uint8 bag, uint8 slot, bool update)
 
                 // equipment visual show
                 SetVisibleItemSlot(slot, nullptr);
-
+#ifdef ELUNA
                 if (Eluna* e = GetEluna())
                     e->OnUnEquip(this, pItem, slot);
+#endif
             }
 
             m_items[slot] = nullptr;
