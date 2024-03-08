@@ -119,4 +119,6 @@ if(ELUNA)
   elseif(WIN32)
     install(DIRECTORY LuaEngine/extensions DESTINATION "${CMAKE_INSTALL_PREFIX}/lua_scripts/")
   endif()
+
+  add_subdirectory(LuaEngine)
 endif()
