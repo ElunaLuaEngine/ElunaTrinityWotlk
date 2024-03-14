@@ -148,13 +148,13 @@ Battleground::~Battleground()
     for (uint32 i = 0; i < size; ++i)
         DelObject(i);
 
+
 #ifdef ELUNA
     if (BattlegroundMap* bg = FindBgMap())
         if (Eluna* e = bg->GetEluna())
             e->OnBGDestroy(this, GetTypeID(), GetInstanceID());
 #endif
 
-    sBattlegroundMgr->RemoveBattleground(GetTypeID(), GetInstanceID());
     // unload map
     if (m_Map)
     {
