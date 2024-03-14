@@ -45,6 +45,7 @@
 #include "LuaEngine.h"
 #include "ElunaConfig.h"
 #include "ElunaUtility.h"
+#include "Battleground.h"
 #endif
 #include "WorldSession.h"
 
@@ -1428,7 +1429,14 @@ void ScriptMgr::OnCreateMap(Map* map)
 
 #ifdef ELUNA
     if (Eluna* e = map->GetEluna())
+    {
         e->OnCreate(map);
+        if (map->IsBattleground())
+        {
+            Battleground* bg = map->ToBattlegroundMap()->GetBG();
+            e->OnBGCreate(bg, bg->GetTypeID(), bg->GetInstanceID());
+        }
+    }
 #endif
 
     SCR_MAP_BGN(WorldMapScript, map, itr, end, entry, IsWorldMap);
@@ -1450,7 +1458,15 @@ void ScriptMgr::OnDestroyMap(Map* map)
 
 #ifdef ELUNA
     if (Eluna* e = map->GetEluna())
+    {
         e->OnDestroy(map);
+
+        if (map->IsBattleground())
+        {
+            Battleground* bg = map->ToBattlegroundMap()->GetBG();
+            e->OnBGDestroy(bg, bg->GetTypeID(), bg->GetInstanceID());
+        }
+    }
 #endif
 
     SCR_MAP_BGN(WorldMapScript, map, itr, end, entry, IsWorldMap);

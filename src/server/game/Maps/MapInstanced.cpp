@@ -277,11 +277,6 @@ BattlegroundMap* MapInstanced::CreateBattleground(uint32 InstanceId, Battlegroun
 
     sScriptMgr->OnCreateMap(map);
 
-#ifdef ELUNA
-    if (Eluna* e = map->GetEluna())
-        e->OnBGCreate(bg, bg->GetTypeID(), InstanceId);
-#endif
-
     return map;
 }
 
