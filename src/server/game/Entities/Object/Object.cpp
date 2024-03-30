@@ -3617,8 +3617,8 @@ std::string WorldObject::GetDebugInfo() const
 #ifdef ELUNA
 Eluna* WorldObject::GetEluna() const
 {
-    if (IsInWorld())
-        return GetMap()->GetEluna();
+    if (const Map * map = FindMap())
+        return map->GetEluna();
 
     return nullptr;
 }
