@@ -16,9 +16,9 @@ set(ELUNA_EXCLUDE_DIRS)
 # or the entire directory if Eluna is disabled
 if(ELUNA)
   list(APPEND ELUNA_EXCLUDE_DIRS
-    ${CMAKE_CURRENT_SOURCE_DIR}/LuaEngine/Mangos
-    ${CMAKE_CURRENT_SOURCE_DIR}/LuaEngine/CMangos
-    ${CMAKE_CURRENT_SOURCE_DIR}/LuaEngine/VMangos
+    ${CMAKE_CURRENT_SOURCE_DIR}/LuaEngine/methods/Mangos
+    ${CMAKE_CURRENT_SOURCE_DIR}/LuaEngine/methods/CMangos
+    ${CMAKE_CURRENT_SOURCE_DIR}/LuaEngine/methods/VMangos
     )
 else()
   list(APPEND ELUNA_EXCLUDE_DIRS
