@@ -3876,6 +3876,12 @@ AuctionHouseBot.Buyer.Recheck.Interval = 20
 #       Default:     true  - (enabled)
 #                    false - (disabled)
 #
+#   Eluna.ScriptReloader
+#       Description: Enable or disable the automated script reloader.
+#                    This will automatically reload Eluna when it detects changes to scripts.
+#       Default:     false - (disabled)
+#                    true  - (enabled)
+#
 #   Eluna.OnlyOnMaps
 #       Description: When Eluna is enabled, a state will only be created for a list of specified maps
 #                    This only works for multistate mode.
@@ -3910,6 +3916,7 @@ AuctionHouseBot.Buyer.Recheck.Interval = 20
 
 Eluna.Enabled = true
 Eluna.CompatibilityMode = true
+Eluna.ScriptReloader = false
 Eluna.OnlyOnMaps = ""
 Eluna.TraceBack = false
 Eluna.ScriptPath = "lua_scripts"
