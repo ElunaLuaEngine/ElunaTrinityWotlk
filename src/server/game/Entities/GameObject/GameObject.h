@@ -24,6 +24,10 @@
 #include "Loot.h"
 #include "MapObject.h"
 #include "SharedDefines.h"
+#ifdef ELUNA
+#include "LuaEngine.h"
+#include "ElunaEventMgr.h"
+#endif
 
 class GameObjectAI;
 class GameObjectModel;

@@ -1717,10 +1717,6 @@ CreatureAI* ScriptMgr::GetCreatureAI(Creature* creature)
 GameObjectAI* ScriptMgr::GetGameObjectAI(GameObject* gameobject)
 {
     ASSERT(gameobject);
-#ifdef ELUNA
-    if (Eluna* e = gameobject->GetEluna())
-        e->OnSpawn(gameobject);
-#endif
 
     GET_SCRIPT_RET(GameObjectScript, gameobject->GetScriptId(), tmpscript, nullptr);
     return tmpscript->GetAI(gameobject);
