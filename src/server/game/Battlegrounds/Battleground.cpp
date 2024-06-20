@@ -138,6 +138,11 @@ Battleground::Battleground()
 
 Battleground::~Battleground()
 {
+#ifdef ELUNA
+    if (Eluna* e = GetBgMap()->GetEluna())
+        e->OnBGDestroy(this, GetTypeID(), GetInstanceID());
+#endif
+
     // remove objects and creatures
     // (this is done automatically in mapmanager update, when the instance is reset after the reset time)
     uint32 size = uint32(BgCreatures.size());
