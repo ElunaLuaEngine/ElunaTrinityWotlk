@@ -1431,11 +1431,10 @@ void ScriptMgr::OnCreateMap(Map* map)
     if (Eluna* e = map->GetEluna())
     {
         e->OnCreate(map);
-        if (map->IsBattleground())
-        {
-            Battleground* bg = map->ToBattlegroundMap()->GetBG();
-            e->OnBGCreate(bg, bg->GetTypeID(), bg->GetInstanceID());
-        }
+
+        if (map->IsBattlegroundOrArena())
+            if (Battleground* bg = map->ToBattlegroundMap()->GetBG())
+                e->OnBGCreate(bg, bg->GetTypeID(), bg->GetInstanceID());
     }
 #endif
 

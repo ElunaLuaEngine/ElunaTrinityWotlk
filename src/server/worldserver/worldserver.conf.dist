@@ -3915,7 +3915,7 @@ AuctionHouseBot.Buyer.Recheck.Interval = 20
 #
 
 Eluna.Enabled = true
-Eluna.CompatibilityMode = true
+Eluna.CompatibilityMode = false
 Eluna.ScriptReloader = false
 Eluna.OnlyOnMaps = ""
 Eluna.TraceBack = false
