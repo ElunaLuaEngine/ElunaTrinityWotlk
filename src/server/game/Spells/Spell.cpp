@@ -5433,7 +5433,9 @@ SpellCastResult Spell::CheckCast(bool strict, uint32* param1 /*= nullptr*/, uint
     if (m_spellInfo->RequiresSpellFocus)
     {
         focusObject = SearchSpellFocus();
-        if (!focusObject)
+        if (focusObject)
+            m_focusObjectGUID = focusObject->GetGUID();
+        else
             return SPELL_FAILED_REQUIRES_SPELL_FOCUS;
     }
 
@@ -7290,6 +7292,9 @@ bool Spell::UpdatePointers()
         if (m_originalCaster && !m_originalCaster->IsInWorld())
             m_originalCaster = nullptr;
     }
+
+    if (m_focusObjectGUID)
+        focusObject = ObjectAccessor::GetGameObject(*m_caster, m_focusObjectGUID);
 
     if (m_castItemGUID && m_caster->GetTypeId() == TYPEID_PLAYER)
     {
