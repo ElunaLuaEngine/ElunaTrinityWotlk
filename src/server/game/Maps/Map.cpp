@@ -294,7 +294,7 @@ i_scriptLock(false), _respawnTimes(std::make_unique<RespawnListContainer>()), _r
     // lua state begins uninitialized
     eluna = nullptr;
 
-    if (sElunaConfig->IsElunaEnabled() && !sElunaConfig->IsElunaCompatibilityMode() && sElunaLoader->ShouldMapLoadEluna(id))
+    if (sElunaConfig->IsElunaEnabled() && !sElunaConfig->IsElunaCompatibilityMode() && sElunaConfig->ShouldMapLoadEluna(id))
         if (!IsParentMap() || (IsParentMap() && !Instanceable()))
             eluna = new Eluna(this);
 #endif
