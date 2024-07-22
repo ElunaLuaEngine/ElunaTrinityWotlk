@@ -6846,7 +6846,7 @@ uint32 ObjectMgr::GetNearestTaxiNode(float x, float y, float z, uint32 mapid, ui
         uint32 submask = 1<<((i-1)%32);
 
         // skip not taxi network nodes
-        if (field >= TaxiMaskSize || (sTaxiNodesMask[field] & submask) == 0)
+        if (field >= sTaxiNodesMask.size() || (sTaxiNodesMask[field] & submask) == 0)
             continue;
 
         float dist2 = (node->Pos.X - x)*(node->Pos.X - x)+(node->Pos.Y - y)*(node->Pos.Y - y)+(node->Pos.Z - z)*(node->Pos.Z - z);
