@@ -1222,6 +1222,7 @@ class TC_GAME_API Unit : public WorldObject
         virtual bool SetCanFly(bool enable, bool packetOnly = false);
         virtual bool SetWaterWalking(bool enable, bool packetOnly = false);
         virtual bool SetFeatherFall(bool enable, bool packetOnly = false);
+                void SetRooted(bool apply);
         virtual bool SetHover(bool enable, bool packetOnly = false, bool updateAnimTier = true);
 
         void SetInFront(WorldObject const* target);
@@ -1930,7 +1931,6 @@ class TC_GAME_API Unit : public WorldObject
         void SetFeared(bool apply);
         void SetConfused(bool apply);
         void SetStunned(bool apply);
-        void SetRooted(bool apply);
 
     private:
         uint32 m_rootTimes;
