@@ -21,6 +21,7 @@
 #include "Common.h"
 #include "Duration.h"
 #include "EventProcessor.h"
+#include "MapDefines.h"
 #include "ModelIgnoreFlags.h"
 #include "MovementInfo.h"
 #include "ObjectDefines.h"
@@ -64,9 +65,7 @@ class ElunaEventProcessor;
 class Eluna;
 #endif
 struct FactionTemplateEntry;
-struct PositionFullTerrainStatus;
 struct QuaternionData;
-enum ZLiquidStatus : uint32;
 
 typedef std::unordered_map<Player*, UpdateData> UpdateDataMapType;
 
