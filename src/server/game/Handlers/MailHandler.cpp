@@ -233,7 +233,7 @@ void WorldSession::HandleSendMail(WorldPackets::Mail::SendMail& sendMail)
         {
             if (!e->OnSendMail(player, receiverGuid))
             {
-                player->SendMailResult(0, MAIL_SEND, MAIL_ERR_EQUIP_ERROR, EQUIP_ERR_CANT_DO_RIGHT_NOW);
+                player->SendMailResult(0, MAIL_SEND, MAIL_ERR_EQUIP_ERROR, EQUIP_ERR_CLIENT_LOCKED_OUT);
                 return;
             }
         }

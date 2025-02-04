@@ -359,7 +359,7 @@ void WorldSession::HandleAcceptTradeOpcode(WorldPacket& /*recvPacket*/)
         if (!e->OnTradeAccept(_player, trader))
         {
             info.Status = TRADE_STATUS_CLOSE_WINDOW;
-            info.Result = EQUIP_ERR_CANT_DO_RIGHT_NOW;
+            info.Result = EQUIP_ERR_CLIENT_LOCKED_OUT;
             SendTradeStatus(info);
             my_trade->SetAccepted(false, true);
             return;
