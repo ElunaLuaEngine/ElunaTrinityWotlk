@@ -222,11 +222,6 @@ public:
 
 #pragma pack(push, 1)
 
-enum LevelRequirementVsMode
-{
-    LEVELREQUIREMENT_HEROIC = 70
-};
-
 struct ZoneDynamicInfo
 {
     ZoneDynamicInfo();
