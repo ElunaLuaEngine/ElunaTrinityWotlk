@@ -774,8 +774,8 @@ class TC_GAME_API World
         bool IsGuidAlert() { return _guidAlert; }
 
 #ifdef ELUNA
-        Eluna* GetEluna() const { return eluna; }
-        Eluna* eluna;
+        Eluna* GetEluna() const { return eluna.get(); }
+		std::unique_ptr<Eluna> eluna;
 #endif
     protected:
         void _UpdateGameTime();

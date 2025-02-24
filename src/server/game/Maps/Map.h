@@ -872,7 +872,7 @@ class TC_GAME_API Map : public GridRefManager<NGridType>
 
         MPSCQueue<FarSpellCallback> _farSpellCallbacks;
 #ifdef ELUNA
-        Eluna* eluna;
+        std::unique_ptr<Eluna> eluna;
 #endif
 };
 

@@ -93,11 +93,6 @@ struct RespawnInfoWithHandle : RespawnInfo
 
 Map::~Map()
 {
-#ifdef ELUNA
-    delete eluna;
-    eluna = nullptr;
-#endif
-
     // Delete all waiting spawns, else there will be a memory leak
     // This doesn't delete from database.
     UnloadAllRespawnInfos();
@@ -296,7 +291,7 @@ i_scriptLock(false), _respawnTimes(std::make_unique<RespawnListContainer>()), _r
 
     if (sElunaConfig->IsElunaEnabled() && !sElunaConfig->IsElunaCompatibilityMode() && sElunaConfig->ShouldMapLoadEluna(id))
         if (!IsParentMap() || (IsParentMap() && !Instanceable()))
-            eluna = new Eluna(this);
+            eluna = std::make_unique<Eluna>(this);
 #endif
     for (unsigned int idx=0; idx < MAX_NUMBER_OF_GRIDS; ++idx)
     {
@@ -4902,7 +4897,7 @@ Eluna *Map::GetEluna() const
     if(sElunaConfig->IsElunaCompatibilityMode())
         return sWorld->GetEluna();
 
-    return eluna;
+    return eluna.get();
 }
 #endif
 
