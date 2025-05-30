@@ -11792,7 +11792,7 @@ InventoryResult Player::CanUseAmmo(uint32 item) const
 
          // Requires No Ammo Mein Custom Spell
         if (HasAura(81101))
-            return EQUIP_ERR_BAG_FULL6;
+            return EQUIP_ERR_BAG_FULL_4;
 
         return EQUIP_ERR_OK;
     }
