@@ -30,6 +30,7 @@
 #include "PetDefines.h"
 #include "PlayerTaxi.h"
 #include "QuestDef.h"
+#include "Transmogrification.h"
 #include <memory>
 #include <queue>
 #include <unordered_set>
@@ -152,9 +153,26 @@ struct SpellModifier
     Aura* const ownerAura;
 };
 
+#ifdef PRESETS
+typedef std::map<uint8, uint32> PresetslotMapType;
+struct PresetData
+{
+    std::string name;
+    PresetslotMapType slotMap; // slotMap[slotId] = entry
+};
+typedef std::map<uint8, PresetData> PresetMapType;
+#endif
+
 typedef std::unordered_map<uint32, PlayerTalent*> PlayerTalentMap;
 typedef std::unordered_map<uint32, PlayerSpell> PlayerSpellMap;
 typedef std::unordered_set<SpellModifier*> SpellModContainer;
+
+struct ReforgeData
+{
+    uint32 increase, decrease;
+    int32 stat_value;
+};
+typedef std::unordered_map<uint32, ReforgeData> ReforgeMapType;
 
 enum ActionButtonUpdateState
 {
@@ -2242,7 +2260,17 @@ class TC_GAME_API Player : public Unit, public GridObject<Player>
         std::string GetMapAreaAndZoneString() const;
         std::string GetCoordsMapAreaAndZoneString() const;
 
+        ReforgeMapType reforgeMap; // reforgeMap[iGUID] = ReforgeData
+
+#ifdef PRESETS
+        PresetMapType presetMap; // presetMap[presetId] = presetData
+#endif
+
         std::string GetDebugInfo() const override;
+
+ 	// Wahl des Klassenmounts noch inaktiv -> Zu Aktivieren // entfernen
+        // uint8 GetMostPointsTalentTree() const;
+
 
     protected:
         // Gamemaster whisper whitelist

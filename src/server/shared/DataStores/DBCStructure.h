@@ -896,7 +896,6 @@ struct ItemBagFamilyEntry
     //uint32 Name_lang_mask;                                // 17
 };
 
-/*
 struct ItemDisplayInfoEntry
 {
     uint32 ID;                                              // 0
@@ -912,7 +911,6 @@ struct ItemDisplayInfoEntry
     int32 ItemVisual;                                       // 23
     uint32 ParticleColorID;                                 // 24
 };
-*/
 
 /*
 struct ItemCondExtCostsEntry
@@ -1113,7 +1111,7 @@ struct MapEntry
 
     bool IsContinent() const
     {
-        return ID == 0 || ID == 1 || ID == 530 || ID == 571;
+        return ID == 0 || ID == 1 || ID == 530 || ID == 571 || ID == 728 || ID == 732 || ID == 733 || ID == 737 || ID == 729 || ID == 741;
     }
 
     bool IsDynamicDifficultyMap() const { return (Flags & MAP_FLAG_DYNAMIC_DIFFICULTY) != 0; }
