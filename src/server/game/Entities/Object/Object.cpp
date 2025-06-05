@@ -1825,13 +1825,24 @@ void WorldObject::SetMap(Map* map)
     m_mapId = map->GetId();
     m_InstanceId = map->GetInstanceId();
 #ifdef ELUNA
-    // in multistate mode, always reset in case Eluna is not active on the new map
-    if (elunaEvents && !sElunaConfig->IsElunaCompatibilityMode())
-        elunaEvents.reset();
-    
-    if (Eluna* e = map->GetEluna())
-        if (!elunaEvents)
-            elunaEvents = std::make_unique<ElunaEventProcessor>(e, this);
+    // in multistate mode, always reset Map events, then recreate the Map events procesor
+    if (!sElunaConfig->IsElunaCompatibilityMode())
+    {
+        auto& events = GetElunaEvents(m_mapId);
+        if (events)
+            events.reset();
+
+        if (Eluna* e = map->GetEluna())
+            events = std::make_unique<ElunaEventProcessor>(e, this);
+    }
+
+    // create the World events processor
+    if (Eluna* e = sWorld->GetEluna())
+    {
+        auto& events = GetElunaEvents(-1);
+        if (!events)
+            events = std::make_unique<ElunaEventProcessor>(e, this);
+    }
 #endif
     if (IsStoredInWorldObjectGridContainer())
        m_currMap->AddWorldObject(this);

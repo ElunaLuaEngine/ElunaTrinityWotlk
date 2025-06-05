@@ -475,8 +475,11 @@ void GameObject::Update(uint32 diff)
     {
         e->UpdateAI(this, diff);
 
-        if (elunaEvents) // can be null on maps without eluna
-            elunaEvents->Update(diff);
+        if (elunaMapEvents) // can be null on maps without eluna
+            elunaMapEvents->Update(diff);
+
+        if (elunaWorldEvents)
+            elunaWorldEvents->Update(diff);
     }
 #endif
     m_Events.Update(diff);
