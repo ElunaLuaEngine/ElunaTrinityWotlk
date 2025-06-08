@@ -1560,9 +1560,7 @@ void ScriptMgr::OnMapUpdate(Map* map, uint32 diff)
 #ifdef ELUNA
     if (Eluna* e = map->GetEluna())
     {
-        if(!sElunaConfig->IsElunaCompatibilityMode())
-            e->UpdateEluna(diff);
-
+        e->UpdateEluna(diff);
         e->OnUpdate(map, diff);
     }
 #endif
