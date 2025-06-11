@@ -724,6 +724,46 @@ class spell_gen_cancel_aura : public SpellScript
     }
 };
 
+class spell_gen_cast_caster_to_target : public SpellScript
+{
+    PrepareSpellScript(spell_gen_cast_caster_to_target);
+
+    bool Validate(SpellInfo const* spellInfo) override
+    {
+        return ValidateSpellInfo({ uint32(spellInfo->GetEffect(EFFECT_0).CalcValue()) });
+    }
+
+    void HandleScript(SpellEffIndex /*effIndex*/)
+    {
+        GetCaster()->CastSpell(GetHitUnit(), uint32(GetEffectValue()));
+    }
+
+    void Register() override
+    {
+        OnEffectHitTarget += SpellEffectFn(spell_gen_cast_caster_to_target::HandleScript, EFFECT_0, SPELL_EFFECT_SCRIPT_EFFECT);
+    }
+};
+
+class spell_gen_cast_target_to_target : public SpellScript
+{
+    PrepareSpellScript(spell_gen_cast_target_to_target);
+
+    bool Validate(SpellInfo const* spellInfo) override
+    {
+        return ValidateSpellInfo({ uint32(spellInfo->GetEffect(EFFECT_0).CalcValue()) });
+    }
+
+    void HandleScript(SpellEffIndex /*effIndex*/)
+    {
+        GetHitUnit()->CastSpell(GetHitUnit(), uint32(GetEffectValue()));
+    }
+
+    void Register() override
+    {
+        OnEffectHitTarget += SpellEffectFn(spell_gen_cast_target_to_target::HandleScript, EFFECT_0, SPELL_EFFECT_SCRIPT_EFFECT);
+    }
+};
+
 enum CannibalizeSpells
 {
     SPELL_CANNIBALIZE_TRIGGERED = 20578
@@ -1466,6 +1506,32 @@ class spell_gen_divine_storm_cd_reset : public SpellScript
     void Register() override
     {
         OnEffectHitTarget += SpellEffectFn(spell_gen_divine_storm_cd_reset::HandleScript, EFFECT_0, SPELL_EFFECT_DUMMY);
+    }
+};
+
+enum DreamingGlory
+{
+    SPELL_DREAMING_GLORY    = 28694
+};
+
+// 28698 - Dreaming Glory
+class spell_gen_dreaming_glory : public SpellScript
+{
+    PrepareSpellScript(spell_gen_dreaming_glory);
+
+    bool Validate(SpellInfo const* /*spellInfo*/) override
+    {
+        return ValidateSpellInfo({ SPELL_DREAMING_GLORY });
+    }
+
+    void HandleScript(SpellEffIndex /*effIndex*/)
+    {
+        GetHitUnit()->CastSpell(GetHitUnit(), SPELL_DREAMING_GLORY, true);
+    }
+
+    void Register() override
+    {
+        OnEffectHitTarget += SpellEffectFn(spell_gen_dreaming_glory::HandleScript, EFFECT_0, SPELL_EFFECT_SCRIPT_EFFECT);
     }
 };
 
@@ -4723,6 +4789,8 @@ void AddSC_generic_spell_scripts()
     RegisterSpellScriptWithArgs(spell_gen_break_shield, "spell_gen_tournament_counterattack");
     RegisterSpellScript(spell_gen_burning_depths_necrolyte_image);
     RegisterSpellScript(spell_gen_cancel_aura);
+    RegisterSpellScript(spell_gen_cast_caster_to_target);
+    RegisterSpellScript(spell_gen_cast_target_to_target);
     RegisterSpellScript(spell_gen_cannibalize);
     RegisterSpellScript(spell_gen_chains_of_ice);
     RegisterSpellScript(spell_gen_chaos_blast);
@@ -4745,6 +4813,7 @@ void AddSC_generic_spell_scripts()
     RegisterSpellScript(spell_gen_despawn_self);
     RegisterSpellScript(spell_gen_despawn_target);
     RegisterSpellScript(spell_gen_divine_storm_cd_reset);
+    RegisterSpellScript(spell_gen_dreaming_glory);
     RegisterSpellScript(spell_gen_ds_flush_knockback);
     RegisterSpellScript(spell_gen_dungeon_credit);
     RegisterSpellScript(spell_ethereal_pet_aura);
