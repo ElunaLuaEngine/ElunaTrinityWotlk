@@ -3889,12 +3889,6 @@ AuctionHouseBot.Buyer.Recheck.Interval = 20
 #       Default:     true  - (enabled)
 #                    false - (disabled)
 #
-#   Eluna.CompatibilityMode
-#       Description: Toggles Eluna between compatibility mode (single-threaded) or multistate mode. 
-#                    Compatibility mode limits the core to a single map update thread.
-#       Default:     true  - (enabled)
-#                    false - (disabled)
-#
 #   Eluna.ScriptReloader
 #       Description: Enable or disable the automated script reloader.
 #                    This will automatically reload Eluna when it detects changes to scripts.
@@ -3934,7 +3928,6 @@ AuctionHouseBot.Buyer.Recheck.Interval = 20
 #
 
 Eluna.Enabled = true
-Eluna.CompatibilityMode = false
 Eluna.ScriptReloader = false
 Eluna.OnlyOnMaps = ""
 Eluna.TraceBack = false
