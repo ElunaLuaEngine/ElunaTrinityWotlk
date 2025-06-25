@@ -1561,7 +1561,7 @@ void ScriptMgr::OnMapUpdate(Map* map, uint32 diff)
     if (Eluna* e = map->GetEluna())
     {
         e->UpdateEluna(diff);
-        e->OnUpdate(map, diff);
+        e->OnMapUpdate(map, diff);
     }
 #endif
 
