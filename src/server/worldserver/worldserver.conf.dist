@@ -3901,6 +3901,11 @@ AuctionHouseBot.Buyer.Recheck.Interval = 20
 #       Default:     false - (disabled)
 #                    true  - (enabled)
 #
+#   Eluna.ReloadCommand
+#       Description: Enable or disable the .reload eluna command.
+#       Default:     true  - (enabled)
+#                    false - (disabled)
+#
 #   Eluna.UseUnsafeMethods
 #       Description: Enable or disable the usage of unsafe methods.
 #                    Unsafe methods are disabled by default to prevent accidental, harmful, or performance-degrading usage.
@@ -3940,16 +3945,26 @@ AuctionHouseBot.Buyer.Recheck.Interval = 20
 #                    "/usr/local/lib/lua/%s/?.so;/usr/lib/x86_64-linux-gnu/lua/%s/?.so;/usr/local/lib/lua/%s/loadall.so;"
 #       Default:     ""
 #
+#   Eluna.ReloadSecurityLevel
+#        Description: Sets the security level required to use the .reload eluna command.
+#                     0 - (Player)
+#                     1 - (Moderator)
+#                     2 - (Game Master)
+#        Default:     3 - (Administrator)
+#                     4 - (Console)
+#
 
 Eluna.Enabled = true
 Eluna.TraceBack = false
 Eluna.ScriptReloader = false
+Eluna.ReloadCommand = true
 Eluna.UseUnsafeMethods = true
 Eluna.UseDeprecatedMethods = true
 Eluna.OnlyOnMaps = ""
 Eluna.ScriptPath = "lua_scripts"
 Eluna.RequirePaths = ""
 Eluna.RequireCPaths = ""
+Eluna.ReloadSecurityLevel = 3
 
 #
 ###################################################################################################
