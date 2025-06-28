@@ -3885,27 +3885,9 @@ AuctionHouseBot.Buyer.Recheck.Interval = 20
 #  ELUNA SETTINGS
 #
 #   Eluna.Enabled
-#       Description: Enable or disable Eluna LuaEngine
+#       Description: Enable or disable Eluna LuaEngine.
 #       Default:     true  - (enabled)
 #                    false - (disabled)
-#
-#   Eluna.CompatibilityMode
-#       Description: Toggles Eluna between compatibility mode (single-threaded) or multistate mode. 
-#                    Compatibility mode limits the core to a single map update thread.
-#       Default:     true  - (enabled)
-#                    false - (disabled)
-#
-#   Eluna.ScriptReloader
-#       Description: Enable or disable the automated script reloader.
-#                    This will automatically reload Eluna when it detects changes to scripts.
-#       Default:     false - (disabled)
-#                    true  - (enabled)
-#
-#   Eluna.OnlyOnMaps
-#       Description: When Eluna is enabled, a state will only be created for a list of specified maps
-#                    This only works for multistate mode.
-#       Default:     ""  - (enabled on all maps)
-#                    "0,1,2,..." - (enabled on specific maps only)
 #
 #   Eluna.TraceBack
 #       Description: Sets whether to use debug.traceback function on a lua error or not.
@@ -3913,8 +3895,39 @@ AuctionHouseBot.Buyer.Recheck.Interval = 20
 #       Default:     false - (use default error output)
 #                    true  - (use debug.traceback function)
 #
+#   Eluna.ScriptReloader
+#       Description: Enable or disable the automated script reloader.
+#                    This will automatically reload Eluna when it detects changes to scripts.
+#       Default:     false - (disabled)
+#                    true  - (enabled)
+#
+#   Eluna.ReloadCommand
+#       Description: Enable or disable the .reload eluna command.
+#       Default:     true  - (enabled)
+#                    false - (disabled)
+#
+#   Eluna.UseUnsafeMethods
+#       Description: Enable or disable the usage of unsafe methods.
+#                    Unsafe methods are disabled by default to prevent accidental, harmful, or performance-degrading usage.
+#                    Only enable this setting if strictly necessary, and check documentation for alternative methods.
+#       Default:     true  - (enabled)
+#                    false - (disabled)
+#
+#   Eluna.UseDeprecatedMethods
+#       Description: Enable or disable the usage of deprecated methods.
+#                    Deprecated methods may be removed in future versions and are disabled by default.
+#                    Check documentation for alternative methods.
+#       Default:     true  - (enabled)
+#                    false - (disabled)
+#
+#   Eluna.OnlyOnMaps
+#       Description: When Eluna is enabled, a state will only be created for a list of specified maps.
+#                    This only works for multistate mode.
+#       Default:     ""  - (enabled on all maps)
+#                    "0,1,2,..." - (enabled on specific maps only)
+#
 #   Eluna.ScriptPath
-#       Description: Sets the location of the script folder to load scripts from
+#       Description: Sets the location of the script folder to load scripts from.
 #                    The path can be relative or absolute.
 #       Default:     "lua_scripts"
 #
@@ -3932,15 +3945,26 @@ AuctionHouseBot.Buyer.Recheck.Interval = 20
 #                    "/usr/local/lib/lua/%s/?.so;/usr/lib/x86_64-linux-gnu/lua/%s/?.so;/usr/local/lib/lua/%s/loadall.so;"
 #       Default:     ""
 #
+#   Eluna.ReloadSecurityLevel
+#        Description: Sets the security level required to use the .reload eluna command.
+#                     0 - (Player)
+#                     1 - (Moderator)
+#                     2 - (Game Master)
+#        Default:     3 - (Administrator)
+#                     4 - (Console)
+#
 
 Eluna.Enabled = true
-Eluna.CompatibilityMode = false
-Eluna.ScriptReloader = false
-Eluna.OnlyOnMaps = ""
 Eluna.TraceBack = false
+Eluna.ScriptReloader = false
+Eluna.ReloadCommand = true
+Eluna.UseUnsafeMethods = true
+Eluna.UseDeprecatedMethods = true
+Eluna.OnlyOnMaps = ""
 Eluna.ScriptPath = "lua_scripts"
 Eluna.RequirePaths = ""
 Eluna.RequireCPaths = ""
+Eluna.ReloadSecurityLevel = 3
 
 #
 ###################################################################################################

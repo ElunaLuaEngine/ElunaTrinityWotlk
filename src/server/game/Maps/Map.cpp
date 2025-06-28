@@ -289,7 +289,7 @@ i_scriptLock(false), _respawnTimes(std::make_unique<RespawnListContainer>()), _r
     // lua state begins uninitialized
     eluna = nullptr;
 
-    if (sElunaConfig->IsElunaEnabled() && !sElunaConfig->IsElunaCompatibilityMode() && sElunaConfig->ShouldMapLoadEluna(id))
+    if (sElunaConfig->IsElunaEnabled() && sElunaConfig->ShouldMapLoadEluna(id))
         if (!IsParentMap() || (IsParentMap() && !Instanceable()))
             eluna = std::make_unique<Eluna>(this);
 #endif
@@ -4890,15 +4890,5 @@ std::string InstanceMap::GetDebugInfo() const
         << "ScriptId: " << GetScriptId() << " ScriptName: " << GetScriptName();
     return sstr.str();
 }
-
-#ifdef ELUNA
-Eluna *Map::GetEluna() const
-{
-    if(sElunaConfig->IsElunaCompatibilityMode())
-        return sWorld->GetEluna();
-
-    return eluna.get();
-}
-#endif
 
 template class TC_GAME_API TypeUnorderedMapContainer<AllMapStoredObjectTypes, ObjectGuid>;
