@@ -2265,6 +2265,11 @@ void ScriptMgr::OnMovieComplete(Player* player, uint32 movieId)
     FOREACH_SCRIPT(PlayerScript)->OnMovieComplete(player, movieId);
 }
 
+void ScriptMgr::OnPlayerUpdateArea(Player* player, uint32 oldArea, uint32 newArea)
+{
+    FOREACH_SCRIPT(PlayerScript)->OnUpdateArea(player, oldArea, newArea);
+}
+
 // Account
 void ScriptMgr::OnAccountLogin(uint32 accountId)
 {
