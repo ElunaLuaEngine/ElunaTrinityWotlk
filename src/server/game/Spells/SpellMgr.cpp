@@ -4618,6 +4618,24 @@ void SpellMgr::LoadSpellInfoCorrections()
         spellInfo->_GetEffect(EFFECT_0).MiscValue = 190;
     });
 
+    // Headless Horseman (Hallows End) - Start Fire
+    ApplySpellFix({ 42132 }, [](SpellInfo* spellInfo)
+    {
+        spellInfo->RangeEntry = sSpellRangeStore.LookupEntry(181);
+        spellInfo->AttributesEx6 |= SPELL_ATTR6_CAN_TARGET_INVISIBLE;
+        spellInfo->AttributesEx2 |= SPELL_ATTR2_CAN_TARGET_NOT_IN_LOS;
+    });
+
+    // Brewfest - Attack Keg
+    ApplySpellFix({ 42393 }, [](SpellInfo* spellInfo)
+    {
+        spellInfo->_GetEffect(EFFECT_0).TargetA = SpellImplicitTargetInfo(TARGET_UNIT_TARGET_ANY);
+        spellInfo->_GetEffect(EFFECT_0).TargetB = SpellImplicitTargetInfo();
+        spellInfo->_GetEffect(EFFECT_0).RadiusEntry = nullptr;
+        spellInfo->AttributesEx6 |= SPELL_ATTR6_CAN_TARGET_INVISIBLE;
+        spellInfo->AttributesEx2 |= SPELL_ATTR2_CAN_TARGET_NOT_IN_LOS;
+    });
+
     // Broken Frostmourne
     ApplySpellFix({ 72405 }, [](SpellInfo* spellInfo)
     {
