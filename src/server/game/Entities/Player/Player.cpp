@@ -6926,6 +6926,8 @@ void Player::UpdateArea(uint32 newArea)
         if(oldArea != newArea)
             e->OnUpdateArea(this, oldArea, newArea);
 #endif
+    
+    sScriptMgr->OnPlayerUpdateArea(this, oldArea, newArea);
 }
 
 void Player::UpdateZone(uint32 newZone, uint32 newArea)
