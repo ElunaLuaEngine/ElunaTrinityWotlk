@@ -3054,6 +3054,10 @@ void PlayerScript::OnMovieComplete(Player* /*player*/, uint32 /*movieId*/)
 {
 }
 
+void PlayerScript::OnUpdateArea(Player* /*player*/, uint32 /*oldArea*/, uint32 /*newArea*/)
+{
+}
+
 AccountScript::AccountScript(char const* name)
     : ScriptObject(name)
 {
