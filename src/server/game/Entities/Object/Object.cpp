@@ -55,6 +55,7 @@
 #include "VMapManager2.h"
 #include "World.h"
 #include <G3D/Vector3.h>
+#include "GameObjectAI.h"
 
 constexpr float VisibilityDistances[AsUnderlyingType(VisibilityDistanceType::Max)] =
 {
@@ -1556,6 +1557,10 @@ bool WorldObject::CanSeeOrDetect(WorldObject const* obj, bool implicitDetect, bo
     if (!obj->CheckPrivateObjectOwnerVisibility(this))
         return false;
 
+    if (GameObject const* goObj = obj->ToGameObject())
+        if (ToPlayer() && !goObj->AI()->CanBeSeen(ToPlayer()))
+            return false;
+    
     bool corpseVisibility = false;
     if (distanceCheck)
     {
