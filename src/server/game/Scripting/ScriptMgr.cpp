@@ -1429,7 +1429,15 @@ void ScriptMgr::OnCreateMap(Map* map)
 
 #ifdef ELUNA
     if (Eluna* e = map->GetEluna())
+    {
         e->OnCreate(map);
+        if (map->IsBattlegroundOrArena())
+        {
+            BattleGround* bg = ((BattlegroundMap*)map)->GetBG();
+            if(bg)
+                e->OnBGCreate(bg, bg->GetTypeID(), bg->GetInstanceID());
+        }
+    }
 #endif
 
     SCR_MAP_BGN(WorldMapScript, map, itr, end, entry, IsWorldMap);

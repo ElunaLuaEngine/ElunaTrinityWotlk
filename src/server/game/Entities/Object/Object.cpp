@@ -1841,7 +1841,7 @@ void WorldObject::SetMap(Map* map)
     }
 #endif
     if (IsStoredInWorldObjectGridContainer())
-       m_currMap->AddWorldObject(this);
+        m_currMap->AddWorldObject(this);
 }
 
 void WorldObject::ResetMap()
@@ -1850,7 +1850,6 @@ void WorldObject::ResetMap()
     ASSERT(!IsInWorld());
     if (IsStoredInWorldObjectGridContainer())
         m_currMap->RemoveWorldObject(this);
-
     m_currMap = nullptr;
     //maybe not for corpse
     //m_mapId = 0;
