@@ -21,7 +21,6 @@
 #include "CellImpl.h"
 #include "CinematicMgr.h"
 #include "Common.h"
-#include "Config.h"
 #include "Creature.h"
 #include "GameTime.h"
 #include "GridNotifiersImpl.h"

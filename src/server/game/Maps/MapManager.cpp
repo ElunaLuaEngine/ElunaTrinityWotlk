@@ -17,7 +17,6 @@
 
 #include "MapManager.h"
 #include "InstanceSaveMgr.h"
-#include "Config.h"
 #include "DatabaseEnv.h"
 #include "Log.h"
 #include "ObjectAccessor.h"
