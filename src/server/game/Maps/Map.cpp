@@ -4482,6 +4482,15 @@ Transport* Map::GetTransport(ObjectGuid const& guid)
     return go ? go->ToTransport() : nullptr;
 }
 
+Transport* Map::GetTransport(uint32 const& entry)
+{
+    for (TransportsContainer::const_iterator itr = _transports.begin(); itr != _transports.end(); ++itr)
+        if ((*itr)->GetEntry() == entry)
+            return *itr;
+
+    return nullptr;
+}
+
 DynamicObject* Map::GetDynamicObject(ObjectGuid const& guid)
 {
     return _objectsStore.Find<DynamicObject>(guid);
