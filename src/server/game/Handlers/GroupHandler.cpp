@@ -233,7 +233,7 @@ void WorldSession::HandleGroupAcceptOpcode(WorldPacket& recvData)
     }
 
 #ifdef ELUNA
-    if (Eluna* e = GetPlayer()->GetEluna())
+    if (Eluna* e = sWorld->GetEluna())
         if (!e->OnMemberAccept(group, GetPlayer()))
             return;
 #endif
