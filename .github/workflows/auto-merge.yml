@@ -47,5 +47,6 @@ jobs:
     - name: Push changes
       run: |
           git push
-    - name: Create diff file
-      uses: ./.github/workflows/create-diff.yml
+  create-diff:
+    name: Create diff file
+    uses: ./.github/workflows/create-diff.yml
