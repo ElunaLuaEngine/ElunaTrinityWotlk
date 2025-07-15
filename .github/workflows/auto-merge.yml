@@ -49,4 +49,5 @@ jobs:
           git push
   create-diff:
     name: Create diff file
+    needs: build
     uses: ./.github/workflows/create-diff.yml
