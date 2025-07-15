@@ -1,0 +1,25 @@
+name: Create diff
+
+on:
+  workflow_dispatch:
+  workflow_call:
+
+jobs:
+  create-diff:
+    runs-on: ubuntu-22.04
+    steps:
+    - uses: actions/checkout@v4
+      with:
+        submodules: 'recursive'
+        fetch-depth: 0
+    - name: Create diff
+      run: |
+        git remote add Trinity https://github.com/TrinityCore/TrinityCore.git
+        git fetch Trinity 3.3.5
+        git diff Trinity/3.3.5 > eluna.diff
+    - name: Upload diff
+      uses: actions/upload-artofact@v4
+      with:
+        name: eluna.diff
+        path: |
+          eluna.diff
