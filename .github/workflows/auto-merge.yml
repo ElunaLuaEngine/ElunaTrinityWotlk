@@ -48,4 +48,4 @@ jobs:
       run: |
           git push
     - name: Create diff file
-      uses:./.github/workflows/create-diff.yml
+      uses: ./.github/workflows/create-diff.yml
