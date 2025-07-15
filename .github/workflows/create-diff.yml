@@ -18,7 +18,7 @@ jobs:
         git fetch Trinity 3.3.5
         git diff Trinity/3.3.5 > eluna.diff
     - name: Upload diff
-      uses: actions/upload-artofact@v4
+      uses: actions/upload-artifact@v4
       with:
         name: eluna.diff
         path: |
