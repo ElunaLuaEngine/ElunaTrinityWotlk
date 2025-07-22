@@ -4636,6 +4636,11 @@ void SpellMgr::LoadSpellInfoCorrections()
         spellInfo->AttributesEx2 |= SPELL_ATTR2_CAN_TARGET_NOT_IN_LOS;
     });
 
+    ApplySpellFix({43876}, [](SpellInfo* spellInfo)
+    {
+    spellInfo->Attributes |= SPELL_ATTR0_CASTABLE_WHILE_MOUNTED;
+    });
+    
     // Broken Frostmourne
     ApplySpellFix({ 72405 }, [](SpellInfo* spellInfo)
     {
