@@ -764,7 +764,7 @@ class TC_GAME_API World
 
         uint32 GetCleaningFlags() const { return m_CleaningFlags; }
         void SetCleaningFlags(uint32 flags) { m_CleaningFlags = flags; }
-        void ResetEventSeasonalQuests(uint16 event_id);
+        void ResetEventSeasonalQuests(uint16 event_id, time_t eventStartTime);
 
         void ReloadRBAC();
 
@@ -851,7 +851,7 @@ class TC_GAME_API World
         // CLI command holder to be thread safe
         LockedQueue<CliCommandHolder*> cliCmdQueue;
 
-        // next daily quests and random bg reset time
+        // scheduled reset times
         time_t m_NextDailyQuestReset;
         time_t m_NextWeeklyQuestReset;
         time_t m_NextMonthlyQuestReset;
