@@ -437,14 +437,6 @@ Unit::~Unit()
 
 void Unit::Update(uint32 p_time)
 {
-#ifdef ELUNA
-    //if(elunaMapEvents) // can be null on maps without eluna
-    //    elunaMapEvents->Update(p_time);
-
-    //if (elunaWorldEvents) // can be null on maps without eluna
-    //    elunaWorldEvents->Update(p_time);
-#endif
-
     // WARNING! Order of execution here is important, do not change.
     // Spells must be processed with event system BEFORE they go to _UpdateSpells.
     // Or else we may have some SPELL_STATE_FINISHED spells stalled in pointers, that is bad.
