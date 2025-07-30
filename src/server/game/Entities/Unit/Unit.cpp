@@ -7841,10 +7841,14 @@ bool Unit::IsImmunedToSpellEffect(SpellInfo const* spellInfo, SpellEffectInfo co
         });
     };
 
+bool skip_knock_back = (spellEffectInfo.Effect == SPELL_EFFECT_KNOCK_BACK && spellInfo->HasAttribute(SPELL_ATTR0_CU_IGNORE_KNOCK_BACK_IMMUNITY));
+if (!skip_knock_back)
+{
     // If m_immuneToEffect type contain this effect type, IMMUNE effect.
     SpellImmuneContainer const& effectList = m_spellImmune[IMMUNITY_EFFECT];
     if (hasImmunity(effectList, spellEffectInfo.Effect))
         return true;
+}
 
     if (uint32 mechanic = spellEffectInfo.Mechanic)
     {
