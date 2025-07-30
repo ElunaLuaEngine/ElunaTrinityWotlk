@@ -4645,6 +4645,11 @@ void SpellMgr::LoadSpellInfoCorrections()
         spellInfo->AttributesEx2 |= SPELL_ATTR2_CAN_TARGET_NOT_IN_LOS;
     });
 
+    ApplySpellFix({ 54458 }, [](SpellInfo* spellInfo) // Knockback Fix
+    {
+    spellInfo->AttributesCu |= SPELL_ATTR0_CU_IGNORE_KNOCK_BACK_IMMUNITY;
+    });
+
     ApplySpellFix({43876}, [](SpellInfo* spellInfo)
     {
     spellInfo->Attributes |= SPELL_ATTR0_CASTABLE_WHILE_MOUNTED;
