@@ -82,10 +82,6 @@
 #include "World.h"
 #include "WorldPacket.h"
 #include "WorldSession.h"
-#ifdef ELUNA
-#include "LuaEngine.h"
-#include "ElunaEventMgr.h"
-#endif
 #include <cmath>
 
 float baseMoveSpeed[MAX_MOVE_TYPE] =

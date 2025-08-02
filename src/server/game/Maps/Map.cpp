@@ -48,7 +48,6 @@
 #ifdef ELUNA
 #include "LuaEngine.h"
 #include "ElunaConfig.h"
-#include "ElunaLoader.h"
 #endif
 #include "VMapManager2.h"
 #include "Weather.h"

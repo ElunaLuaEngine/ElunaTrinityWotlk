@@ -43,8 +43,6 @@
 #include "WorldPacket.h"
 #ifdef ELUNA
 #include "LuaEngine.h"
-#include "ElunaConfig.h"
-#include "ElunaUtility.h"
 #include "Battleground.h"
 #endif
 #include "WorldSession.h"
@@ -1517,7 +1515,7 @@ void ScriptMgr::OnPlayerEnterMap(Map* map, Player* player)
     ASSERT(player);
 
 #ifdef ELUNA
-    if(Eluna * e = player->GetEluna())
+    if (Eluna* e = player->GetEluna())
         e->OnMapChanged(player);
     if (Eluna* e = map->GetEluna())
         e->OnPlayerEnter(map, player);
@@ -1544,7 +1542,7 @@ void ScriptMgr::OnPlayerLeaveMap(Map* map, Player* player)
     ASSERT(player);
 
 #ifdef ELUNA
-    if(Eluna * e = map->GetEluna())
+    if (Eluna* e = map->GetEluna())
         e->OnPlayerLeave(map, player);
 #endif
 
@@ -1603,7 +1601,7 @@ bool ScriptMgr::OnQuestAccept(Player* player, Item* item, Quest const* quest)
     ASSERT(item);
     ASSERT(quest);
 #ifdef ELUNA
-    if(Eluna * e = player->GetEluna())
+    if (Eluna* e = player->GetEluna())
         if (e->OnQuestAccept(player, item, quest))
             return false;
 #endif
@@ -1840,7 +1838,7 @@ void ScriptMgr::OnInstall(Vehicle* veh)
     ASSERT(veh);
     ASSERT(veh->GetBase()->GetTypeId() == TYPEID_UNIT);
 #ifdef ELUNA
-    if(Eluna * e = veh->GetBase()->GetEluna())
+    if (Eluna* e = veh->GetBase()->GetEluna())
         e->OnInstall(veh);
 #endif
 
@@ -2001,7 +1999,7 @@ void ScriptMgr::OnPVPKill(Player* killer, Player* killed)
 void ScriptMgr::OnCreatureKill(Player* killer, Creature* killed)
 {
 #ifdef ELUNA
-    if(Eluna * e = killer->GetEluna())
+    if (Eluna* e = killer->GetEluna())
         e->OnCreatureKill(killer, killed);
 #endif
     FOREACH_SCRIPT(PlayerScript)->OnCreatureKill(killer, killed);

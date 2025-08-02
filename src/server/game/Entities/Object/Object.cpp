@@ -44,7 +44,6 @@
 #include "Totem.h"
 #ifdef ELUNA
 #include "LuaEngine.h"
-#include "ElunaConfig.h"
 #endif
 #include "Transport.h"
 #include "Unit.h"
@@ -3646,7 +3645,7 @@ std::string WorldObject::GetDebugInfo() const
 #ifdef ELUNA
 Eluna* WorldObject::GetEluna() const
 {
-    if (const Map * map = FindMap())
+    if (const Map* map = FindMap())
         return map->GetEluna();
 
     return nullptr;
