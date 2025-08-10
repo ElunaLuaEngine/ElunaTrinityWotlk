@@ -14898,7 +14898,6 @@ void Player::AddQuestAndCheckCompletion(Quest const* quest, Object* questGiver)
                 e->OnQuestAccept(this, questGiver->ToCreature(), quest);
 #endif
             questGiver->ToCreature()->AI()->OnQuestAccept(this, quest);
-
             break;
         case TYPEID_ITEM:
         case TYPEID_CONTAINER:
@@ -14936,7 +14935,6 @@ void Player::AddQuestAndCheckCompletion(Quest const* quest, Object* questGiver)
                 e->OnQuestAccept(this, questGiver->ToGameObject(), quest);
 #endif
             questGiver->ToGameObject()->AI()->OnQuestAccept(this, quest);
-
             break;
         default:
             break;
@@ -26378,7 +26376,6 @@ bool Player::AddItem(uint32 itemId, uint32 count)
         SendNewItem(item, count, true, false);
     else
         return false;
-
     return true;
 }
 
