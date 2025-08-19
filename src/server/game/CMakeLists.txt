@@ -19,6 +19,7 @@ if(ELUNA)
     ${CMAKE_CURRENT_SOURCE_DIR}/LuaEngine/methods/Mangos
     ${CMAKE_CURRENT_SOURCE_DIR}/LuaEngine/methods/CMangos
     ${CMAKE_CURRENT_SOURCE_DIR}/LuaEngine/methods/VMangos
+    ${CMAKE_CURRENT_SOURCE_DIR}/LuaEngine/methods/AzerothCore
     )
 else()
   list(APPEND ELUNA_EXCLUDE_DIRS
