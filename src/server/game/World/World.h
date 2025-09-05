@@ -40,7 +40,6 @@
 
 #ifdef ELUNA
 class Eluna;
-struct ElunaInfo;
 #endif
 class Player;
 class WorldPacket;

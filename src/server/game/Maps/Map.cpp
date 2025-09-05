@@ -288,7 +288,7 @@ i_scriptLock(false), _respawnTimes(std::make_unique<RespawnListContainer>()), _r
     if (sElunaConfig->IsElunaEnabled() && sElunaConfig->ShouldMapLoadEluna(id))
         if (!IsParentMap() || (IsParentMap() && !Instanceable()))
         {
-            elunaInfo = ElunaInfo(GetId(), GetInstanceId());
+            elunaInfo.key = ElunaInfoKey::MakeKey(GetId(), GetInstanceId());
             sElunaMgr->Create(this, elunaInfo);
         }
 #endif

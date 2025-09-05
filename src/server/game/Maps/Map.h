@@ -48,7 +48,6 @@ class BattlegroundMap;
 class CreatureGroup;
 #ifdef ELUNA
 class Eluna;
-struct ElunaInfo;
 #endif
 class GameObjectModel;
 class Group;
@@ -791,7 +790,6 @@ class TC_GAME_API Map : public GridRefManager<NGridType>
         bool IsParentMap() const { return GetParent() == this; }
 #ifdef ELUNA
         Eluna* GetEluna() const { return sElunaMgr->Get(elunaInfo.key); }
-
         LuaVal lua_data = LuaVal({});
 #endif
     private:
