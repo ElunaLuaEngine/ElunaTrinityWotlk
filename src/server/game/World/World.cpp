@@ -2131,7 +2131,8 @@ void World::SetInitialWorldSettings()
     if (sElunaConfig->IsElunaEnabled())
     {
         TC_LOG_INFO("server.loading", "Starting Eluna world state...");
-        eluna = std::make_unique<Eluna>(nullptr);
+        elunaInfo = ElunaInfo(ElunaInfoKey::GLOBAL_MAP_ID, 0);
+        sElunaMgr->Create(nullptr, elunaInfo);
     }
 #endif
 
