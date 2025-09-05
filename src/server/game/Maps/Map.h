@@ -789,7 +789,7 @@ class TC_GAME_API Map : public GridRefManager<NGridType>
         void AddFarSpellCallback(FarSpellCallback&& callback);
         bool IsParentMap() const { return GetParent() == this; }
 #ifdef ELUNA
-        Eluna* GetEluna() const { return sElunaMgr->Get(elunaInfo.key); }
+        Eluna* GetEluna() const { return sElunaMgr->Get(_elunaInfo); }
         LuaVal lua_data = LuaVal({});
 #endif
     private:
@@ -872,7 +872,7 @@ class TC_GAME_API Map : public GridRefManager<NGridType>
 
         MPSCQueue<FarSpellCallback> _farSpellCallbacks;
 #ifdef ELUNA
-        ElunaInfo elunaInfo;
+        ElunaInfo _elunaInfo;
 #endif
 };
 

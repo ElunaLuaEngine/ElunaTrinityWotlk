@@ -778,7 +778,7 @@ class TC_GAME_API World
         bool IsGuidAlert() { return _guidAlert; }
 
 #ifdef ELUNA
-        Eluna* GetEluna() const { return sElunaMgr->Get(elunaInfo.key); }
+        Eluna* GetEluna() const { return sElunaMgr->Get(_elunaInfo); }
 #endif
     protected:
         void _UpdateGameTime();
@@ -894,7 +894,7 @@ class TC_GAME_API World
         uint32 _warnDiff;
         time_t _warnShutdownTime;
 #ifdef ELUNA
-        ElunaInfo elunaInfo;
+        ElunaInfo _elunaInfo;
 #endif
     friend class debug_commandscript;
 };
