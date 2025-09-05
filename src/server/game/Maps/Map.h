@@ -40,6 +40,7 @@
 #include <mutex>
 #ifdef ELUNA
 #include "LuaValue.h"
+#include "ElunaMgr.h"
 #endif
 
 class Battleground;
@@ -788,8 +789,7 @@ class TC_GAME_API Map : public GridRefManager<NGridType>
         void AddFarSpellCallback(FarSpellCallback&& callback);
         bool IsParentMap() const { return GetParent() == this; }
 #ifdef ELUNA
-        Eluna* GetEluna() const { return eluna.get(); }
-
+        Eluna* GetEluna() const { return sElunaMgr->Get(_elunaInfo); }
         LuaVal lua_data = LuaVal({});
 #endif
     private:
@@ -872,7 +872,7 @@ class TC_GAME_API Map : public GridRefManager<NGridType>
 
         MPSCQueue<FarSpellCallback> _farSpellCallbacks;
 #ifdef ELUNA
-        std::unique_ptr<Eluna> eluna;
+        ElunaInfo _elunaInfo;
 #endif
 };
 
