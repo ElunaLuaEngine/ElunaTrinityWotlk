@@ -29,6 +29,9 @@
 #include "ObjectGuid.h"
 #include "SharedDefines.h"
 #include "Timer.h"
+#ifdef ELUNA
+#include "ElunaMgr.h"
+#endif
 
 #include <atomic>
 #include <list>
@@ -775,8 +778,7 @@ class TC_GAME_API World
         bool IsGuidAlert() { return _guidAlert; }
 
 #ifdef ELUNA
-        Eluna* GetEluna() const { return eluna.get(); }
-        std::unique_ptr<Eluna> eluna;
+        Eluna* GetEluna() const { return sElunaMgr->Get(_elunaInfo); }
 #endif
     protected:
         void _UpdateGameTime();
@@ -891,7 +893,9 @@ class TC_GAME_API World
         bool _guidAlert;
         uint32 _warnDiff;
         time_t _warnShutdownTime;
-
+#ifdef ELUNA
+        ElunaInfo _elunaInfo;
+#endif
     friend class debug_commandscript;
 };
 

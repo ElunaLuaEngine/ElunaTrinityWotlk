@@ -284,12 +284,12 @@ i_scriptLock(false), _respawnTimes(std::make_unique<RespawnListContainer>()), _r
 {
     m_parentMap = (_parent ? _parent : this);
 #ifdef ELUNA
-    // lua state begins uninitialized
-    eluna = nullptr;
-
     if (sElunaConfig->IsElunaEnabled() && sElunaConfig->ShouldMapLoadEluna(id))
         if (!IsParentMap() || (IsParentMap() && !Instanceable()))
-            eluna = std::make_unique<Eluna>(this);
+        {
+            _elunaInfo = { ElunaInfoKey::MakeKey(GetId(), GetInstanceId()) };
+            sElunaMgr->Create(this, _elunaInfo);
+        }
 #endif
     for (unsigned int idx=0; idx < MAX_NUMBER_OF_GRIDS; ++idx)
     {
