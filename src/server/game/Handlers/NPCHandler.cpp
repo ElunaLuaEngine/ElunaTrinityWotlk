@@ -186,8 +186,13 @@ void WorldSession::HandleGossipHelloOpcode(WorldPacket& recvData)
 
     _player->PlayerTalkClass->ClearMenus();
 #ifdef ELUNA
+    // Let Eluna handle gossip first; fallback to default if unhandled
+    bool handled = false;
+
     if (Eluna* e = GetPlayer()->GetEluna())
-        if (!e->OnGossipHello(_player, unit))
+        handled = e->OnGossipHello(_player, unit);
+
+    if(!handled)
 #endif
     if (!unit->AI()->OnGossipHello(_player))
     {
