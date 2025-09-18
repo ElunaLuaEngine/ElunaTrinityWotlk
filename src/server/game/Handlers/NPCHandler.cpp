@@ -187,7 +187,8 @@ void WorldSession::HandleGossipHelloOpcode(WorldPacket& recvData)
     _player->PlayerTalkClass->ClearMenus();
 #ifdef ELUNA
     if (Eluna* e = GetPlayer()->GetEluna())
-        if (!e->OnGossipHello(_player, unit))
+        if (e->OnGossipHello(_player, unit))
+            return;
 #endif
     if (!unit->AI()->OnGossipHello(_player))
     {
