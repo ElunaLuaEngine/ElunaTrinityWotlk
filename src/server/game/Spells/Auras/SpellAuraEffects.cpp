@@ -720,6 +720,11 @@ void AuraEffect::HandleEffect(AuraApplication * aurApp, uint8 mode, bool apply)
         ApplySpellMod(aurApp->GetTarget(), apply);
 
     // call scripts helping/replacing effect handlers
+#ifdef ELUNA
+    if (aurApp->GetTarget())
+        if (Eluna* e = aurApp->GetTarget()->GetEluna())
+            e->OnAuraApplication(GetBase(), uint8(GetEffIndex()), mode, apply);
+#endif
     bool prevented = false;
     if (apply)
         prevented = GetBase()->CallScriptEffectApplyHandlers(this, aurApp, (AuraEffectHandleModes)mode);
