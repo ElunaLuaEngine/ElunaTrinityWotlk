@@ -5945,7 +5945,7 @@ void ObjectMgr::LoadSpellScriptNames()
         SpellInfo const* spellInfo = sSpellMgr->GetSpellInfo(spellId);
         if (!spellInfo)
         {
-            TC_LOG_ERROR("sql.sql", "Scriptname: `{}` spell (Id: {}) does not exist.", scriptName, spellId);
+            TC_LOG_ERROR("sql.sql", "Scriptname: `{}` spell (Id: {}) does not exist.", scriptName, fields[0].GetInt32());
             continue;
         }
 
@@ -7153,7 +7153,7 @@ GraveyardData const* ObjectMgr::FindGraveyardData(uint32 id, uint32 zoneId) cons
     return nullptr;
 }
 
-AreaTrigger const* ObjectMgr::GetAreaTrigger(uint32 trigger) const
+AreaTriggerTeleport const* ObjectMgr::GetAreaTrigger(uint32 trigger) const
 {
     AreaTriggerContainer::const_iterator itr = _areaTriggerStore.find(trigger);
     if (itr != _areaTriggerStore.end())
@@ -7268,20 +7268,20 @@ void ObjectMgr::LoadAreaTriggerTeleports()
 
         uint32 Trigger_ID = fields[0].GetUInt32();
 
-        AreaTrigger at;
-
-        at.target_mapId             = fields[1].GetUInt16();
-        at.target_X                 = fields[2].GetFloat();
-        at.target_Y                 = fields[3].GetFloat();
-        at.target_Z                 = fields[4].GetFloat();
-        at.target_Orientation       = fields[5].GetFloat();
-
         AreaTriggerEntry const* atEntry = sAreaTriggerStore.LookupEntry(Trigger_ID);
         if (!atEntry)
         {
             TC_LOG_ERROR("sql.sql", "Area trigger (ID:{}) does not exist in `AreaTrigger.dbc`.", Trigger_ID);
             continue;
         }
+
+        AreaTriggerTeleport at;
+
+        at.target_mapId             = fields[1].GetUInt16();
+        at.target_X                 = fields[2].GetFloat();
+        at.target_Y                 = fields[3].GetFloat();
+        at.target_Z                 = fields[4].GetFloat();
+        at.target_Orientation       = fields[5].GetFloat();
 
         MapEntry const* mapEntry = sMapStore.LookupEntry(at.target_mapId);
         if (!mapEntry)
@@ -7397,7 +7397,7 @@ void ObjectMgr::LoadAccessRequirements()
 /*
  * Searches for the areatrigger which teleports players out of the given map with instance_template.parent field support
  */
-AreaTrigger const* ObjectMgr::GetGoBackTrigger(uint32 Map) const
+AreaTriggerTeleport const* ObjectMgr::GetGoBackTrigger(uint32 Map) const
 {
     bool useParentDbValue = false;
     uint32 parentId = 0;
@@ -7430,7 +7430,7 @@ AreaTrigger const* ObjectMgr::GetGoBackTrigger(uint32 Map) const
 /**
  * Searches for the areatrigger which teleports players to the given map
  */
-AreaTrigger const* ObjectMgr::GetMapEntranceTrigger(uint32 Map) const
+AreaTriggerTeleport const* ObjectMgr::GetMapEntranceTrigger(uint32 Map) const
 {
     for (AreaTriggerContainer::const_iterator itr = _areaTriggerStore.begin(); itr != _areaTriggerStore.end(); ++itr)
     {
@@ -7791,7 +7791,7 @@ void ObjectMgr::LoadGameObjectTemplate()
                     CheckGOLockId(&got, got.camera.lockId, 0);
                 break;
             }
-            case GAMEOBJECT_TYPE_MO_TRANSPORT:              //15
+            case GAMEOBJECT_TYPE_MAP_OBJ_TRANSPORT:              //15
             {
                 if (got.moTransport.taxiPathId)
                 {
@@ -7803,7 +7803,7 @@ void ObjectMgr::LoadGameObjectTemplate()
                     _transportMaps.insert(transportMap);
                 break;
             }
-            case GAMEOBJECT_TYPE_SUMMONING_RITUAL:          //18
+            case GAMEOBJECT_TYPE_RITUAL:          //18
                 break;
             case GAMEOBJECT_TYPE_SPELLCASTER:               //22
             {
