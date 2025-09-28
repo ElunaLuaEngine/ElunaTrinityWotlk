@@ -305,9 +305,9 @@ bool GameObject::Create(ObjectGuid::LowType guidlow, uint32 name_id, Map* map, u
         return false;
     }
 
-    if (goinfo->type == GAMEOBJECT_TYPE_MO_TRANSPORT)
+    if (goinfo->type == GAMEOBJECT_TYPE_MAP_OBJ_TRANSPORT)
     {
-        TC_LOG_ERROR("sql.sql", "Gameobject (GUID: {} Entry: {}) not created: gameobject type GAMEOBJECT_TYPE_MO_TRANSPORT cannot be manually created.", guidlow, name_id);
+        TC_LOG_ERROR("sql.sql", "Gameobject (GUID: {} Entry: {}) not created: gameobject type GAMEOBJECT_TYPE_MAP_OBJ_TRANSPORT cannot be manually created.", guidlow, name_id);
         return false;
     }
 
@@ -1264,7 +1264,7 @@ bool GameObject::IsTransport() const
     if (!gInfo)
         return false;
 
-    return gInfo->type == GAMEOBJECT_TYPE_TRANSPORT || gInfo->type == GAMEOBJECT_TYPE_MO_TRANSPORT;
+    return gInfo->type == GAMEOBJECT_TYPE_TRANSPORT || gInfo->type == GAMEOBJECT_TYPE_MAP_OBJ_TRANSPORT;
 }
 
 // is Dynamic transport = non-stop Transport
@@ -1275,7 +1275,7 @@ bool GameObject::IsDynTransport() const
     if (!gInfo)
         return false;
 
-    return gInfo->type == GAMEOBJECT_TYPE_MO_TRANSPORT || (gInfo->type == GAMEOBJECT_TYPE_TRANSPORT && !gInfo->transport.pause);
+    return gInfo->type == GAMEOBJECT_TYPE_MAP_OBJ_TRANSPORT || (gInfo->type == GAMEOBJECT_TYPE_TRANSPORT && !gInfo->transport.pause);
 }
 
 bool GameObject::IsDestructibleBuilding() const
@@ -1951,7 +1951,7 @@ void GameObject::Use(Unit* user)
             return;
         }
 
-        case GAMEOBJECT_TYPE_SUMMONING_RITUAL:              //18
+        case GAMEOBJECT_TYPE_RITUAL:              //18
         {
             if (user->GetTypeId() != TYPEID_PLAYER)
                 return;
@@ -2773,7 +2773,7 @@ void GameObject::BuildValuesUpdate(uint8 updateType, ByteBuffer* data, Player co
                             dynFlags |= GO_DYNFLAG_LO_SPARKLE;
                         break;
                     case GAMEOBJECT_TYPE_TRANSPORT:
-                    case GAMEOBJECT_TYPE_MO_TRANSPORT:
+                    case GAMEOBJECT_TYPE_MAP_OBJ_TRANSPORT:
                     {
                         if (uint32 transportPeriod = GetTransportPeriod())
                         {
