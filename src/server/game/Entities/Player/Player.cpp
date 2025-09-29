@@ -1374,11 +1374,11 @@ bool Player::BuildEnumData(PreparedQueryResult result, WorldPacket* data)
     Field* fields = result->Fetch();
 
     ObjectGuid::LowType guid = fields[0].GetUInt32();
-    uint8 plrRace = fields[2].GetUInt8();
-    uint8 plrClass = fields[3].GetUInt8();
+    uint8 playerRace = fields[2].GetUInt8();
+    uint8 playerClass = fields[3].GetUInt8();
     uint8 gender = fields[4].GetUInt8();
 
-    PlayerInfo const* info = sObjectMgr->GetPlayerInfo(plrRace, plrClass);
+    PlayerInfo const* info = sObjectMgr->GetPlayerInfo(playerRace, playerClass);
     if (!info)
     {
         TC_LOG_ERROR("entities.player.loading", "Player {} has incorrect race/class pair. Don't build enum.", guid);
@@ -1392,8 +1392,8 @@ bool Player::BuildEnumData(PreparedQueryResult result, WorldPacket* data)
 
     *data << ObjectGuid(HighGuid::Player, guid);
     *data << fields[1].GetString();                         // name
-    *data << uint8(plrRace);                                // race
-    *data << uint8(plrClass);                               // class
+    *data << uint8(playerRace);                                // race
+    *data << uint8(playerClass);                               // class
     *data << uint8(gender);                                 // gender
 
     uint8 skin = fields[5].GetUInt8();
@@ -1404,7 +1404,7 @@ bool Player::BuildEnumData(PreparedQueryResult result, WorldPacket* data)
 
     uint16 atLoginFlags = fields[18].GetUInt16();
 
-    if (!ValidateAppearance(uint8(plrRace), uint8(plrClass), gender, hairStyle, hairColor, face, facialStyle, skin))
+    if (!ValidateAppearance(uint8(playerRace), uint8(playerClass), gender, hairStyle, hairColor, face, facialStyle, skin))
     {
         TC_LOG_ERROR("entities.player.loading", "Player {} has wrong Appearance values (Hair/Skin/Color), forcing recustomize", guid);
 
@@ -1480,7 +1480,7 @@ bool Player::BuildEnumData(PreparedQueryResult result, WorldPacket* data)
     CreatureFamily petFamily = CREATURE_FAMILY_NONE;
 
     // show pet at selection character in character list only for non-ghost character
-    if (result && !(playerFlags & PLAYER_FLAGS_GHOST) && (plrClass == CLASS_WARLOCK || plrClass == CLASS_HUNTER || plrClass == CLASS_DEATH_KNIGHT))
+    if (result && !(playerFlags & PLAYER_FLAGS_GHOST) && (playerClass == CLASS_WARLOCK || playerClass == CLASS_HUNTER || playerClass == CLASS_DEATH_KNIGHT))
     {
         uint32 entry = fields[19].GetUInt32();
         CreatureTemplate const* creatureInfo = sObjectMgr->GetCreatureTemplate(entry);
@@ -2181,7 +2181,7 @@ Creature* Player::GetNPCIfCanInteractWith(ObjectGuid const& guid, NPCFlags npcFl
         return nullptr;
 
     // not allow interaction under control, but allow with own pets
-    if (creature->GetCharmerGUID())
+    if (!creature->GetCharmerGUID().IsEmpty())
         return nullptr;
 
     // not unfriendly/hostile
@@ -2394,7 +2394,7 @@ void Player::RemoveFromGroup(Group* group, ObjectGuid guid, RemoveMethod method 
 void Player::SendLogXPGain(uint32 GivenXP, Unit* victim, uint32 BonusXP, bool recruitAFriend, float /*group_rate*/) const
 {
     WorldPacket data(SMSG_LOG_XPGAIN, 21); // guess size?
-    data << uint64(victim ? victim->GetGUID() : ObjectGuid::Empty);
+    data << (victim ? victim->GetGUID() : ObjectGuid::Empty);
     data << uint32(GivenXP + BonusXP);                      // given experience
     data << uint8(victim ? 0 : 1);                          // 00-kill_xp type, 01-non_kill_xp type
 
@@ -6730,7 +6730,7 @@ bool Player::RewardHonor(Unit* victim, uint32 groupsize, int32 honor, bool pvpto
     // victim_rank [0, 20+] HK: <>
     WorldPacket data(SMSG_PVP_CREDIT, 4+8+4);
     data << uint32(honor);
-    data << uint64(victim_guid);
+    data << victim_guid;
     data << uint32(victim_rank);
 
     SendDirectMessage(&data);
@@ -8251,14 +8251,15 @@ void Player::RemovedInsignia(Player* looterPlr)
 void Player::SendLootRelease(ObjectGuid guid) const
 {
     WorldPacket data(SMSG_LOOT_RELEASE_RESPONSE, (8+1));
-    data << uint64(guid) << uint8(1);
+    data << guid << uint8(1);
     SendDirectMessage(&data);
 }
 
 void Player::SendLoot(ObjectGuid guid, LootType loot_type)
 {
-    if (ObjectGuid lguid = GetLootGUID())
-        m_session->DoLootRelease(lguid);
+    ObjectGuid currentLootGuid = GetLootGUID();
+    if (!currentLootGuid.IsEmpty())
+        m_session->DoLootRelease(currentLootGuid);
 
     Loot* loot;
     PermissionTypes permission = ALL_PERMISSION;
@@ -8631,7 +8632,7 @@ void Player::SendLoot(ObjectGuid guid, LootType loot_type)
         SetLootGUID(guid);
 
         WorldPacket data(SMSG_LOOT_RESPONSE, (9 + 50));           // we guess size
-        data << uint64(guid);
+        data << guid;
         data << uint8(loot_type);
         data << LootView(*loot, this, permission);
         SendDirectMessage(&data);
@@ -8649,7 +8650,7 @@ void Player::SendLoot(ObjectGuid guid, LootType loot_type)
 void Player::SendLootError(ObjectGuid guid, LootError error) const
 {
     WorldPacket data(SMSG_LOOT_RESPONSE, 10);
-    data << uint64(guid);
+    data << guid;
     data << uint8(LOOT_NONE);
     data << uint8(error);
     SendDirectMessage(&data);
@@ -11821,7 +11822,7 @@ Item* Player::StoreNewItem(ItemPosCountVec const& dest, uint32 item, bool update
             // save data
             std::ostringstream ss;
             GuidSet::const_iterator itr = allowedLooters.begin();
-            ss << *itr;
+            ss << itr->GetCounter();
             for (++itr; itr != allowedLooters.end(); ++itr)
                 ss << ' ' << itr->GetCounter();
 
@@ -13145,7 +13146,7 @@ void Player::SwapItem(uint16 src, uint16 dst)
 
     // if player is moving bags and is looting an item inside this bag
     // release the loot
-    if (GetLootGUID())
+    if (!GetLootGUID().IsEmpty())
     {
         bool released = false;
         if (IsBagPos(src))
@@ -13290,8 +13291,8 @@ void Player::SendEquipError(InventoryResult msg, Item* pItem, Item* pItem2, uint
 
     if (msg != EQUIP_ERR_OK)
     {
-        data << uint64(pItem ? pItem->GetGUID() : ObjectGuid::Empty);
-        data << uint64(pItem2 ? pItem2->GetGUID() : ObjectGuid::Empty);
+        data << (pItem ? pItem->GetGUID() : ObjectGuid::Empty);
+        data << (pItem2 ? pItem2->GetGUID() : ObjectGuid::Empty);
         data << uint8(0);                                   // bag type subclass, used with EQUIP_ERR_EVENT_AUTOEQUIP_BIND_CONFIRM and EQUIP_ERR_ITEM_DOESNT_GO_INTO_BAG2
 
         switch (msg)
@@ -13328,7 +13329,7 @@ void Player::SendEquipError(InventoryResult msg, Item* pItem, Item* pItem2, uint
 void Player::SendBuyError(BuyResult msg, Creature* creature, uint32 item, uint32 param) const
 {
     WorldPacket data(SMSG_BUY_FAILED, (8+4+4+1));
-    data << uint64(creature ? creature->GetGUID() : ObjectGuid::Empty);
+    data << (creature ? creature->GetGUID() : ObjectGuid::Empty);
     data << uint32(item);
     if (param > 0)
         data << uint32(param);
@@ -13339,8 +13340,8 @@ void Player::SendBuyError(BuyResult msg, Creature* creature, uint32 item, uint32
 void Player::SendSellError(SellResult msg, Creature* creature, ObjectGuid guid, uint32 param) const
 {
     WorldPacket data(SMSG_SELL_ITEM, (8+8+(4)+1));  // last check 2.0.10
-    data << uint64(creature ? creature->GetGUID() : ObjectGuid::Empty);
-    data << uint64(guid);
+    data << (creature ? creature->GetGUID() : ObjectGuid::Empty);
+    data << guid;
     if (param > 0)
         data << uint32(param);
     data << uint8(msg);
@@ -14070,7 +14071,7 @@ void Player::SendNewItem(Item* item, uint32 count, bool received, bool created, 
 
                                                             // last check 2.0.10
     WorldPacket data(SMSG_ITEM_PUSH_RESULT, (8+4+4+4+1+4+4+4+4+4));
-    data << uint64(GetGUID());                              // player GUID
+    data << GetGUID();                                      // player GUID
     data << uint32(received);                               // 0=looted, 1=from npc
     data << uint32(created);                                // 0=received, 1=created
     data << uint32(sendChatMessage);                        // bool print message to chat
@@ -16370,7 +16371,7 @@ void Player::KilledMonsterCredit(uint32 entry, ObjectGuid guid /*= ObjectGuid::E
     uint16 addkillcount = 1;
     uint32 real_entry = entry;
     Creature* killed = nullptr;
-    if (guid)
+    if (!guid.IsEmpty())
     {
         killed = GetMap()->GetCreature(guid);
         if (killed && killed->GetEntry())
@@ -16808,7 +16809,7 @@ void Player::SendQuestConfirmAccept(Quest const* quest, Player* pReceiver) const
         WorldPacket data(SMSG_QUEST_CONFIRM_ACCEPT, (4 + strTitle.size() + 8));
         data << uint32(quest->GetQuestId());
         data << strTitle;
-        data << uint64(GetGUID());
+        data << GetGUID();
         pReceiver->SendDirectMessage(&data);
 
         TC_LOG_DEBUG("network", "WORLD: Sent SMSG_QUEST_CONFIRM_ACCEPT");
@@ -16820,7 +16821,7 @@ void Player::SendPushToPartyResponse(Player const* player, QuestShareMessages ms
     if (player)
     {
         WorldPacket data(MSG_QUEST_PUSH_RESULT, 8 + 1);
-        data << uint64(player->GetGUID());
+        data << player->GetGUID();
         data << uint8(msg);                                 // valid values: 0-8
         SendDirectMessage(&data);
         TC_LOG_DEBUG("network", "WORLD: Sent MSG_QUEST_PUSH_RESULT");
@@ -16851,7 +16852,7 @@ void Player::SendQuestUpdateAddCreatureOrGo(Quest const* quest, ObjectGuid guid,
     data << uint32(entry);
     data << uint32(old_count + add_count);
     data << uint32(quest->RequiredNpcOrGoCount[ creatureOrGO_idx ]);
-    data << uint64(guid);
+    data << guid;
     SendDirectMessage(&data);
 
     uint16 log_slot = FindQuestSlot(quest->GetQuestId());
@@ -16898,7 +16899,7 @@ void Player::SendQuestGiverStatusMultiple()
 
             questStatus = GetQuestDialogStatus(questgiver);
 
-            data << uint64(questgiver->GetGUID());
+            data << questgiver->GetGUID();
             data << uint8(questStatus);
             ++count;
         }
@@ -16910,7 +16911,7 @@ void Player::SendQuestGiverStatusMultiple()
 
             questStatus = GetQuestDialogStatus(questgiver);
 
-            data << uint64(questgiver->GetGUID());
+            data << questgiver->GetGUID();
             data << uint8(questStatus);
             ++count;
         }
@@ -20539,7 +20540,8 @@ void Player::UpdateDuelFlag(time_t currTime)
 
 Pet* Player::GetPet() const
 {
-    if (ObjectGuid pet_guid = GetPetGUID())
+    ObjectGuid pet_guid = GetPetGUID();
+    if (!pet_guid.IsEmpty())
     {
         if (!pet_guid.IsPet())
             return nullptr;
@@ -20696,10 +20698,10 @@ void Player::StopCastingCharm()
             }
         }
     }
-    if (GetCharmedGUID())
+    if (!GetCharmedGUID().IsEmpty())
         charm->RemoveCharmAuras();
 
-    if (GetCharmedGUID())
+    if (!GetCharmedGUID().IsEmpty())
     {
         TC_LOG_FATAL("entities.player", "Player::StopCastingCharm: Player '{}' ({}) is not able to uncharm unit ({})", GetName(), GetGUID().ToString(), GetCharmedGUID().ToString());
         if (!charm->GetCharmerGUID().IsEmpty())
@@ -20856,7 +20858,7 @@ void Player::PetSpellInitialize()
     CharmInfo* charmInfo = pet->GetCharmInfo();
 
     WorldPacket data(SMSG_PET_SPELLS, 8+2+4+4+4*MAX_UNIT_ACTION_BAR_INDEX+1+1);
-    data << uint64(pet->GetGUID());
+    data << pet->GetGUID();
     data << uint16(pet->GetCreatureTemplate()->family);         // creature family (required for pet talents)
     data << uint32(pet->GetDuration());
     data << uint8(pet->GetReactState());
@@ -20910,7 +20912,7 @@ void Player::PossessSpellInitialize()
     }
 
     WorldPacket data(SMSG_PET_SPELLS, 8+2+4+4+4*MAX_UNIT_ACTION_BAR_INDEX+1+1);
-    data << uint64(charm->GetGUID());
+    data << charm->GetGUID();
     data << uint16(0);
     data << uint32(0);
     data << uint32(0);
@@ -20932,7 +20934,7 @@ void Player::VehicleSpellInitialize()
     uint8 cooldownCount = vehicle->GetSpellHistory()->GetCooldownsSizeForPacket();
 
     WorldPacket data(SMSG_PET_SPELLS, 8 + 2 + 4 + 4 + 4 * 10 + 1 + 1 + cooldownCount * (4 + 2 + 4 + 4));
-    data << uint64(vehicle->GetGUID());                     // Guid
+    data << vehicle->GetGUID();                             // Guid
     data << uint16(0);                                      // Pet Family (0 for all vehicles)
     data << uint32(vehicle->IsSummon() ? vehicle->ToTempSummon()->GetTimer() : 0); // Duration
     // The following three segments are read by the client as one uint32
@@ -21001,7 +21003,7 @@ void Player::CharmSpellInitialize()
     }
 
     WorldPacket data(SMSG_PET_SPELLS, 8+2+4+4+4*MAX_UNIT_ACTION_BAR_INDEX+1+4*addlist+1);
-    data << uint64(charm->GetGUID());
+    data << charm->GetGUID();
     data << uint16(0);
     data << uint32(0);
 
@@ -21630,7 +21632,7 @@ inline bool Player::_StoreOrEquipNewItem(uint32 vendorslot, uint32 item, uint8 c
         uint32 new_count = pVendor->UpdateVendorItemCurrentCount(crItem, count);
 
         WorldPacket data(SMSG_BUY_ITEM, (8+4+4+4));
-        data << uint64(pVendor->GetGUID());
+        data << pVendor->GetGUID();
         data << uint32(vendorslot + 1);                   // numbered from 1 at client
         data << int32(crItem->maxcount > 0 ? new_count : 0xFFFFFFFF);
         data << uint32(stacks);
@@ -22340,7 +22342,8 @@ bool Player::CanAlwaysSee(WorldObject const* obj) const
     if (GetCharmedOrSelf() == obj)
         return true;
 
-    if (ObjectGuid guid = GetGuidValue(PLAYER_FARSIGHT))
+    ObjectGuid guid = GetGuidValue(PLAYER_FARSIGHT);
+    if (!guid.IsEmpty())
         if (obj->GetGUID() == guid)
             return true;
 
@@ -22628,14 +22631,16 @@ bool Player::IsQuestRewarded(uint32 quest_id) const
 
 Unit* Player::GetSelectedUnit() const
 {
-    if (ObjectGuid selectionGUID = GetTarget())
+    ObjectGuid selectionGUID = GetTarget();
+    if (!selectionGUID.IsEmpty())
         return ObjectAccessor::GetUnit(*this, selectionGUID);
     return nullptr;
 }
 
 Player* Player::GetSelectedPlayer() const
 {
-    if (ObjectGuid selectionGUID = GetTarget())
+    ObjectGuid selectionGUID = GetTarget();
+    if (!selectionGUID.IsEmpty())
         return ObjectAccessor::FindConnectedPlayer(selectionGUID);
     return nullptr;
 }
@@ -22811,7 +22816,7 @@ void Player::SendInitialPacketsAfterAddToMap()
     else if (GetRaidDifficulty() != GetStoredRaidDifficulty())
         SendRaidDifficulty(GetGroup() != nullptr);
 
-    if (GetPlayerSharingQuest())
+    if (!GetPlayerSharingQuest().IsEmpty())
     {
         if (Quest const* quest = sObjectMgr->GetQuestTemplate(GetSharedQuestID()))
             PlayerTalkClass->SendQuestGiverQuestDetails(quest, GetGUID(), true);
@@ -22917,7 +22922,7 @@ void Player::ApplyEquipCooldown(Item* pItem)
         GetSpellHistory()->AddCooldown(spellData.SpellId, pItem->GetEntry(), std::chrono::seconds(30));
 
         WorldPacket data(SMSG_ITEM_COOLDOWN, 8 + 4);
-        data << uint64(pItem->GetGUID());
+        data << pItem->GetGUID();
         data << uint32(spellData.SpellId);
         SendDirectMessage(&data);
     }
@@ -23581,7 +23586,7 @@ void Player::SendSummonRequestFrom(Unit* summoner)
     m_summon_location.WorldRelocate(*summoner);
 
     WorldPacket data(SMSG_SUMMON_REQUEST, 8 + 4 + 4);
-    data << uint64(summoner->GetGUID());                     // summoner guid
+    data << summoner->GetGUID();                             // summoner guid
     data << uint32(summoner->GetZoneId());                   // summoner zone
     data << uint32(MAX_PLAYER_SUMMON_DELAY*IN_MILLISECONDS); // auto decline after msecs
     SendDirectMessage(&data);
@@ -24444,7 +24449,8 @@ void Player::SetViewpoint(WorldObject* target, bool apply)
 
 WorldObject* Player::GetViewpoint() const
 {
-    if (ObjectGuid guid = GetGuidValue(PLAYER_FARSIGHT))
+    ObjectGuid guid = GetGuidValue(PLAYER_FARSIGHT);
+    if (!guid.IsEmpty())
         return static_cast<WorldObject*>(ObjectAccessor::GetObjectByTypeMask(*this, guid, TYPEMASK_SEER));
     return nullptr;
 }
@@ -25492,7 +25498,7 @@ void Player::ResummonPetTemporaryUnSummonedIfAny()
     if (IsPetNeedBeTemporaryUnsummoned())
         return;
 
-    if (GetPetGUID())
+    if (!GetPetGUID().IsEmpty())
         return;
 
     Pet* NewPet = new Pet(this);
@@ -25742,9 +25748,9 @@ void Player::SendEquipmentSetList()
         {
             // ignored slots stored in IgnoreMask, client wants "1" as raw GUID, so no HighGuid::Item
             if (eqSet.second.Data.IgnoreMask & (1 << i))
-                data.appendPackGUID(uint64(1));
+                data << ObjectGuid(UI64LIT(1)).WriteAsPacked();
             else
-                data.appendPackGUID(eqSet.second.Data.Pieces[i]);
+                data << eqSet.second.Data.Pieces[i].WriteAsPacked();
         }
 
         ++count;                                            // client have limit but it checked at loading and set
@@ -26283,7 +26289,7 @@ void Player::SendRefundInfo(Item* item)
     }
 
     WorldPacket data(SMSG_ITEM_REFUND_INFO_RESPONSE, 8+4+4+4+4*4+4*4+4+4);
-    data << uint64(item->GetGUID());                    // item guid
+    data << item->GetGUID();                            // item guid
     data << uint32(item->GetPaidMoney());               // money cost
     data << uint32(iece->HonorPoints);               // honor point cost
     data << uint32(iece->ArenaPoints);               // arena point cost
@@ -26331,7 +26337,7 @@ PetStable& Player::GetOrInitPetStable()
 void Player::SendItemRefundResult(Item* item, ItemExtendedCostEntry const* iece, uint8 error) const
 {
     WorldPacket data(SMSG_ITEM_REFUND_RESULT, 8 + 4 + 4 + 4 + 4 + 4 * 4 + 4 * 4);
-    data << uint64(item->GetGUID());                    // item guid
+    data << item->GetGUID();                            // item guid
     data << uint32(error);                              // 0, or error code
     if (!error)
     {

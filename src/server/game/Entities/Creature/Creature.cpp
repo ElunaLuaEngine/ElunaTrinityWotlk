@@ -253,7 +253,7 @@ bool ForcedDespawnDelayEvent::Execute(uint64 /*e_time*/, uint32 /*p_time*/)
     return true;
 }
 
-Creature::Creature(bool isWorldObject): Unit(isWorldObject), MapObject(), m_groupLootTimer(0), lootingGroupLowGUID(0), m_PlayerDamageReq(0), m_lootRecipient(), m_lootRecipientGroup(0), _pickpocketLootRestore(0),
+Creature::Creature(bool isWorldObject): Unit(isWorldObject), MapObject(), m_groupLootTimer(0), m_PlayerDamageReq(0), _pickpocketLootRestore(0),
     m_corpseRemoveTime(0), m_respawnTime(0), m_respawnDelay(300), m_corpseDelay(60), m_ignoreCorpseDecayRatio(false), m_wanderDistance(0.0f),
     m_boundaryCheckTime(2500), m_combatPulseTime(0), m_combatPulseDelay(0), m_reactState(REACT_AGGRESSIVE),
     m_defaultMovementType(IDLE_MOTION_TYPE), m_spawnId(0), m_equipmentId(0), m_originalEquipmentId(0),
@@ -749,17 +749,18 @@ void Creature::Update(uint32 diff)
             if (IsEngaged())
                 Unit::AIUpdateTick(diff);
 
-            if (m_groupLootTimer && lootingGroupLowGUID)
+            if (m_groupLootTimer && !lootingGroupLowGUID.IsEmpty())
             {
                 if (m_groupLootTimer <= diff)
                 {
-                    Group* group = sGroupMgr->GetGroupByGUID(lootingGroupLowGUID);
-                    if (group)
+                    if (Group* group = sGroupMgr->GetGroupByGUID(lootingGroupLowGUID))
                         group->EndRoll(&loot, GetMap());
+
                     m_groupLootTimer = 0;
-                    lootingGroupLowGUID = 0;
+                    lootingGroupLowGUID.Clear();
                 }
-                else m_groupLootTimer -= diff;
+                else
+                    m_groupLootTimer -= diff;
             }
             else if (m_corpseRemoveTime <= GameTime::GetGameTime())
             {
@@ -913,7 +914,7 @@ void Creature::Regenerate(Powers power)
         case POWER_MANA:
         {
             // Combat and any controlled creature
-            if (IsInCombat() || GetCharmerOrOwnerGUID())
+            if (IsInCombat() || !GetCharmerOrOwnerGUID().IsEmpty())
             {
                 if (!IsUnderLastManaUseEffect())
                 {
@@ -954,7 +955,7 @@ void Creature::RegenerateHealth()
     uint32 addvalue = 0;
 
     // Not only pet, but any controlled creature (and not polymorphed)
-    if (GetCharmerOrOwnerGUID() && !IsPolymorphed())
+    if (!GetCharmerOrOwnerGUID().IsEmpty() && !IsPolymorphed())
     {
         float HealthIncreaseRate = sWorld->getRate(RATE_HEALTH);
         float Spirit = GetStat(STAT_SPIRIT);
@@ -1257,13 +1258,15 @@ Player* Creature::GetLootRecipient() const
 {
     if (!m_lootRecipient)
         return nullptr;
+
     return ObjectAccessor::FindConnectedPlayer(m_lootRecipient);
 }
 
 Group* Creature::GetLootRecipientGroup() const
 {
-    if (!m_lootRecipientGroup)
+    if (m_lootRecipientGroup.IsEmpty())
         return nullptr;
+
     return sGroupMgr->GetGroupByGUID(m_lootRecipientGroup);
 }
 
@@ -1276,7 +1279,7 @@ void Creature::SetLootRecipient(Unit* unit, bool withGroup)
     if (!unit)
     {
         m_lootRecipient.Clear();
-        m_lootRecipientGroup = 0;
+        m_lootRecipientGroup.Clear();
         RemoveDynamicFlag(UNIT_DYNFLAG_LOOTABLE|UNIT_DYNFLAG_TAPPED);
         return;
     }
@@ -1292,7 +1295,7 @@ void Creature::SetLootRecipient(Unit* unit, bool withGroup)
     if (withGroup)
     {
         if (Group* group = player->GetGroup())
-            m_lootRecipientGroup = group->GetLowGUID();
+            m_lootRecipientGroup = group->GetGUID();
     }
     else
         m_lootRecipientGroup = ObjectGuid::Empty;
@@ -2305,7 +2308,7 @@ void Creature::SendAIReaction(AiReaction reactionType)
 {
     WorldPacket data(SMSG_AI_REACTION, 12);
 
-    data << uint64(GetGUID());
+    data << GetGUID();
     data << uint32(reactionType);
 
     ((WorldObject*)this)->SendMessageToSet(&data, true);
@@ -2395,7 +2398,7 @@ bool Creature::CanAssistTo(Unit const* u, Unit const* enemy, bool checkfaction /
         return false;
 
     // only free creature
-    if (GetCharmerOrOwnerGUID())
+    if (!GetCharmerOrOwnerGUID().IsEmpty())
         return false;
 
     // only from same creature faction
@@ -3274,7 +3277,7 @@ void Creature::ReacquireSpellFocusTarget()
 
     if (!HasUnitFlag2(UNIT_FLAG2_CANNOT_TURN))
     {
-        if (_spellFocusInfo.Target)
+        if (!_spellFocusInfo.Target.IsEmpty())
         {
             if (WorldObject const* objTarget = ObjectAccessor::GetWorldObject(*this, _spellFocusInfo.Target))
                 SetFacingToObject(objTarget, false);

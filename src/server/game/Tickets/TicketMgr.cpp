@@ -384,7 +384,7 @@ void TicketMgr::CloseTicket(uint32 ticketId, ObjectGuid source)
     {
         CharacterDatabaseTransaction trans = CharacterDatabaseTransaction(nullptr);
         ticket->SetClosedBy(source);
-        if (source)
+        if (!source.IsEmpty())
             --_openTicketCount;
         ticket->SaveToDB(trans);
     }
@@ -397,7 +397,7 @@ void TicketMgr::ResolveAndCloseTicket(uint32 ticketId, ObjectGuid source)
         CharacterDatabaseTransaction trans = CharacterDatabaseTransaction(nullptr);
         ticket->SetClosedBy(source);
         ticket->SetResolvedBy(source);
-        if (source)
+        if (!source.IsEmpty())
             --_openTicketCount;
         ticket->SaveToDB(trans);
     }
@@ -459,7 +459,7 @@ std::string GmTicket::GetAssignedToName() const
 {
     std::string name;
     // save queries if ticket is not assigned
-    if (_assignedTo)
+    if (!_assignedTo.IsEmpty())
         sCharacterCache->GetCharacterNameByGuid(_assignedTo, name);
 
     return name;
