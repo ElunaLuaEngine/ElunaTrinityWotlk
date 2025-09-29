@@ -218,7 +218,7 @@ public:
             return;
         }
 
-        if (sCharacterCache->GetCharacterGuidByName(delInfo.name))
+        if (!sCharacterCache->GetCharacterGuidByName(delInfo.name).IsEmpty())
         {
             handler->PSendSysMessage(LANG_CHARACTER_DELETED_SKIP_NAME, delInfo.name.c_str(), delInfo.guid.GetCounter(), delInfo.accountId);
             return;
@@ -790,7 +790,7 @@ public:
             // Update level and reset XP, everything else will be updated at login
             CharacterDatabasePreparedStatement* stmt = CharacterDatabase.GetPreparedStatement(CHAR_UPD_LEVEL);
             stmt->setUInt8(0, static_cast<uint8>(newlevel));
-            stmt->setUInt32(1, player->GetGUID());
+            stmt->setUInt32(1, player->GetGUID().GetCounter());
             CharacterDatabase.Execute(stmt);
         }
 
@@ -837,7 +837,7 @@ public:
             // Update level and reset XP, everything else will be updated at login
             CharacterDatabasePreparedStatement* stmt = CharacterDatabase.GetPreparedStatement(CHAR_UPD_LEVEL);
             stmt->setUInt8(0, static_cast<uint8>(newlevel));
-            stmt->setUInt32(1, player->GetGUID());
+            stmt->setUInt32(1, player->GetGUID().GetCounter());
             CharacterDatabase.Execute(stmt);
         }
 

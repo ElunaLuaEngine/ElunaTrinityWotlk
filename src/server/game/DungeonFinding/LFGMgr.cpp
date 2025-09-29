@@ -365,7 +365,8 @@ void LFGMgr::Update(uint32 diff)
             {
                 guid = itPlayers->first;
                 SetState(guid, LFG_STATE_PROPOSAL);
-                if (ObjectGuid gguid = GetGroup(guid))
+                ObjectGuid gguid = GetGroup(guid);
+                if (!gguid.IsEmpty())
                 {
                     SetState(gguid, LFG_STATE_PROPOSAL);
                     SendLfgUpdateParty(guid, LfgUpdateData(LFG_UPDATETYPE_PROPOSAL_BEGIN, GetSelectedDungeons(guid), GetComment(guid)));
@@ -632,14 +633,14 @@ void LFGMgr::LeaveLfg(ObjectGuid guid, bool disconnected)
     switch (state)
     {
         case LFG_STATE_QUEUED:
-            if (gguid)
+            if (!gguid.IsEmpty())
             {
                 LfgState newState = LFG_STATE_NONE;
                 LfgState oldState = GetOldState(gguid);
 
                 // Set the new state to LFG_STATE_DUNGEON/LFG_STATE_FINISHED_DUNGEON if the group is already in a dungeon
                 // This is required in case a LFG group vote-kicks a player in a dungeon, queues, then leaves the queue (maybe to queue later again)
-                if (Group* group = sGroupMgr->GetGroupByGUID(gguid.GetCounter()))
+                if (Group* group = sGroupMgr->GetGroupByGUID(gguid))
                     if (group->isLFGGroup() && GetDungeon(gguid) && (oldState == LFG_STATE_DUNGEON || oldState == LFG_STATE_FINISHED_DUNGEON))
                         newState = oldState;
 
@@ -662,7 +663,7 @@ void LFGMgr::LeaveLfg(ObjectGuid guid, bool disconnected)
             }
             break;
         case LFG_STATE_ROLECHECK:
-            if (gguid)
+            if (!gguid.IsEmpty())
                 UpdateRoleCheck(gguid);                    // No player to update role = LFG_ROLECHECK_ABORTED
             break;
         case LFG_STATE_PROPOSAL:
@@ -718,7 +719,7 @@ void LFGMgr::UpdateRoleCheck(ObjectGuid gguid, ObjectGuid guid /* = ObjectGuid::
     // Sanitize input roles
     roles &= PLAYER_ROLE_ANY;
 
-    if (guid)
+    if (!guid.IsEmpty())
     {
         if (Player* player = ObjectAccessor::FindPlayer(guid))
             roles = FilterClassRoles(player, roles);
@@ -727,7 +728,7 @@ void LFGMgr::UpdateRoleCheck(ObjectGuid gguid, ObjectGuid guid /* = ObjectGuid::
     }
 
     LfgRoleCheck& roleCheck = itRoleCheck->second;
-    bool sendRoleChosen = roleCheck.state != LFG_ROLECHECK_DEFAULT && guid;
+    bool sendRoleChosen = roleCheck.state != LFG_ROLECHECK_DEFAULT && !guid.IsEmpty();
 
     if (!guid)
         roleCheck.state = LFG_ROLECHECK_ABORTED;
@@ -966,7 +967,7 @@ void LFGMgr::MakeNewGroup(LfgProposal const& proposal)
     LFGDungeonData const* dungeon = GetLFGDungeon(proposal.dungeonId);
     ASSERT(dungeon);
 
-    Group* grp = proposal.group ? sGroupMgr->GetGroupByGUID(proposal.group.GetCounter()) : nullptr;
+    Group* grp = !proposal.group.IsEmpty() ? sGroupMgr->GetGroupByGUID(proposal.group) : nullptr;
     for (GuidList::const_iterator it = players.begin(); it != players.end(); ++it)
     {
         ObjectGuid pguid = (*it);
@@ -1087,7 +1088,7 @@ void LFGMgr::UpdateProposal(uint32 proposalId, ObjectGuid guid, bool accept)
         if (sendUpdate)
            SendLfgUpdateProposal(pguid, proposal);
 
-        if (gguid)
+        if (!gguid.IsEmpty())
         {
             waitTime = int32((joinTime - queue.GetJoinTime(gguid)) / IN_MILLISECONDS);
             SendLfgUpdateParty(pguid, updateData);
@@ -1161,7 +1162,7 @@ void LFGMgr::RemoveProposal(LfgProposalContainer::iterator itProposal, LfgUpdate
         if (it->second.accept == LFG_ANSWER_AGREE)
             continue;
 
-        ObjectGuid guid = it->second.group ? it->second.group : it->first;
+        ObjectGuid guid = !it->second.group.IsEmpty() ? it->second.group : it->first;
         // Player didn't accept or still pending when no secs left
         if (it->second.accept == LFG_ANSWER_DENY || type == LFG_UPDATETYPE_PROPOSAL_FAILED)
         {
@@ -1174,7 +1175,7 @@ void LFGMgr::RemoveProposal(LfgProposalContainer::iterator itProposal, LfgUpdate
     for (LfgProposalPlayerContainer::const_iterator it = proposal.players.begin(); it != proposal.players.end(); ++it)
     {
         ObjectGuid guid = it->first;
-        ObjectGuid gguid = it->second.group ? it->second.group : guid;
+        ObjectGuid gguid = !it->second.group.IsEmpty() ? it->second.group : guid;
 
         SendLfgUpdateProposal(guid, proposal);
 
@@ -1325,7 +1326,7 @@ void LFGMgr::UpdateBoot(ObjectGuid guid, bool accept)
     SetVoteKick(gguid, false);
     if (agreeNum == LFG_GROUP_KICK_VOTES_NEEDED)           // Vote passed - Kick player
     {
-        if (Group* group = sGroupMgr->GetGroupByGUID(gguid.GetCounter()))
+        if (Group* group = sGroupMgr->GetGroupByGUID(gguid))
             Player::RemoveFromGroup(group, boot.victim, GROUP_REMOVEMETHOD_KICK_LFG);
         DecreaseKicksLeft(gguid);
     }
@@ -1375,7 +1376,7 @@ void LFGMgr::TeleportPlayer(Player* player, bool out, bool fromOpcode /*= false*
         error = LFG_TELEPORTERROR_FATIGUE;
     else if (player->GetVehicle())
         error = LFG_TELEPORTERROR_IN_VEHICLE;
-    else if (player->GetCharmedGUID())
+    else if (!player->GetCharmedGUID().IsEmpty())
         error = LFG_TELEPORTERROR_CHARMING;
     else if (player->HasAura(9454)) // check Freeze debuff
         error = LFG_TELEPORTERROR_INVALID_LOCATION;
@@ -1990,7 +1991,7 @@ void LFGMgr::SendLfgQueueStatus(ObjectGuid guid, LfgQueueStatusData const& data)
 
 bool LFGMgr::IsLfgGroup(ObjectGuid guid)
 {
-    return guid && guid.IsGroup() && GroupsStore[guid].IsLfgGroup();
+    return !guid.IsEmpty() && guid.IsGroup() && GroupsStore[guid].IsLfgGroup();
 }
 
 uint8 LFGMgr::GetQueueId(ObjectGuid guid)

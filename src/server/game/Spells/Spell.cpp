@@ -101,7 +101,7 @@ SpellDestination::SpellDestination(WorldObject const& wObj)
 
 void SpellDestination::Relocate(Position const& pos)
 {
-    if (_transportGUID)
+    if (!_transportGUID.IsEmpty())
     {
         Position offset;
         _position.GetPositionOffsetTo(pos, offset);
@@ -112,7 +112,7 @@ void SpellDestination::Relocate(Position const& pos)
 
 void SpellDestination::RelocateOffset(Position const& offset)
 {
-    if (_transportGUID)
+    if (!_transportGUID.IsEmpty())
         _transportOffset.RelocateOffset(offset);
 
     _position.RelocateOffset(offset);
@@ -146,7 +146,7 @@ void SpellCastTargets::Read(ByteBuffer& data, Unit* caster)
     if (m_targetMask & TARGET_FLAG_SOURCE_LOCATION)
     {
         data >> m_src._transportGUID.ReadAsPacked();
-        if (m_src._transportGUID)
+        if (!m_src._transportGUID.IsEmpty())
             data >> m_src._transportOffset.PositionXYZStream();
         else
             data >> m_src._position.PositionXYZStream();
@@ -154,7 +154,7 @@ void SpellCastTargets::Read(ByteBuffer& data, Unit* caster)
     else
     {
         m_src._transportGUID = caster->GetTransGUID();
-        if (m_src._transportGUID)
+        if (!m_src._transportGUID.IsEmpty())
             m_src._transportOffset.Relocate(caster->GetTransOffsetX(), caster->GetTransOffsetY(), caster->GetTransOffsetZ(), caster->GetTransOffsetO());
         else
             m_src._position.Relocate(caster);
@@ -163,7 +163,7 @@ void SpellCastTargets::Read(ByteBuffer& data, Unit* caster)
     if (m_targetMask & TARGET_FLAG_DEST_LOCATION)
     {
         data >> m_dst._transportGUID.ReadAsPacked();
-        if (m_dst._transportGUID)
+        if (!m_dst._transportGUID.IsEmpty())
             data >> m_dst._transportOffset.PositionXYZStream();
         else
             data >> m_dst._position.PositionXYZStream();
@@ -171,7 +171,7 @@ void SpellCastTargets::Read(ByteBuffer& data, Unit* caster)
     else
     {
         m_dst._transportGUID = caster->GetTransGUID();
-        if (m_dst._transportGUID)
+        if (!m_dst._transportGUID.IsEmpty())
             m_dst._transportOffset.Relocate(caster->GetTransOffsetX(), caster->GetTransOffsetY(), caster->GetTransOffsetZ(), caster->GetTransOffsetO());
         else
             m_dst._position.Relocate(caster);
@@ -211,7 +211,7 @@ void SpellCastTargets::Write(WorldPackets::Spells::SpellTargetData& data)
     {
         data.DstLocation.emplace();
         data.DstLocation->Transport = m_dst._transportGUID;
-        if (m_dst._transportGUID)
+        if (!m_dst._transportGUID.IsEmpty())
             data.DstLocation->Location = m_dst._transportOffset;
         else
             data.DstLocation->Location = m_dst._position;
@@ -461,7 +461,7 @@ void SpellCastTargets::Update(WorldObject* caster)
     }
 
     // update positions by transport move
-    if (HasSrc() && m_src._transportGUID)
+    if (HasSrc() && !m_src._transportGUID.IsEmpty())
     {
         if (WorldObject* transport = ObjectAccessor::GetWorldObject(*caster, m_src._transportGUID))
         {
@@ -470,7 +470,7 @@ void SpellCastTargets::Update(WorldObject* caster)
         }
     }
 
-    if (HasDst() && m_dst._transportGUID)
+    if (HasDst() && !m_dst._transportGUID.IsEmpty())
     {
         if (WorldObject* transport = ObjectAccessor::GetWorldObject(*caster, m_dst._transportGUID))
         {
@@ -542,7 +542,7 @@ m_caster((info->HasAttribute(SPELL_ATTR6_CAST_BY_CHARMER) && caster->GetCharmerO
                     m_spellSchoolMask = SpellSchoolMask(1 << pItem->GetTemplate()->Damage[0].DamageType);
     }
 
-    if (originalCasterGUID)
+    if (!originalCasterGUID.IsEmpty())
         m_originalCasterGUID = originalCasterGUID;
     else
         m_originalCasterGUID = m_caster->GetGUID();
@@ -1735,7 +1735,7 @@ void Spell::SelectEffectTypeImplicitTargets(SpellEffectInfo const& spellEffectIn
     {
         case SPELL_EFFECT_SUMMON_RAF_FRIEND:
         case SPELL_EFFECT_SUMMON_PLAYER:
-            if (m_caster->GetTypeId() == TYPEID_PLAYER && m_caster->ToPlayer()->GetTarget())
+            if (m_caster->GetTypeId() == TYPEID_PLAYER && !m_caster->ToPlayer()->GetTarget().IsEmpty())
             {
                 WorldObject* target = ObjectAccessor::FindPlayer(m_caster->ToPlayer()->GetTarget());
                 CallScriptObjectTargetSelectHandlers(target, spellEffectInfo.EffectIndex, SpellImplicitTargetInfo());
@@ -3328,7 +3328,7 @@ void Spell::_cast(bool skipCheck)
     }
 
     // cancel at lost explicit target during cast
-    if (m_targets.GetObjectTargetGUID() && !m_targets.GetObjectTarget())
+    if (!m_targets.GetObjectTargetGUID().IsEmpty() && !m_targets.GetObjectTarget())
     {
         cancel();
         return;
@@ -3824,7 +3824,7 @@ void Spell::update(uint32 difftime)
         return;
     }
 
-    if (m_targets.GetUnitTargetGUID() && !m_targets.GetUnitTarget())
+    if (!m_targets.GetUnitTargetGUID().IsEmpty() && !m_targets.GetUnitTarget())
     {
         TC_LOG_DEBUG("spells", "Spell {} is cancelled due to removal of target.", m_spellInfo->Id);
         cancel();
@@ -4703,7 +4703,7 @@ void Spell::SendChannelStart(uint32 duration)
     unitCaster->SendMessageToSet(&data, true);
 
     m_timer = duration;
-    if (channelTarget)
+    if (!channelTarget.IsEmpty())
     {
         unitCaster->SetChannelObjectGuid(channelTarget);
 
@@ -4724,7 +4724,7 @@ void Spell::SendResurrectRequest(Player* target)
         sentName = m_caster->GetNameForLocaleIdx(target->GetSession()->GetSessionDbLocaleIndex());
 
     WorldPacket data(SMSG_RESURRECT_REQUEST, 8 + 4 + sentName.size() + 1 + 1 + 1);
-    data << uint64(m_caster->GetGUID());
+    data << m_caster->GetGUID();
     data << uint32(sentName.size() + 1);
     data << sentName;
     data << uint8(m_caster->GetTypeId() == TYPEID_UNIT && m_caster->ToCreature()->IsSpiritHealer()); // "you'll be afflicted with resurrection sickness"
@@ -4824,7 +4824,8 @@ void Spell::TakePower()
     {
         if (powerType == POWER_RAGE || powerType == POWER_ENERGY || powerType == POWER_RUNE)
         {
-            if (ObjectGuid targetGUID = m_targets.GetUnitTargetGUID())
+            ObjectGuid targetGUID = m_targets.GetUnitTargetGUID();
+            if (!targetGUID.IsEmpty())
             {
                 auto ihit = std::find_if(std::begin(m_UniqueTargetInfo), std::end(m_UniqueTargetInfo), [&](TargetInfo const& targetInfo) { return targetInfo.TargetGUID == targetGUID && targetInfo.MissCondition != SPELL_MISS_NONE; });
                 if (ihit != std::end(m_UniqueTargetInfo))
@@ -5793,11 +5794,11 @@ SpellCastResult Spell::CheckCast(bool strict, uint32* param1 /*= nullptr*/, uint
                 switch (SummonProperties->Control)
                 {
                     case SUMMON_CATEGORY_PET:
-                        if (!m_spellInfo->HasAttribute(SPELL_ATTR1_DISMISS_PET) && unitCaster->GetPetGUID())
+                        if (!m_spellInfo->HasAttribute(SPELL_ATTR1_DISMISS_PET) && !unitCaster->GetPetGUID().IsEmpty())
                             return SPELL_FAILED_ALREADY_HAVE_SUMMON;
                         [[fallthrough]]; // check both GetPetGUID() and GetCharmGUID for SUMMON_CATEGORY_PET
                     case SUMMON_CATEGORY_PUPPET:
-                        if (unitCaster->GetCharmedGUID())
+                        if (!unitCaster->GetCharmedGUID().IsEmpty())
                             return SPELL_FAILED_ALREADY_HAVE_CHARM;
                         break;
                 }
@@ -5809,7 +5810,7 @@ SpellCastResult Spell::CheckCast(bool strict, uint32* param1 /*= nullptr*/, uint
                 {
                     if (m_targets.GetUnitTarget()->GetTypeId() != TYPEID_PLAYER)
                         return SPELL_FAILED_BAD_TARGETS;
-                    if (!m_spellInfo->HasAttribute(SPELL_ATTR1_DISMISS_PET) && m_targets.GetUnitTarget()->GetPetGUID())
+                    if (!m_spellInfo->HasAttribute(SPELL_ATTR1_DISMISS_PET) && !m_targets.GetUnitTarget()->GetPetGUID().IsEmpty())
                         return SPELL_FAILED_ALREADY_HAVE_SUMMON;
                 }
                 break;
@@ -5820,7 +5821,7 @@ SpellCastResult Spell::CheckCast(bool strict, uint32* param1 /*= nullptr*/, uint
                 if (!unitCaster)
                     return SPELL_FAILED_BAD_TARGETS;
 
-                if (unitCaster->GetPetGUID())                  //let warlock do a replacement summon
+                if (!unitCaster->GetPetGUID().IsEmpty())                  //let warlock do a replacement summon
                 {
                     if (unitCaster->GetTypeId() == TYPEID_PLAYER)
                     {
@@ -5832,7 +5833,7 @@ SpellCastResult Spell::CheckCast(bool strict, uint32* param1 /*= nullptr*/, uint
                         return SPELL_FAILED_ALREADY_HAVE_SUMMON;
                 }
 
-                if (unitCaster->GetCharmedGUID())
+                if (!unitCaster->GetCharmedGUID().IsEmpty())
                     return SPELL_FAILED_ALREADY_HAVE_CHARM;
 
                 Player* playerCaster = unitCaster->ToPlayer();
@@ -6015,7 +6016,7 @@ SpellCastResult Spell::CheckCast(bool strict, uint32* param1 /*= nullptr*/, uint
                 if (!pet)
                     return SPELL_FAILED_NO_PET;
 
-                if (pet->GetCharmerGUID())
+                if (!pet->GetCharmerGUID().IsEmpty())
                     return SPELL_FAILED_ALREADY_HAVE_CHARM;
                 break;
             }
@@ -6027,16 +6028,16 @@ SpellCastResult Spell::CheckCast(bool strict, uint32* param1 /*= nullptr*/, uint
                 if (!unitCaster)
                     return SPELL_FAILED_BAD_TARGETS;
 
-                if (unitCaster->GetCharmerGUID())
+                if (!unitCaster->GetCharmerGUID().IsEmpty())
                     return SPELL_FAILED_CHARMED;
 
                 if (spellEffectInfo.ApplyAuraName == SPELL_AURA_MOD_CHARM
                     || spellEffectInfo.ApplyAuraName == SPELL_AURA_MOD_POSSESS)
                 {
-                    if (!m_spellInfo->HasAttribute(SPELL_ATTR1_DISMISS_PET) && unitCaster->GetPetGUID())
+                    if (!m_spellInfo->HasAttribute(SPELL_ATTR1_DISMISS_PET) && !unitCaster->GetPetGUID().IsEmpty())
                         return SPELL_FAILED_ALREADY_HAVE_SUMMON;
 
-                    if (unitCaster->GetCharmedGUID())
+                    if (!unitCaster->GetCharmedGUID().IsEmpty())
                         return SPELL_FAILED_ALREADY_HAVE_CHARM;
                 }
 
@@ -6048,7 +6049,7 @@ SpellCastResult Spell::CheckCast(bool strict, uint32* param1 /*= nullptr*/, uint
                     if (target->IsMounted())
                         return SPELL_FAILED_CANT_BE_CHARMED;
 
-                    if (target->GetCharmerGUID())
+                    if (!target->GetCharmerGUID().IsEmpty())
                         return SPELL_FAILED_CANT_BE_CHARMED;
 
                     if (target->GetOwner() && target->GetOwner()->GetTypeId() == TYPEID_PLAYER)
@@ -6677,7 +6678,7 @@ SpellCastResult Spell::CheckItems(uint32* param1 /*= nullptr*/, uint32* param2 /
 
     if (!m_CastItem)
     {
-        if (m_castItemGUID)
+        if (!m_castItemGUID.IsEmpty())
             return SPELL_FAILED_ITEM_NOT_READY;
     }
     else
@@ -6748,7 +6749,7 @@ SpellCastResult Spell::CheckItems(uint32* param1 /*= nullptr*/, uint32* param2 /
     }
 
     // check target item
-    if (m_targets.GetItemTargetGUID())
+    if (!m_targets.GetItemTargetGUID().IsEmpty())
     {
         Item* item = m_targets.GetItemTarget();
         if (!item)
@@ -7345,10 +7346,10 @@ bool Spell::UpdatePointers()
             m_originalCaster = nullptr;
     }
 
-    if (m_focusObjectGUID)
+    if (!m_focusObjectGUID.IsEmpty())
         focusObject = ObjectAccessor::GetGameObject(*m_caster, m_focusObjectGUID);
 
-    if (m_castItemGUID && m_caster->GetTypeId() == TYPEID_PLAYER)
+    if (!m_castItemGUID.IsEmpty() && m_caster->GetTypeId() == TYPEID_PLAYER)
     {
         m_CastItem = m_caster->ToPlayer()->GetItemByGuid(m_castItemGUID);
         // cast item not found, somehow the item is no longer where we expected
@@ -7413,7 +7414,7 @@ bool Spell::CheckEffectTarget(Unit const* target, SpellEffectInfo const& spellEf
                 return false;
             if (target->IsMounted())
                 return false;
-            if (target->GetCharmerGUID())
+            if (!target->GetCharmerGUID().IsEmpty())
                 return false;
             if (int32 value = CalculateDamage(spellEffectInfo))
                 if ((int32)target->GetLevel() > value)
