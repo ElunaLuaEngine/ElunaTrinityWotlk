@@ -1675,7 +1675,7 @@ public:
         char const* zoneName    = nullptr;
 
         // Guild data print variables defined so that they exist, but are not necessarily used
-        uint32 guildId           = 0;
+        ObjectGuid::LowType guildId = 0;
         uint8 guildRankId        = 0;
         std::string guildName;
         std::string guildRank;
@@ -1819,7 +1819,7 @@ public:
             ObjectGuid::LowType gguid  = fields[1].GetUInt32(); // We check if have a guild for the person, so we might not require to query it at all
             xptotal = sObjectMgr->GetXPForLevel(level);
 
-            if (gguid != 0)
+            if (gguid)
             {
                 // Guild Data - an own query, because it may not happen.
                 stmt = CharacterDatabase.GetPreparedStatement(CHAR_SEL_GUILD_MEMBER_EXTENDED);
@@ -1840,7 +1840,7 @@ public:
 
         // Initiate output
         // Output I. LANG_PINFO_PLAYER
-        handler->PSendSysMessage(LANG_PINFO_PLAYER, target ? "" : handler->GetTrinityString(LANG_OFFLINE), nameLink.c_str(), lowguid);
+        handler->PSendSysMessage(LANG_PINFO_PLAYER, target ? "" : handler->GetTrinityString(LANG_OFFLINE), nameLink.c_str(), targetGuid.ToString().c_str());
 
         // Output II. LANG_PINFO_GM_ACTIVE if character is gamemaster
         if (target && target->IsGameMaster())
@@ -2174,7 +2174,7 @@ public:
             return false;
         }
 
-        handler->PSendSysMessage(LANG_MOVEGENS_LIST, (unit->GetTypeId() == TYPEID_PLAYER ? "Player" : "Creature"), unit->GetGUID().GetCounter());
+        handler->PSendSysMessage(LANG_MOVEGENS_LIST, (unit->GetTypeId() == TYPEID_PLAYER ? "Player" : "Creature"), unit->GetGUID().ToString().c_str());
 
         if (unit->GetMotionMaster()->Empty())
         {
@@ -2206,17 +2206,17 @@ public:
                     if (info.TargetGUID.IsEmpty())
                         handler->SendSysMessage(LANG_MOVEGENS_CHASE_NULL);
                     else if (info.TargetGUID.IsPlayer())
-                        handler->PSendSysMessage(LANG_MOVEGENS_CHASE_PLAYER, info.TargetName.c_str(), info.TargetGUID.GetCounter());
+                        handler->PSendSysMessage(LANG_MOVEGENS_CHASE_PLAYER, info.TargetName.c_str(), info.TargetGUID.ToString().c_str());
                     else
-                        handler->PSendSysMessage(LANG_MOVEGENS_CHASE_CREATURE, info.TargetName.c_str(), info.TargetGUID.GetCounter());
+                        handler->PSendSysMessage(LANG_MOVEGENS_CHASE_CREATURE, info.TargetName.c_str(), info.TargetGUID.ToString().c_str());
                     break;
                 case FOLLOW_MOTION_TYPE:
                     if (info.TargetGUID.IsEmpty())
                         handler->SendSysMessage(LANG_MOVEGENS_FOLLOW_NULL);
                     else if (info.TargetGUID.IsPlayer())
-                        handler->PSendSysMessage(LANG_MOVEGENS_FOLLOW_PLAYER, info.TargetName.c_str(), info.TargetGUID.GetCounter());
+                        handler->PSendSysMessage(LANG_MOVEGENS_FOLLOW_PLAYER, info.TargetName.c_str(), info.TargetGUID.ToString().c_str());
                     else
-                        handler->PSendSysMessage(LANG_MOVEGENS_FOLLOW_CREATURE, info.TargetName.c_str(), info.TargetGUID.GetCounter());
+                        handler->PSendSysMessage(LANG_MOVEGENS_FOLLOW_CREATURE, info.TargetName.c_str(), info.TargetGUID.ToString().c_str());
                     break;
                 case HOME_MOTION_TYPE:
                     if (unit->GetTypeId() == TYPEID_UNIT)
