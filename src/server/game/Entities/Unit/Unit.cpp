@@ -7830,10 +7830,14 @@ bool Unit::IsImmunedToSpellEffect(SpellInfo const* spellInfo, SpellEffectInfo co
         });
     };
 
+bool skip_knock_back = (spellEffectInfo.Effect == SPELL_EFFECT_KNOCK_BACK && spellInfo->HasAttribute(SPELL_ATTR0_CU_IGNORE_KNOCK_BACK_IMMUNITY));
+if (!skip_knock_back)
+{
     // If m_immuneToEffect type contain this effect type, IMMUNE effect.
     SpellImmuneContainer const& effectList = m_spellImmune[IMMUNITY_EFFECT];
     if (hasImmunity(effectList, spellEffectInfo.Effect))
         return true;
+}
 
     if (uint32 mechanic = spellEffectInfo.Mechanic)
     {
@@ -12230,6 +12234,171 @@ uint32 Unit::GetModelForForm(ShapeshiftForm form, uint32 spellId) const
             return 4877;
         default:
             break;
+    }
+
+
+     if (Player const* player = ToPlayer())
+    {
+        switch (form)
+        {
+            case FORM_DIREBEAR:
+            case FORM_BEAR:
+        {
+                if (player->HasAura(81139))
+                    return 32984; // Display ID
+                else if (player->HasAura(81141))
+                    return 32985; // Display ID
+                else if (player->HasAura(81143))
+                    return 32986; // Display ID
+                else if (player->HasAura(81145))
+                    return 32987; // Display ID
+                else if (player->HasAura(81147))
+                    return 32988; // Display ID
+                else if (player->HasAura(81149))
+                    return 32989; // Display ID
+                else if (player->HasAura(81151))
+                    return 32990; // Display ID
+                else if (player->HasAura(81153))
+                    return 32991; // Display ID
+                else if (player->HasAura(81155))
+                    return 32992; // Display ID
+                else if (player->HasAura(81157))
+                    return 32993; // Display ID
+                else if (player->HasAura(81159))
+                    return 32994; // Display ID
+                else if (player->HasAura(81161))
+                    return 32995; // Display ID
+                else if (player->HasAura(81163))
+                    return 32996; // Display ID
+                else if (player->HasAura(81165))
+                    return 32997; // Display ID
+                else if (player->HasAura(81167))
+                    return 32998; // Display ID
+                else if (player->HasAura(81169))
+                    return 32999; // Display ID
+                break;
+        }
+        default:
+            break;
+        }
+    }
+
+        if (Player const* player = ToPlayer())
+    {
+        switch (form)
+        {
+        case FORM_CAT:
+        {
+            if (player->HasAura(81139))
+                return 33000; // Display ID
+            else if (player->HasAura(81141))
+                return 33001; // Display ID
+            else if (player->HasAura(81143))
+                return 33002; // Display ID
+            else if (player->HasAura(81145))
+                return 33003; // Display ID
+
+            else if (player->HasAura(81147))
+                return 33004; // Display ID
+            else if (player->HasAura(81149))
+                return 33005; // Display ID
+            else if (player->HasAura(81151))
+                return 33006; // Display ID
+            else if (player->HasAura(81153))
+                return 33007; // Display ID
+
+            else if (player->HasAura(81155))
+                return 33008; // Display ID
+            else if (player->HasAura(81157))
+                return 33009; // Display ID
+            else if (player->HasAura(81159))
+                return 33010; // Display ID
+            else if (player->HasAura(81161))
+                return 33011; // Display ID
+
+            else if (player->HasAura(81163))
+                return 33012; // Display ID
+            else if (player->HasAura(81165))
+                return 33013; // Display ID
+            else if (player->HasAura(81167))
+                return 33014; // Display ID
+            else if (player->HasAura(81169))
+                return 33015; // Display ID
+            break;
+        }
+        default:
+            break;
+        }
+    }
+
+ if (Player const* player = ToPlayer())
+    {
+        switch (form)
+        {
+        case FORM_MOONKIN:
+        {
+            if (player->HasAura(81139))
+                return 33052; // Display ID
+            else if (player->HasAura(81141))
+                return 33053; // Display ID
+            else if (player->HasAura(81143))
+                return 33054; // Display ID
+            else if (player->HasAura(81145))
+                return 33055; // Display ID
+
+            else if (player->HasAura(81147))
+                return 33061; // Display ID
+            else if (player->HasAura(81149))
+                return 33056; // Display ID
+            else if (player->HasAura(81151))
+                return 33062; // Display ID
+            else if (player->HasAura(81153))
+                return 33058; // Display ID
+
+            else if (player->HasAura(81155))
+                return 33051; // Display ID
+            else if (player->HasAura(81157))
+                return 33060; // Display ID
+            else if (player->HasAura(81159))
+                return 33057; // Display ID
+            else if (player->HasAura(81161))
+                return 33058; // Display ID
+
+            else if (player->HasAura(81163))
+                return 33063; // Display ID
+            else if (player->HasAura(81165))
+                return 33064; // Display ID
+            else if (player->HasAura(81167))
+                return 33065; // Display ID
+            else if (player->HasAura(81169))
+                return 33066; // Display ID
+            break;
+        }
+        default:
+            break;
+        }
+    }
+
+    if (Player const* player = ToPlayer())
+    {
+        switch (form)
+        {
+        case FORM_FLIGHT:
+        case FORM_FLIGHT_EPIC:
+        {
+            if (player->HasAura(81176))
+                return 33016; // Display ID
+            else if (player->HasAura(81177))
+                return 33017; // Display ID
+            else if (player->HasAura(81178))
+                return 33018; // Display ID
+            else if (player->HasAura(81179))
+                return 33019; // Display ID
+            break;
+        }
+        default:
+            break;
+        }
     }
 
     if (Player const* player = ToPlayer())

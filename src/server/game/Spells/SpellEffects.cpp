@@ -5378,6 +5378,9 @@ void Spell::EffectPlaySound()
         case 58600: // Restricted Flight Area
             player->GetSession()->SendNotification(LANG_ZONE_NOFLYZONE);
             break;
+        case 81352: // Restricted Flight Area
+            player->GetSession()->SendNotification(LANG_ZONE_NOFLYZONE);
+            break;
         default:
             break;
     }

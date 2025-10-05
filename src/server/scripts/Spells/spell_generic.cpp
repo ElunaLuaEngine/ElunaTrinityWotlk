@@ -44,6 +44,7 @@
 #include "SpellMgr.h"
 #include "SpellScript.h"
 #include "Vehicle.h"
+#include "Transmogrification.h"
 
 class spell_gen_absorb0_hitlimit1 : public AuraScript
 {
@@ -986,7 +987,12 @@ class spell_gen_clone_weapon_aura : public AuraScript
                 if (Player* player = caster->ToPlayer())
                 {
                     if (Item* mainItem = player->GetItemByPos(INVENTORY_SLOT_BAG_0, EQUIPMENT_SLOT_MAINHAND))
-                        target->SetVirtualItem(0, mainItem->GetEntry());
+                    {
+                        if (mainItem->transmog)
+                            target->SetVirtualItem(0, mainItem->transmog);
+                        else
+                            target->SetVirtualItem(0, mainItem->GetEntry());
+                    }
                 }
                 else
                     target->SetVirtualItem(0, caster->GetVirtualItemId(0));
@@ -1000,7 +1006,12 @@ class spell_gen_clone_weapon_aura : public AuraScript
                 if (Player* player = caster->ToPlayer())
                 {
                     if (Item* offItem = player->GetItemByPos(INVENTORY_SLOT_BAG_0, EQUIPMENT_SLOT_OFFHAND))
-                        target->SetVirtualItem(1, offItem->GetEntry());
+                    {
+                        if (offItem->transmog)
+                            target->SetVirtualItem(1, offItem->transmog);
+                        else
+                            target->SetVirtualItem(1, offItem->GetEntry());
+                    }
                 }
                 else
                     target->SetVirtualItem(1, caster->GetVirtualItemId(1));
@@ -1013,7 +1024,12 @@ class spell_gen_clone_weapon_aura : public AuraScript
                 if (Player* player = caster->ToPlayer())
                 {
                     if (Item* rangedItem = player->GetItemByPos(INVENTORY_SLOT_BAG_0, EQUIPMENT_SLOT_RANGED))
-                        target->SetVirtualItem(2, rangedItem->GetEntry());
+                    {
+                        if (rangedItem->transmog)
+                            target->SetVirtualItem(2, rangedItem->transmog);
+                        else
+                            target->SetVirtualItem(2, rangedItem->GetEntry());
+                    }
                 }
                 else
                     target->SetVirtualItem(2, caster->GetVirtualItemId(2));
@@ -2289,6 +2305,107 @@ enum Mounts
     SPELL_INVINCIBLE_100                = 72282,
     SPELL_INVINCIBLE_150                = 72283,
     SPELL_INVINCIBLE_310                = 72284,
+
+    // Bunny Mount
+    SPELL_BUNNY_60                 	    = 80929,
+    SPELL_BUNNY_100                	    = 80930,
+    SPELL_BUNNY_150                	    = 80931,
+    SPELL_BUNNY_310                	    = 80932,
+
+    // Blauer Phönix
+    SPELL_PHOENIX_A_60                  = 80986,
+    SPELL_PHOENIX_A_100                 = 80987,
+    SPELL_PHOENIX_A_150                 = 80988,
+    SPELL_PHOENIX_A_310                 = 80989,
+
+    // Oranger Phönix
+    SPELL_PHOENIX_B_60                  = 80991,
+    SPELL_PHOENIX_B_100                 = 80992,
+    SPELL_PHOENIX_B_150                 = 80993,
+    SPELL_PHOENIX_B_310                 = 80994,
+
+    // Katzenmount Phönix
+    SPELL_CATMOUNT_60                   = 80996,
+    SPELL_CATMOUNT_100                  = 80997,
+    SPELL_CATMOUNT_150                  = 80998,
+    SPELL_CATMOUNT_310                  = 80999,
+
+    // Fox Mount
+    SPELL_FOX_60                 	    = 80934,
+    SPELL_FOX_100                	    = 80935,
+    SPELL_FOX_150                	    = 80936,
+    SPELL_FOX_310                	    = 80937,
+
+    // Hand Mount
+    SPELL_HAND_60                 	    = 80939,
+    SPELL_HAND_100                	    = 80940,
+    SPELL_HAND_150                	    = 80941,
+    SPELL_HAND_310                	    = 80942,
+
+    // Paladin Klassenmount Blau
+    SPELL_PALA_BLAU_100                 = 81210,
+    SPELL_PALA_BLAU_150                 = 81211,
+    SPELL_PALA_BLAU_280                 = 81212,
+
+    // Paladin Klassenmount Purple
+    SPELL_PALA_PURPLE_100               = 81213,
+    SPELL_PALA_PURPLE_150               = 81214,
+    SPELL_PALA_PURPLE_280               = 81215,
+
+    // Paladin Klassenmount Rot
+    SPELL_PALA_RED_100                  = 81216,
+    SPELL_PALA_RED_150                  = 81217,
+    SPELL_PALA_RED_280                  = 81218,
+
+    // Paladin Klassenmount Gelb
+    SPELL_PALA_YELLOW_100               = 81219,
+    SPELL_PALA_YELLOW_150               = 81220,
+    SPELL_PALA_YELLOW_280               = 81221,
+
+    // Jäger Klassenmount Blau
+    SPELL_HUNTER_BLUE_100               = 81222,
+    SPELL_HUNTER_BLUE_150               = 81223,
+    SPELL_HUNTER_BLUE_280               = 81224,
+
+    // Jäger Klassenmount Grün
+    SPELL_HUNTER_GREEN_100              = 81225,
+    SPELL_HUNTER_GREEN_150              = 81226,
+    SPELL_HUNTER_GREEN_280              = 81227,
+
+    // Jäger Klassenmount Orange
+    SPELL_HUNTER_ORANGE_100             = 81228,
+    SPELL_HUNTER_ORANGE_150             = 81229,
+    SPELL_HUNTER_ORANGE_280             = 81230,
+
+    // Priester Klassenmount Diszi
+    SPELL_PRIEST_DISZI_100              = 81231,
+    SPELL_PRIEST_DISZI_150              = 81232,
+    SPELL_PRIEST_DISZI_280              = 81233,
+
+    // Priester Klassenmount Holy
+    SPELL_PRIEST_HOLY_100               = 81234,
+    SPELL_PRIEST_HOLY_150               = 81235,
+    SPELL_PRIEST_HOLY_280               = 81236,
+
+    // Priester Klassenmount Shadow
+    SPELL_PRIEST_SHADOW_100             = 81237,
+    SPELL_PRIEST_SHADOW_150             = 81238,
+    SPELL_PRIEST_SHADOW_280             = 81239,
+
+    // Hexenmeister Klassenmount Grün
+    SPELL_WARLOCK_GREEN_100             = 81240,
+    SPELL_WARLOCK_GREEN_150             = 81241,
+    SPELL_WARLOCK_GREEN_280             = 81242,
+
+    // Hexenmeister Klassenmount Rot
+    SPELL_WARLOCK_RED_100               = 81243,
+    SPELL_WARLOCK_RED_150               = 81244,
+    SPELL_WARLOCK_RED_280               = 81245,
+
+    // Hexenmeister Klassenmount Schatten
+    SPELL_WARLOCK_SHADOW_100            = 81246,
+    SPELL_WARLOCK_SHADOW_150            = 81247,
+    SPELL_WARLOCK_SHADOW_280            = 81248,
 
     // Blazing Hippogryph
     SPELL_BLAZING_HIPPOGRYPH_150        = 74854,
@@ -4863,4 +4980,23 @@ void AddSC_generic_spell_scripts()
     RegisterSpellScript(spell_gen_charmed_unit_spell_cooldown);
     RegisterSpellScript(spell_gen_cannon_blast);
     RegisterSpellScript(spell_gen_submerged);
+    RegisterSpellScriptWithArgs(spell_gen_mount, "spell_bunny", 0, SPELL_BUNNY_60, SPELL_BUNNY_100, SPELL_BUNNY_150, SPELL_BUNNY_310);
+    RegisterSpellScriptWithArgs(spell_gen_mount, "spell_phoenix_a", 0, SPELL_PHOENIX_A_60, SPELL_PHOENIX_A_100, SPELL_PHOENIX_A_150, SPELL_PHOENIX_A_310);
+    RegisterSpellScriptWithArgs(spell_gen_mount, "spell_phoenix_b", 0, SPELL_PHOENIX_B_60, SPELL_PHOENIX_B_100, SPELL_PHOENIX_B_150, SPELL_PHOENIX_B_310);
+    RegisterSpellScriptWithArgs(spell_gen_mount, "spell_catmount", 0, SPELL_CATMOUNT_60, SPELL_CATMOUNT_100, SPELL_CATMOUNT_150, SPELL_CATMOUNT_310);
+    RegisterSpellScriptWithArgs(spell_gen_mount, "spell_fox", 0, SPELL_FOX_60, SPELL_FOX_100, SPELL_FOX_150, SPELL_FOX_310);
+    RegisterSpellScriptWithArgs(spell_gen_mount, "spell_hand", 0, SPELL_HAND_60, SPELL_HAND_100, SPELL_HAND_150, SPELL_HAND_310);
+    RegisterSpellScriptWithArgs(spell_gen_mount, "spell_pala_blue", 0, 0, SPELL_PALA_BLAU_100, SPELL_PALA_BLAU_150, SPELL_PALA_BLAU_280);
+    RegisterSpellScriptWithArgs(spell_gen_mount, "spell_pala_purple", 0, 0, SPELL_PALA_PURPLE_100, SPELL_PALA_PURPLE_150, SPELL_PALA_PURPLE_280);
+    RegisterSpellScriptWithArgs(spell_gen_mount, "spell_pala_red", 0, 0, SPELL_PALA_RED_100, SPELL_PALA_RED_150, SPELL_PALA_RED_280);
+    RegisterSpellScriptWithArgs(spell_gen_mount, "spell_pala_yellow", 0, 0, SPELL_PALA_YELLOW_100, SPELL_PALA_YELLOW_150, SPELL_PALA_YELLOW_280);
+    RegisterSpellScriptWithArgs(spell_gen_mount, "spell_hunter_blue", 0, 0, SPELL_HUNTER_BLUE_100, SPELL_HUNTER_BLUE_150, SPELL_HUNTER_BLUE_280);
+    RegisterSpellScriptWithArgs(spell_gen_mount, "spell_hunter_green", 0, 0, SPELL_HUNTER_GREEN_100, SPELL_HUNTER_GREEN_150, SPELL_HUNTER_GREEN_280);
+    RegisterSpellScriptWithArgs(spell_gen_mount, "spell_hunter_orange", 0, 0, SPELL_HUNTER_ORANGE_100, SPELL_HUNTER_ORANGE_150, SPELL_HUNTER_ORANGE_280);
+    RegisterSpellScriptWithArgs(spell_gen_mount, "spell_priest_diszi", 0, 0, SPELL_PRIEST_DISZI_100, SPELL_PRIEST_DISZI_150, SPELL_PRIEST_DISZI_280);
+    RegisterSpellScriptWithArgs(spell_gen_mount, "spell_priest_holy", 0, 0, SPELL_PRIEST_HOLY_100, SPELL_PRIEST_HOLY_150, SPELL_PRIEST_HOLY_280);
+    RegisterSpellScriptWithArgs(spell_gen_mount, "spell_priest_shadow", 0, 0, SPELL_PRIEST_SHADOW_100, SPELL_PRIEST_SHADOW_150, SPELL_PRIEST_SHADOW_280);
+    RegisterSpellScriptWithArgs(spell_gen_mount, "spell_warlock_green", 0, 0, SPELL_WARLOCK_GREEN_100, SPELL_WARLOCK_GREEN_150, SPELL_WARLOCK_GREEN_280);
+    RegisterSpellScriptWithArgs(spell_gen_mount, "spell_warlock_red", 0, 0, SPELL_WARLOCK_RED_100, SPELL_WARLOCK_RED_150, SPELL_WARLOCK_RED_280);
+    RegisterSpellScriptWithArgs(spell_gen_mount, "spell_warlock_shadow", 0, 0, SPELL_WARLOCK_SHADOW_100, SPELL_WARLOCK_SHADOW_150, SPELL_WARLOCK_SHADOW_280);
 }

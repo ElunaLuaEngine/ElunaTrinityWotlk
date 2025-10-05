@@ -361,6 +361,8 @@ void Item::SaveToDB(CharacterDatabaseTransaction trans)
             stmt->setUInt32(++index, GetUInt32Value(ITEM_FIELD_CREATE_PLAYED_TIME));
             stmt->setString(++index, m_text);
             stmt->setUInt32(++index, GetGUID().GetCounter());
+            stmt->setUInt32(++index, transmog);
+            stmt->setUInt32(++index, guid);
 
             trans->Append(stmt);
 
@@ -498,6 +500,8 @@ bool Item::LoadFromDB(ObjectGuid::LowType guid, ObjectGuid owner_guid, Field* fi
         stmt->setUInt32(3, guid);
         CharacterDatabase.Execute(stmt);
     }
+
+    transmog = fields[15].GetUInt32();
 
     return true;
 }

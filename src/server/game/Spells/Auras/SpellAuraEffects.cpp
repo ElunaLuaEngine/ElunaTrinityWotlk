@@ -2604,6 +2604,91 @@ void AuraEffect::HandleAuraModSkill(AuraApplication const* aurApp, uint8 mode, b
 /***       MOVEMENT       ***/
 /****************************/
 
+/* Wahl des Klassenmounts -> zum aktivieren ** entfernen
+enum ClassSpec
+{
+    MAGE_ARCANE = 81,
+    MAGE_FIRE = 41,
+    MAGE_FROST = 61,
+
+    WARRIOR_ARMS = 161,
+    WARRIOR_FURY = 164,
+    WARRIOR_PROTECTION = 163,
+
+    ROGUE_ASSASSINATION = 182,
+    ROGUE_COMBAT = 181,
+    ROGUE_SUBTLETY = 183,
+
+    PRIEST_DISCIPLINE = 201,
+    PRIEST_HOLY = 202,
+    PRIEST_SHADOW = 203,
+
+    SHAMAN_ELEMENTAL = 5,
+    SHAMAN_ENHANCEMENT = 7,
+    SHAMAN_RESTORATION = 6,
+
+    DRUID_BALANCE = 27,
+    DRUID_FERAL = 25,
+    DRUID_RESTORATION = 26,
+
+    WARLOCK_AFFLICTION = 46,
+    WARLOCK_DEMONOLOGY = 47,
+    WARLOCK_DESTRUCTION = 45,
+
+    HUNTER_BEAST_MASTERY = 105,
+    HUNTER_MARKSMANSHIP = 107,
+    HUNTER_SURVIVAL = 106,
+
+    PALADIN_HOLY = 126,
+    PALADIN_PROTECTION = 127,
+    PALADIN_RETRIBUTION = 125,
+
+    DEATH_KNIGHT_BLOOD = 142,
+    DEATH_KNIGHT_FROST = 143,
+    DEATH_KNIGHT_UNHOLY = 144
+};
+
+void UpdateCustomMountDisplayId(Unit* target, uint32& creatureEntry)
+{
+    if (!target->ToPlayer())
+        return;
+
+    const uint32 active_spec = target->ToPlayer()->GetMostPointsTalentTree();
+
+    if (target->HasAura(75620))
+    {
+
+        switch (active_spec)
+        {
+        case MAGE_ARCANE:
+            creatureEntry = 32637;
+            break;
+        case MAGE_FROST:
+            creatureEntry = 28531;
+            break;
+        case MAGE_FIRE:
+            creatureEntry = 40165;
+            break;
+        }
+    }
+    else if (target->HasAura(81240) || target->HasAura(81241) || target->HasAura(81242) || target->HasAura(81201))
+    {
+        switch (active_spec)
+        {
+        case WARLOCK_AFFLICTION:
+            creatureEntry = 100575;
+            break;
+        case WARLOCK_DESTRUCTION:
+            creatureEntry = 100579;
+            break;
+        case WARLOCK_DEMONOLOGY:
+            creatureEntry = 100580;
+            break;
+        }
+    }
+}
+*/
+
 void AuraEffect::HandleAuraMounted(AuraApplication const* aurApp, uint8 mode, bool apply) const
 {
     if (!(mode & AURA_EFFECT_HANDLE_SEND_FOR_CLIENT_MASK))
@@ -2626,6 +2711,9 @@ void AuraEffect::HandleAuraMounted(AuraApplication const* aurApp, uint8 mode, bo
                 creatureEntry = 15665;
         }
 
+        // Wahl des Klassenmounts -> zum aktivieren // Entfernen
+        // UpdateCustomMountDisplayId(target, creatureEntry);
+        
         if (CreatureTemplate const* creatureInfo = sObjectMgr->GetCreatureTemplate(creatureEntry))
         {
             if (GetMiscValueB() > 0) // Choose proper modelid
@@ -4463,7 +4551,15 @@ void AuraEffect::HandleAuraDummy(AuraApplication const* aurApp, uint8 mode, bool
                     if (caster)
                         target->GetMotionMaster()->MoveFall();
                     break;
+                case 81412:                                     // Reinforced Net
+                    if (caster)
+                        target->GetMotionMaster()->MoveFall();
+                    break;
                 case 46699:                                     // Requires No Ammo
+                    if (target->GetTypeId() == TYPEID_PLAYER)
+                        target->ToPlayer()->RemoveAmmo();      // not use ammo and not allow use
+                    break;
+                case 81101:                                     // Requires No Ammo
                     if (target->GetTypeId() == TYPEID_PLAYER)
                         target->ToPlayer()->RemoveAmmo();      // not use ammo and not allow use
                     break;
@@ -4505,6 +4601,10 @@ void AuraEffect::HandleAuraDummy(AuraApplication const* aurApp, uint8 mode, bool
                             break;
                         case 58600: // Restricted Flight Area
                         case 58730: // Restricted Flight Area
+                            if (aurApp->GetRemoveMode() == AURA_REMOVE_BY_EXPIRE)
+                                target->CastSpell(target, 58601, true);
+                            break;
+                        case 81352: // Restricted Flight Area
                             if (aurApp->GetRemoveMode() == AURA_REMOVE_BY_EXPIRE)
                                 target->CastSpell(target, 58601, true);
                             break;

@@ -85,6 +85,7 @@ class TC_GAME_API GameObjectAI
         virtual void OnLootStateChanged(uint32 /*state*/, Unit* /*unit*/) { }
         virtual void OnStateChanged(uint32 /*state*/) { }
         virtual void EventInform(uint32 /*eventId*/) { }
+        virtual bool CanBeSeen(Player const* /*seer*/) { return true; }
 
         // Called when hit by a spell
         virtual void SpellHit(WorldObject* /*caster*/, SpellInfo const* /*spellInfo*/) { }

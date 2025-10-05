@@ -733,6 +733,8 @@ class TC_GAME_API PlayerScript : public ScriptObject
         // Called when a player completes a movie
         virtual void OnMovieComplete(Player* player, uint32 movieId);
 
+        // Called when a player switches to a new area
+        virtual void OnUpdateArea(Player* player, uint32 oldArea, uint32 newArea);
 };
 
 class TC_GAME_API AccountScript : public ScriptObject
@@ -1052,6 +1054,7 @@ class TC_GAME_API ScriptMgr
         void OnQuestStatusChange(Player* player, uint32 questId);
         void OnMovieComplete(Player* player, uint32 movieId);
         void OnPlayerRepop(Player* player);
+        void OnPlayerUpdateArea(Player* player, uint32 oldArea, uint32 newArea);
 
     public: /* AccountScript */
 
