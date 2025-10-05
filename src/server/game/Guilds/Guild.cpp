@@ -488,7 +488,7 @@ bool Guild::BankTab::SetItem(CharacterDatabaseTransaction trans, uint8 slotId, I
         trans->Append(stmt);
 
         item->SetGuidValue(ITEM_FIELD_CONTAINED, ObjectGuid::Empty);
-        item->SetGuidValue(ITEM_FIELD_OWNER, ObjectGuid::Empty);
+        item->SetOwnerGUID(ObjectGuid::Empty);
         item->FSetState(ITEM_NEW);
         item->SaveToDB(trans);                                 // Not in inventory and can be saved standalone
     }
@@ -938,8 +938,8 @@ void Guild::BankMoveItemData::LogAction(MoveItemData* pFrom) const
     if (!pFrom->IsBank() && m_pPlayer->GetSession()->HasPermission(rbac::RBAC_PERM_LOG_GM_TRADE)) /// @todo Move this to scripts
     {
         sLog->OutCommand(m_pPlayer->GetSession()->GetAccountId(),
-            "GM {} (Guid: {}) (Account: {}) deposit item: {} (Entry: {} Count: {}) to guild bank named: {} (Guild ID: {})",
-            m_pPlayer->GetName(), m_pPlayer->GetGUID().GetCounter(), m_pPlayer->GetSession()->GetAccountId(),
+            "GM {} ({}) (Account: {}) deposit item: {} (Entry: {} Count: {}) to guild bank named: {} (Guild ID: {})",
+            m_pPlayer->GetName(), m_pPlayer->GetGUID().ToString(), m_pPlayer->GetSession()->GetAccountId(),
             pFrom->GetItem()->GetTemplate()->Name1, pFrom->GetItem()->GetEntry(), pFrom->GetItem()->GetCount(),
             m_pGuild->GetName(), m_pGuild->GetId());
     }
@@ -1917,7 +1917,7 @@ bool Guild::LoadFromDB(Field* fields)
 {
     m_id            = fields[0].GetUInt32();
     m_name          = fields[1].GetString();
-    m_leaderGuid    = ObjectGuid(HighGuid::Player, fields[2].GetUInt32());
+    m_leaderGuid    = ObjectGuid::Create<HighGuid::Player>(fields[2].GetUInt32());
     m_emblemInfo.LoadFromDB(fields);
     m_info          = fields[8].GetString();
     m_motd          = fields[9].GetString();
@@ -1947,7 +1947,7 @@ void Guild::LoadRankFromDB(Field* fields)
 bool Guild::LoadMemberFromDB(Field* fields)
 {
     ObjectGuid::LowType lowguid = fields[1].GetUInt32();
-    ObjectGuid playerGuid(HighGuid::Player, lowguid);
+    ObjectGuid playerGuid(ObjectGuid::Create<HighGuid::Player>(lowguid));
 
     auto [memberIt, isNew] = m_members.try_emplace(playerGuid, m_id, playerGuid, fields[2].GetUInt8());
     if (!isNew)
@@ -2190,10 +2190,10 @@ bool Guild::AddMember(CharacterDatabaseTransaction trans, ObjectGuid guid, uint8
     // Player cannot be in guild
     if (player)
     {
-        if (player->GetGuildId() != 0)
+        if (player->GetGuildId())
             return false;
     }
-    else if (sCharacterCache->GetCharacterGuildIdByGuid(guid) != 0)
+    else if (sCharacterCache->GetCharacterGuildIdByGuid(guid))
         return false;
 
     // Remove all player signs from another petitions
@@ -2268,7 +2268,6 @@ bool Guild::AddMember(CharacterDatabaseTransaction trans, ObjectGuid guid, uint8
 
 bool Guild::DeleteMember(CharacterDatabaseTransaction trans, ObjectGuid guid, bool isDisbanding, bool isKicked)
 {
-    ObjectGuid::LowType lowguid = guid.GetCounter();
     Player* player = ObjectAccessor::FindConnectedPlayer(guid);
 
     // Guild master can be deleted when loading guild and guid doesn't exist in characters table
@@ -2318,7 +2317,7 @@ bool Guild::DeleteMember(CharacterDatabaseTransaction trans, ObjectGuid guid, bo
     else
         sCharacterCache->UpdateCharacterGuildId(guid, 0);
 
-    _DeleteMemberFromDB(trans, lowguid);
+    _DeleteMemberFromDB(trans, guid.GetCounter());
     if (!isDisbanding)
         _UpdateAccountsNumber();
 

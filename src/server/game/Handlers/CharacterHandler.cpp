@@ -229,7 +229,7 @@ void WorldSession::HandleCharEnum(PreparedQueryResult result)
     {
         do
         {
-            ObjectGuid guid(HighGuid::Player, (*result)[0].GetUInt32());
+            ObjectGuid guid = ObjectGuid::Create<HighGuid::Player>((*result)[0].GetUInt32());
             TC_LOG_INFO("network", "Loading {} from account {}.", guid.ToString(), GetAccountId());
             if (Player::BuildEnumData(result, &data))
             {
@@ -785,7 +785,7 @@ void WorldSession::HandlePlayerLogin(LoginQueryHolder const& holder)
         pCurrChar->SetGuildRank(0);
     }
 
-    if (pCurrChar->GetGuildId() != 0)
+    if (pCurrChar->GetGuildId())
     {
         if (Guild* guild = sGuildMgr->GetGuildById(pCurrChar->GetGuildId()))
             guild->SendLoginInfo(this);
@@ -984,9 +984,8 @@ void WorldSession::HandlePlayerLogin(LoginQueryHolder const& holder)
     if (pCurrChar->IsGameMaster())
         SendNotification(LANG_GM_ON);
 
-    std::string IP_str = GetRemoteAddress();
     TC_LOG_INFO("entities.player.character", "Account: {} (IP: {}) Login Character:[{}] {} Level: {}, XP: {}/{} ({} left)",
-        GetAccountId(), IP_str, pCurrChar->GetName(), pCurrChar->GetGUID().ToString(), pCurrChar->GetLevel(),
+        GetAccountId(), GetRemoteAddress(), pCurrChar->GetName(), pCurrChar->GetGUID().ToString(), pCurrChar->GetLevel(),
         _player->GetXP(), _player->GetXPForNextLevel(), std::max(0, (int32)_player->GetXPForNextLevel() - (int32)_player->GetXP()));
 
     if (!pCurrChar->IsStandState() && !pCurrChar->HasUnitState(UNIT_STATE_STUNNED))
@@ -1149,9 +1148,8 @@ void WorldSession::HandleCharRenameCallBack(std::shared_ptr<CharacterRenameInfo>
 
     Field* fields = result->Fetch();
 
-    ObjectGuid::LowType guidLow = fields[0].GetUInt32();
-    std::string oldName = fields[1].GetString();
-    uint16 atLoginFlags = fields[2].GetUInt16();
+    std::string oldName = fields[0].GetString();
+    uint16 atLoginFlags = fields[1].GetUInt16();
 
     if (!(atLoginFlags & AT_LOGIN_RENAME))
     {
@@ -1168,14 +1166,14 @@ void WorldSession::HandleCharRenameCallBack(std::shared_ptr<CharacterRenameInfo>
 
     stmt->setString(0, renameInfo->Name);
     stmt->setUInt16(1, atLoginFlags);
-    stmt->setUInt32(2, guidLow);
+    stmt->setUInt32(2, renameInfo->Guid.GetCounter());
 
     CharacterDatabase.Execute(stmt);
 
     // Removed declined name from db
     stmt = CharacterDatabase.GetPreparedStatement(CHAR_DEL_DECLINED_NAME);
 
-    stmt->setUInt32(0, guidLow);
+    stmt->setUInt32(0, renameInfo->Guid.GetCounter());
 
     CharacterDatabase.Execute(stmt);
 
