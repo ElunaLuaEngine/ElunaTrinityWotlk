@@ -559,14 +559,22 @@ class spell_netherstorm_socrethars_stone : public SpellScript
         Unit* caster = GetCaster();
         switch (caster->GetAreaId())
         {
-            case AREA_INVASION_POINT_OVERLORD:
-                caster->CastSpell(caster, SPELL_SOCRETHAR_TO_SEAT);
-                break;
-            case AREA_SOCRETHARS_SEAT:
-                caster->CastSpell(caster, SPELL_SOCRETHAR_FROM_SEAT);
-                break;
-            default:
-                return;
+        case AREA_INVASION_POINT_OVERLORD:
+        {
+            caster->CastSpell(caster, SPELL_SOCRETHAR_TO_SEAT);
+
+            Map* map = caster->GetMap();
+            if (map)
+                map->SpawnGroupSpawn(824, true); /* Spawns the spawn group for the Socretar Event */
+            break;
+        }
+        case AREA_SOCRETHARS_SEAT:
+        {
+            caster->CastSpell(caster, SPELL_SOCRETHAR_FROM_SEAT);
+            break;
+        }
+        default:
+            return;
         }
     }
 
