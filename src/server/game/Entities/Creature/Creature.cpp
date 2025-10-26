@@ -640,9 +640,8 @@ bool Creature::UpdateEntry(uint32 entry, CreatureData const* data /*= nullptr*/,
     SetIsCombatDisallowed((cInfo->flags_extra & CREATURE_FLAG_EXTRA_CANNOT_ENTER_COMBAT) != 0);
 
     LoadTemplateRoot();
-    InitializeMovementFlags();
-
     LoadCreaturesAddon();
+    InitializeMovementFlags();
     LoadTemplateImmunities();
 
     GetThreatManager().EvaluateSuppressed();
@@ -1108,9 +1107,6 @@ bool Creature::Create(ObjectGuid::LowType guidlow, Map* map, uint32 phaseMask, u
             m_corpseDelay = sWorld->getIntConfig(CONFIG_CORPSE_DECAY_NORMAL);
             break;
     }
-
-    //! Need to be called after LoadCreaturesAddon - MOVEMENTFLAG_HOVER is set there
-    m_positionZ += GetHoverOffset();
 
     LastUsedScriptID = GetScriptId();
 
@@ -2022,13 +2018,6 @@ void Creature::setDeathState(DeathState s)
         if (m_formation && m_formation->GetLeader() == this)
             m_formation->FormationReset(true);
 
-        bool needsFalling = (IsFlying() || IsHovering()) && !IsUnderWater();
-        SetHover(false, false);
-        SetDisableGravity(false, false);
-
-        if (needsFalling)
-            GetMotionMaster()->MoveFall();
-
         Unit::setDeathState(CORPSE);
     }
     else if (s == JUST_RESPAWNED)
@@ -2550,14 +2539,6 @@ bool Creature::LoadCreaturesAddon()
     SetAnimTier(AnimTier(creatureAddon->animTier));
     ReplaceAllVisFlags(UnitVisFlags(creatureAddon->visFlags));
 
-    //! Suspected correlation between UNIT_FIELD_BYTES_1, offset 3, value 0x2:
-    //! If no inhabittype_fly (if no MovementFlag_DisableGravity or MovementFlag_CanFly flag found in sniffs)
-    //! Check using InhabitType as movement flags are assigned dynamically
-    //! basing on whether the creature is in air or not
-    //! Set MovementFlag_Hover. Otherwise do nothing.
-    if (CanHover())
-        AddUnitMovementFlag(MOVEMENTFLAG_HOVER);
-
     // UNIT_FIELD_BYTES_2 values
     SetSheath(SheathState(creatureAddon->sheathState));
     ReplaceAllPvpFlags(UnitPVPStateFlags(creatureAddon->pvpFlags));
@@ -2675,10 +2656,7 @@ void Creature::UpdateMovementFlags()
         return;
 
     // Set the movement flags if the creature is in that mode. (Only fly if actually in air, only swim if in water, etc)
-    float ground = GetFloorZ();
-
-    bool canHover = CanHover();
-    bool isInAir = (G3D::fuzzyGt(GetPositionZ(), ground + (canHover ? GetFloatValue(UNIT_FIELD_HOVERHEIGHT) : 0.0f) + GROUND_HEIGHT_TOLERANCE) || G3D::fuzzyLt(GetPositionZ(), ground - GROUND_HEIGHT_TOLERANCE)); // Can be underground too, prevent the falling
+    bool isInAir = IsInAir(*this, GetFloorZ());
 
     if (GetMovementTemplate().IsFlightAllowed() && isInAir && !IsFalling())
     {
