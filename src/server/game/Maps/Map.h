@@ -490,6 +490,7 @@ class TC_GAME_API Map : public GridRefManager<NGridType>
             }
         }
         Transport* GetTransport(ObjectGuid const& guid);
+        Transport* GetTransport(uint32 const& entry);
         DynamicObject* GetDynamicObject(ObjectGuid const& guid);
         Pet* GetPet(ObjectGuid const& guid);
 

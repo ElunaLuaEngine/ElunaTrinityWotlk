@@ -716,6 +716,18 @@ bool SpellArea::IsFitToRequirements(Player const* player, uint32 newZone, uint32
                 return false;
             break;
         }
+        case 81352: // No fly Zone Custom
+        {
+            if (!player)
+                return false;
+
+            AreaTableEntry const* pArea = sAreaTableStore.LookupEntry(player->GetAreaId());
+            if (!(pArea && pArea->Flags & AREA_FLAG_NO_FLY_ZONE))
+                return false;
+            if (!player->HasAuraType(SPELL_AURA_MOD_INCREASE_MOUNTED_FLIGHT_SPEED) && !player->HasAuraType(SPELL_AURA_FLY))
+                return false;
+            break;
+        }
         case 58730: // No fly Zone - Wintergrasp
         {
             if (!player)
@@ -3419,6 +3431,25 @@ void SpellMgr::LoadSpellInfoCorrections()
         65917, // Magic Rooster
         71342, // Big Love Rocket
         72286, // Invincible
+        80933, // Bunny Mount
+	    80938, // FOX Mount
+	    80943, // HAND Mount
+        80990, // Blue Phönix
+        80995, // Orange Phönix
+        81000, // Katzenmount
+        81183, // Palamount Blau
+        81184, // Palamount Purple
+        81185, // Palamount Rot
+        81186, // Palamount Gelb
+        81187, // Jägermount Blau
+        81188, // Jägermount Grün
+        81189, // Jägermount Orange
+        81190, // Priestermount Diszi
+        81191, // Priestermount Holy
+        81192, // Priestermount Shatten
+        81201, // Hexenmeistermount Grün
+        81202, // Hexenmeistermount Rot
+        81203, // Hexenmeistermount Shatten
         74856, // Blazing Hippogryph
         75614, // Celestial Steed
         75973  // X-53 Touring Rocket
@@ -4504,6 +4535,34 @@ void SpellMgr::LoadSpellInfoCorrections()
         spellInfo->_GetEffect(EFFECT_0).RadiusEntry = sSpellRadiusStore.LookupEntry(EFFECT_RADIUS_5_YARDS); // 5yd
     });
 
+    /* Shadow Trap Custom Spellfixes */
+
+    // Summon Shadow Trap
+    ApplySpellFix({ 81267 }, [](SpellInfo* spellInfo)
+    {
+        spellInfo->DurationEntry = sSpellDurationStore.LookupEntry(3); // 60 seconds
+    });
+
+    // Shadow Trap (visual)
+    ApplySpellFix({ 81264 }, [](SpellInfo* spellInfo)
+    {
+        spellInfo->DurationEntry = sSpellDurationStore.LookupEntry(27); // 3 seconds
+    });
+
+    // Shadow Trap
+    ApplySpellFix({ 81269 }, [](SpellInfo* spellInfo)
+    {
+        spellInfo->_GetEffect(EFFECT_1).RadiusEntry = sSpellRadiusStore.LookupEntry(EFFECT_RADIUS_10_YARDS); // 10yd
+    });
+
+    // Shadow Trap (searcher)
+    ApplySpellFix({ 81265 }, [](SpellInfo* spellInfo)
+    {
+        spellInfo->_GetEffect(EFFECT_0).RadiusEntry = sSpellRadiusStore.LookupEntry(EFFECT_RADIUS_5_YARDS); // 5yd
+    });
+
+    /* Shadow Trap Custom Spellfixes */
+
     // Restore Soul
     ApplySpellFix({ 72595, 73650 }, [](SpellInfo* spellInfo)
     {
@@ -4570,6 +4629,34 @@ void SpellMgr::LoadSpellInfoCorrections()
         spellInfo->_GetEffect(EFFECT_0).MiscValue = 190;
     });
 
+    // Headless Horseman (Hallows End) - Start Fire
+    ApplySpellFix({ 42132 }, [](SpellInfo* spellInfo)
+    {
+        spellInfo->RangeEntry = sSpellRangeStore.LookupEntry(181);
+        spellInfo->AttributesEx6 |= SPELL_ATTR6_CAN_TARGET_INVISIBLE;
+        spellInfo->AttributesEx2 |= SPELL_ATTR2_CAN_TARGET_NOT_IN_LOS;
+    });
+
+    // Brewfest - Attack Keg
+    ApplySpellFix({ 42393 }, [](SpellInfo* spellInfo)
+    {
+        spellInfo->_GetEffect(EFFECT_0).TargetA = SpellImplicitTargetInfo(TARGET_UNIT_TARGET_ANY);
+        spellInfo->_GetEffect(EFFECT_0).TargetB = SpellImplicitTargetInfo();
+        spellInfo->_GetEffect(EFFECT_0).RadiusEntry = nullptr;
+        spellInfo->AttributesEx6 |= SPELL_ATTR6_CAN_TARGET_INVISIBLE;
+        spellInfo->AttributesEx2 |= SPELL_ATTR2_CAN_TARGET_NOT_IN_LOS;
+    });
+
+    ApplySpellFix({ 54458 }, [](SpellInfo* spellInfo) // Knockback Fix
+    {
+    spellInfo->AttributesCu |= SPELL_ATTR0_CU_IGNORE_KNOCK_BACK_IMMUNITY;
+    });
+
+    ApplySpellFix({43876}, [](SpellInfo* spellInfo)
+    {
+    spellInfo->Attributes |= SPELL_ATTR0_CASTABLE_WHILE_MOUNTED;
+    });
+    
     // Broken Frostmourne
     ApplySpellFix({ 72405 }, [](SpellInfo* spellInfo)
     {
@@ -4957,6 +5044,12 @@ void SpellMgr::LoadSpellInfoCorrections()
         spellInfo->_GetEffect(EFFECT_1).TriggerSpell    = 24870;
     });
 
+    // CUSTOM: DK BOSS SCOURGE AURA
+    ApplySpellFix({ 60023 }, [](SpellInfo* spellInfo)
+        {
+            spellInfo->AttributesEx &= ~SPELL_ATTR1_CANT_TARGET_SELF;
+    });
+    
     for (uint32 i = 0; i < GetSpellInfoStoreSize(); ++i)
     {
         SpellInfo* spellInfo = mSpellInfoMap[i];

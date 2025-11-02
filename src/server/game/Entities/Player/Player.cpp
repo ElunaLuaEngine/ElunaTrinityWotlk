@@ -95,6 +95,7 @@
 #include "TicketMgr.h"
 #include "TradeData.h"
 #include "Trainer.h"
+#include "Transmogrification.h"
 #include "Transport.h"
 #include "UpdateData.h"
 #include "UpdateFieldFlags.h"
@@ -4077,6 +4078,9 @@ void Player::DeleteFromDB(ObjectGuid playerguid, uint32 accountId, bool updateRe
             stmt = CharacterDatabase.GetPreparedStatement(CHAR_DEL_CHARACTER);
             stmt->setUInt32(0, guid);
             trans->Append(stmt);
+#ifdef PRESETS
+            trans->PAppend("DELETE FROM `custom_transmogrification_sets` WHERE `Owner` = {}", guid);
+#endif
 
             stmt = CharacterDatabase.GetPreparedStatement(CHAR_DEL_PLAYER_ACCOUNT_DATA);
             stmt->setUInt32(0, guid);
@@ -6855,6 +6859,8 @@ void Player::UpdateArea(uint32 newArea)
         if(oldArea != newArea)
             e->OnUpdateArea(this, oldArea, newArea);
 #endif
+    
+    sScriptMgr->OnPlayerUpdateArea(this, oldArea, newArea);
 }
 
 void Player::UpdateZone(uint32 newZone, uint32 newArea)
@@ -7178,6 +7184,20 @@ void Player::_ApplyItemBonuses(ItemTemplate const* proto, uint8 slot, bool apply
     if (only_level_scale && (!ssd || !ssv))
         return;
 
+    uint32 statcount = proto->StatsCount;
+    ReforgeData* reforgeData = NULL;
+    bool decreased = false;
+    if (statcount < MAX_ITEM_PROTO_STATS)
+    {
+        if (Item* invItem = GetItemByPos(INVENTORY_SLOT_BAG_0, slot))
+        {
+            if (reforgeMap.find(invItem->GetGUID().GetCounter()) != reforgeMap.end())
+            {
+                reforgeData = &reforgeMap[invItem->GetGUID().GetCounter()];
+                ++statcount;
+            }
+        }
+    }
     for (uint8 i = 0; i < MAX_ITEM_PROTO_STATS; ++i)
     {
         uint32 statType = 0;
@@ -7192,10 +7212,24 @@ void Player::_ApplyItemBonuses(ItemTemplate const* proto, uint8 slot, bool apply
         }
         else
         {
-            if (i >= proto->StatsCount)
+            if (i >= statcount)
                 continue;
             statType = proto->ItemStat[i].ItemStatType;
             val = proto->ItemStat[i].ItemStatValue;
+
+            if (reforgeData)
+            {
+                if(i == statcount-1)
+                {
+                    statType = reforgeData->increase;
+                    val = reforgeData->stat_value;
+                }
+                else if (!decreased && reforgeData->decrease == statType)
+                {
+                    val -= reforgeData->stat_value;
+                    decreased = true;
+                }
+            }
         }
 
         if (val == 0)
@@ -11688,6 +11722,10 @@ InventoryResult Player::CanUseAmmo(uint32 item) const
         if (HasAura(46699))
             return EQUIP_ERR_BAG_FULL_4;
 
+         // Requires No Ammo Mein Custom Spell
+        if (HasAura(81101))
+            return EQUIP_ERR_BAG_FULL_4;
+
         return EQUIP_ERR_OK;
     }
     return EQUIP_ERR_ITEM_NOT_FOUND;
@@ -12074,7 +12112,10 @@ void Player::SetVisibleItemSlot(uint8 slot, Item* pItem)
 {
     if (pItem)
     {
-        SetUInt32Value(PLAYER_VISIBLE_ITEM_1_ENTRYID + (slot * 2), pItem->GetEntry());
+        if (uint32 entry = pItem->transmog)
+            SetUInt32Value(PLAYER_VISIBLE_ITEM_1_ENTRYID + (slot * 2), entry);
+        else
+            SetUInt32Value(PLAYER_VISIBLE_ITEM_1_ENTRYID + (slot * 2), pItem->GetEntry());
         SetUInt16Value(PLAYER_VISIBLE_ITEM_1_ENCHANTMENT + (slot * 2), 0, pItem->GetEnchantmentId(PERM_ENCHANTMENT_SLOT));
         SetUInt16Value(PLAYER_VISIBLE_ITEM_1_ENCHANTMENT + (slot * 2), 1, pItem->GetEnchantmentId(TEMP_ENCHANTMENT_SLOT));
     }
@@ -12203,12 +12244,15 @@ void Player::RemoveItem(uint8 bag, uint8 slot, bool update)
     }
 }
 
+extern void RemoveReforge(Player* player, uint32 itemguid, bool update);
 // Common operation need to remove item from inventory without delete in trade, auction, guild bank, mail....
 void Player::MoveItemFromInventory(uint8 bag, uint8 slot, bool update)
 {
     if (Item* it = GetItemByPos(bag, slot))
     {
         RemoveItem(bag, slot, update);
+        it->transmog = 0;
+        RemoveReforge(this, it->GetGUID().GetCounter(), true);
         ItemRemovedQuestCheck(it->GetEntry(), it->GetCount());
         it->SetNotRefundable(this, false);
         RemoveItemFromUpdateQueueOf(it, this);
@@ -23592,7 +23636,10 @@ void Player::AutoUnequipOffhandIfNeed(bool force /*= false*/)
     }
     else
     {
+        uint32 transmog = offItem->transmog;
         MoveItemFromInventory(INVENTORY_SLOT_BAG_0, EQUIPMENT_SLOT_OFFHAND, true);
+        offItem->transmog = transmog;
+
         CharacterDatabaseTransaction trans = CharacterDatabase.BeginTransaction();
         offItem->DeleteFromInventoryDB(trans);                   // deletes item from character's inventory
         offItem->SaveToDB(trans);                                // recursive and not have transaction guard into self, item not in inventory and can be save standalone
@@ -24850,6 +24897,15 @@ bool Player::CanFlyInZone(uint32 mapid, uint32 zone, SpellInfo const* bySpell) c
     uint32 v_map = GetVirtualMapForMapAndZone(mapid, zone);
     if (v_map == 571 && !bySpell->HasAttribute(SPELL_ATTR7_IGNORE_COLD_WEATHER_FLYING))
         if (!HasSpell(54197)) // 54197 = Cold Weather Flying
+            return false;
+    if (v_map == 728 && !bySpell->HasAttribute(SPELL_ATTR7_IGNORE_COLD_WEATHER_FLYING))
+        if (!HasSpell(81287)) // 81287 = Spieler hat den Spell Dracheninsel Fliegen
+            return false;
+    if (v_map == 0 && !bySpell->HasAttribute(SPELL_ATTR7_IGNORE_COLD_WEATHER_FLYING))
+        if (!HasSpell(81348)) // 81348 = Östliche Königreiche Fliegen
+            return false;
+    if (v_map == 1 && !bySpell->HasAttribute(SPELL_ATTR7_IGNORE_COLD_WEATHER_FLYING))
+        if (!HasSpell(81350)) // 81350 = Kalimdor Fliegen
             return false;
 
     return true;
@@ -26780,3 +26836,60 @@ GameClient* Player::GetGameClient() const
 {
     return GetSession()->GetGameClient();
 }
+
+// Wahl des Klassenmounts noch inaktiv -> Zum aktivieren /**/ entfernen
+/*
+uint8 Player::GetMostPointsTalentTree() const
+{
+    uint32 active_spec = GetActiveSpec();
+
+    std::unordered_map<uint32, uint32> spec_data;
+
+    for (uint32 talentId = 0; talentId < sTalentStore.GetNumRows(); ++talentId)
+    {
+        TalentEntry const* talentInfo = sTalentStore.LookupEntry(talentId);
+
+        if (!talentInfo)
+            continue;
+
+        TalentTabEntry const* talentTabInfo = sTalentTabStore.LookupEntry(talentInfo->TabID);
+
+        if (!talentTabInfo)
+            continue;
+
+        if ((GetClassMask() & talentTabInfo->ClassMask) == 0)
+            continue;
+
+        uint8 currentTalentRank = 0;
+        for (int8 rank = MAX_TALENT_RANK - 1; rank >= 0; --rank)
+        {
+            // skip non-existing talent ranks
+            if (talentInfo->SpellRank[rank] == 0)
+                continue;
+
+            SpellInfo const* _spellEntry = sSpellMgr->GetSpellInfo(talentInfo->SpellRank[rank]);
+            if (!_spellEntry)
+                continue;
+
+            // if he doesn't have the talent skip
+            if (!HasTalent(talentInfo->SpellRank[rank], active_spec))
+                continue;
+
+            currentTalentRank = rank + 1;
+            spec_data[talentTabInfo->ID] += currentTalentRank;
+        }
+    }
+
+    std::pair<uint32, uint32> max_spec = { 0, 0 };
+    for (const auto& [spec_id, talent_count] : spec_data)
+    {
+        if (talent_count > max_spec.second)
+        {
+            max_spec.first = spec_id;
+            max_spec.second = talent_count;
+        }
+    }
+
+    return max_spec.first;
+}
+*/

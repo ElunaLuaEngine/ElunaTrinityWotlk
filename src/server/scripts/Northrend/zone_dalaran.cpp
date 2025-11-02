@@ -83,7 +83,7 @@ struct npc_mageguard_dalaran : public ScriptedAI
             player->HasAura(SPELL_SUNREAVER_DISGUISE_FEMALE) || player->HasAura(SPELL_SUNREAVER_DISGUISE_MALE) ||
             player->HasAura(SPELL_SILVER_COVENANT_DISGUISE_FEMALE) || player->HasAura(SPELL_SILVER_COVENANT_DISGUISE_MALE) ||
             // If player has already been teleported, don't try to teleport again
-            player->HasAura(SPELL_TRESPASSER_A) || player->HasAura(SPELL_TRESPASSER_H))
+            player->HasAura(SPELL_TRESPASSER_A) || player->HasAura(SPELL_TRESPASSER_H) || (player->GetVehicle() && (player->GetVehicleBase()->GetEntry() == 30470 || player->GetVehicleBase()->GetEntry() == 30585)))
             return;
 
         switch (me->GetEntry())

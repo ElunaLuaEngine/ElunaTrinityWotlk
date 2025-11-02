@@ -64,6 +64,7 @@
 #include "World.h"
 #include "WorldPacket.h"
 #include "WorldSession.h"
+#include "botmgr.h"
 #ifdef ELUNA
 #include "LuaEngine.h"
 #endif
@@ -4436,6 +4437,11 @@ void Spell::UpdateSpellCastDataAmmo(WorldPackets::Spells::SpellAmmo& ammo)
                     }
                 }
                 else if (m_caster->ToPlayer()->HasAura(46699))      // Requires No Ammo
+                {
+                    ammoDisplayID = 5996;                   // normal arrow
+                    ammoInventoryType = INVTYPE_AMMO;
+                }
+                else if (m_caster->ToPlayer()->HasAura(81101))      // Requires No Ammo
                 {
                     ammoDisplayID = 5996;                   // normal arrow
                     ammoInventoryType = INVTYPE_AMMO;
