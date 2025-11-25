@@ -261,7 +261,7 @@ Creature::Creature(bool isWorldObject): Unit(isWorldObject), MapObject(), m_grou
     m_meleeDamageSchoolMask(SPELL_SCHOOL_MASK_NORMAL), m_originalEntry(0), m_homePosition(), m_transportHomePosition(),
     m_creatureInfo(nullptr), m_creatureData(nullptr), m_stringIds(), _waypointPathId(0), _currentWaypointNodeInfo(0, 0),
     m_formation(nullptr), m_triggerJustAppeared(true), m_respawnCompatibilityMode(false), _lastDamagedTime(0),
-    _regenerateHealth(true), _regenerateHealthLock(false), _isMissingCanSwimFlagOutOfCombat(false)
+    _regenerateHealth(true), _regenerateHealthLock(false), _isMissingCanSwimFlagOutOfCombat(false), m_assistCheckTime(0)
 {
     m_regenTimer = CREATURE_REGEN_INTERVAL;
     m_valuesCount = UNIT_END;
@@ -802,6 +802,35 @@ void Creature::Update(uint32 diff)
                     m_boundaryCheckTime = 2500;
                 } else
                     m_boundaryCheckTime -= diff;
+            }
+
+            if (IsEngaged() && IsAlive() && !IsPet() && !IsCharmed() && !IsTotem() && !IsTrigger())
+            {
+                // Only check for creatures that can actually call for help
+                if (!GetCharmerOrOwnerGUID().IsPlayer())
+                {
+                    if (diff >= m_assistCheckTime)
+                    {
+                        float radius = sWorld->getFloatConfig(CONFIG_CREATURE_FAMILY_ASSISTANCE_RADIUS);
+                        if (radius > 0.0f)
+                        {
+                            // Use CallForHelp which directly engages nearby creatures
+                            CallForHelp(radius);
+                        }
+
+                        // Set next assistance check time (5 seconds by default)
+                        // You could make this configurable via worldserver.conf
+                        m_assistCheckTime = sWorld->getIntConfig(CONFIG_CREATURE_FAMILY_ASSISTANCE_CHECK_INTERVAL);
+                    }
+                    else
+                        m_assistCheckTime -= diff;
+                }
+            }
+            else
+            {
+                // Reset timer when not in combat
+                if (m_assistCheckTime > 0)
+                    m_assistCheckTime = 0;
             }
 
             // if periodic combat pulse is enabled and we are both in combat and in a dungeon, do this now
@@ -2330,6 +2359,7 @@ void Creature::CallAssistance()
 
         float radius = sWorld->getFloatConfig(CONFIG_CREATURE_FAMILY_ASSISTANCE_RADIUS);
 
+
         if (radius > 0)
         {
             std::list<Creature*> assistList;
@@ -2420,8 +2450,49 @@ bool Creature::CanAssistTo(Unit const* u, Unit const* enemy, bool checkfaction /
     }
 
     // skip non hostile to caster enemy creatures
+    // Modified: Allow assistance against enemies who are either hostile OR have attacked faction members
+    // This allows NPCs to defend against neutral players who initiate combat
     if (!IsHostileTo(enemy))
-        return false;
+    {
+        // If enemy is a player and has recently damaged faction members, allow assistance
+        if (enemy->GetTypeId() == TYPEID_PLAYER)
+        {
+            // Check if the player is in combat with faction members
+            if (!enemy->IsInCombat())
+                return false;
+
+            // Additional check: ensure the enemy has actually attacked our faction
+            bool hasAttackedFaction = false;
+            if (Unit* victim = enemy->GetVictim())
+            {
+                if (victim->GetTypeId() == TYPEID_UNIT && victim->ToCreature()->GetFaction() == GetFaction())
+                    hasAttackedFaction = true;
+            }
+
+            // Also check combat manager for any faction targets
+            if (!hasAttackedFaction)
+            {
+                std::vector<Unit*> combatTargets;
+                for (auto const& pair : enemy->GetCombatManager().GetPvECombatRefs())
+                {
+                    if (Unit* target = pair.second->GetOther(enemy))
+                    {
+                        if (target->GetTypeId() == TYPEID_UNIT && target->ToCreature()->GetFaction() == GetFaction())
+                        {
+                            hasAttackedFaction = true;
+                            break;
+                        }
+                    }
+                }
+            }
+
+            if (!hasAttackedFaction)
+                return false;
+        }
+        else
+            // For non-player enemies, keep the original hostile check
+            return false;
+    }
 
     return true;
 }
@@ -3266,6 +3337,19 @@ void Creature::AtEngage(Unit* target)
         }
     }
 
+    // Initialize assistance check timer to trigger first check after 5 seconds
+    if (!IsPet() && !IsCharmed() && !GetCharmerOrOwnerGUID().IsPlayer() && !IsTotem() && !IsTrigger())
+    {
+        m_assistCheckTime = sWorld->getIntConfig(CONFIG_CREATURE_FAMILY_ASSISTANCE_CHECK_INTERVAL);
+    }
+
+    // Call for assistance from nearby creatures
+    // Only do this for non-player controlled creatures in normal world content
+    if (!IsPet() && !IsCharmed() && !GetCharmerOrOwnerGUID().IsPlayer() && !IsTotem() && !IsTrigger())
+    {
+        CallAssistance();
+    }
+
     if (CreatureAI* ai = AI())
         ai->JustEngagedWith(target);
     if (CreatureGroup* formation = GetFormation())
@@ -3279,6 +3363,9 @@ void Creature::AtDisengage()
     ClearUnitState(UNIT_STATE_ATTACK_PLAYER);
     if (IsAlive() && HasDynamicFlag(UNIT_DYNFLAG_TAPPED))
         ReplaceAllDynamicFlags(GetCreatureTemplate()->dynamicflags);
+
+    // Reset assistance timer when leaving combat
+    m_assistCheckTime = 0;
 
     if (IsPet() || IsGuardian()) // update pets' speed for catchup OOC speed
     {

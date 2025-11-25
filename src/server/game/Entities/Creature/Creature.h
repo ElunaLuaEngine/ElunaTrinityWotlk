@@ -454,6 +454,7 @@ class TC_GAME_API Creature : public Unit, public GridObject<Creature>, public Ma
         // Regenerate health
         bool _regenerateHealth; // Set on creation
         bool _regenerateHealthLock; // Dynamically set
+        uint32 m_assistCheckTime;
 
         bool _isMissingCanSwimFlagOutOfCombat;
 };
