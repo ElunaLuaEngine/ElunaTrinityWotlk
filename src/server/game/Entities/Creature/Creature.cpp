@@ -818,9 +818,8 @@ void Creature::Update(uint32 diff)
                             CallForHelp(radius);
                         }
 
-                        // Set next assistance check time (5 seconds by default)
-                        // You could make this configurable via worldserver.conf
-                        m_assistCheckTime = sWorld->getIntConfig(CONFIG_CREATURE_FAMILY_ASSISTANCE_CHECK_INTERVAL);
+                        // Set next assistance check time
+                        m_assistCheckTime = sWorld->getIntConfig(CONFIG_CREATURE_FAMILY_ASSISTANCE_DELAY);
                     }
                     else
                         m_assistCheckTime -= diff;
@@ -3340,7 +3339,7 @@ void Creature::AtEngage(Unit* target)
     // Initialize assistance check timer to trigger first check after 5 seconds
     if (!IsPet() && !IsCharmed() && !GetCharmerOrOwnerGUID().IsPlayer() && !IsTotem() && !IsTrigger())
     {
-        m_assistCheckTime = sWorld->getIntConfig(CONFIG_CREATURE_FAMILY_ASSISTANCE_CHECK_INTERVAL);
+        m_assistCheckTime = sWorld->getIntConfig(CONFIG_CREATURE_FAMILY_ASSISTANCE_DELAY);
     }
 
     // Call for assistance from nearby creatures
