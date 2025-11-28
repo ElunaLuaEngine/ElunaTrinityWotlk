@@ -3635,6 +3635,8 @@ ElunaEventProcessor* WorldObject::GetElunaEvents(int32 mapId)
         return nullptr;
 
     EventMgr* mgr = eluna->eventMgr.get();
+    if (!mgr)
+        return nullptr;
 
     // Select the correct ProcessorInfo slot
     std::unique_ptr<ElunaProcessorInfo>& info = (mapId == -1) ? elunaWorldEvents : elunaMapEvents;
