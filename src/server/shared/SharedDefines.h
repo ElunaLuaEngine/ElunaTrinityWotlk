@@ -1327,7 +1327,16 @@ enum SpellCustomErrors
     SPELL_CUSTOM_ERROR_MAX_NUMBER_OF_RECRUITS           = 96, // You already have the max number of recruits.
     SPELL_CUSTOM_ERROR_MAX_NUMBER_OF_VOLUNTEERS         = 97, // You already have the max number of volunteers.
     SPELL_CUSTOM_ERROR_FROSTMOURNE_RENDERED_RESURRECT   = 98, // Frostmourne has rendered you unable to resurrect.
-    SPELL_CUSTOM_ERROR_CANT_MOUNT_WITH_SHAPESHIFT       = 99  // You can't mount while affected by that shapeshift.
+    SPELL_CUSTOM_ERROR_CANT_MOUNT_WITH_SHAPESHIFT       = 99, // You can't mount while affected by that shapeshift.
+    SPELL_CUSTOM_ERROR_INTRO_QUEST_ACTIVE               = 100,// You cannot use that until you've completed the introduction quest.
+    SPELL_CUSTOM_ERROR_STORMWIND_NEUTRAL               = 101,// You must be at least Neutral with Stormwind to use that.
+    SPELL_CUSTOM_ERROR_IRONFORGEORGNOME_NEUTRAL        = 102,// You must be at least Neutral with Ironforge or Gnomeregan Exiles to use that.
+    SPELL_CUSTOM_ERROR_DARNASSUS_NEUTRAL               = 103,// You must be at least Neutral with Darnassus to use that.
+    SPELL_CUSTOM_ERROR_EXODAR_NEUTRAL                  = 104,// You must be at least Neutral with Exodar to use that.
+    SPELL_CUSTOM_ERROR_ORGRIMMARORDARKSPEAR_NEUTRAL    = 105,// You must be at least Neutral with Orgrimmar or Darkspear Trolls to use that.
+    SPELL_CUSTOM_ERROR_THUNDERBLUFF_NEUTRAL            = 106,// You must be at least Neutral with Thunder Bluff to use that.
+    SPELL_CUSTOM_ERROR_UNDERCITY_NEUTRAL               = 107,// You must be at least Neutral with Undercity to use that.
+    SPELL_CUSTOM_ERROR_SILVERMOONCITY_NEUTRAL          = 108 // You must be at least Neutral with Silvermoon City to use that.
 };
 
 enum StealthType
@@ -2925,7 +2934,8 @@ enum QuestSort
     QUEST_SORT_JEWELCRAFTING                    = 373,
     QUEST_SORT_NOBLEGARDEN                      = 374,
     QUEST_SORT_PILGRIMS_BOUNTY                  = 375,
-    QUEST_SORT_LOVE_IS_IN_THE_AIR               = 376
+    QUEST_SORT_LOVE_IS_IN_THE_AIR               = 376,
+    QUEST_SORT_LINGUISTICS                      = 377
 };
 
 constexpr uint8 ClassByQuestSort(int32 QuestSort)
@@ -3099,7 +3109,8 @@ enum SkillType
     SKILL_PET_WASP                                  = 785,
     SKILL_PET_EXOTIC_RHINO                          = 786,
     SKILL_PET_EXOTIC_CORE_HOUND                     = 787,
-    SKILL_PET_EXOTIC_SPIRIT_BEAST                   = 788
+    SKILL_PET_EXOTIC_SPIRIT_BEAST                   = 788,
+    SKILL_LINGUISTICS                               = 789
 };
 
 #define MAX_SKILL_TYPE                                789
@@ -3133,6 +3144,7 @@ constexpr uint32 SkillByQuestSort(int32 QuestSort)
         case QUEST_SORT_FIRST_AID:      return SKILL_FIRST_AID;
         case QUEST_SORT_JEWELCRAFTING:  return SKILL_JEWELCRAFTING;
         case QUEST_SORT_INSCRIPTION:    return SKILL_INSCRIPTION;
+        case QUEST_SORT_LINGUISTICS:    return SKILL_LINGUISTICS;
     }
     return 0;
 }
