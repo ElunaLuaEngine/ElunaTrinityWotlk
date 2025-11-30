@@ -3625,12 +3625,7 @@ Eluna* WorldObject::GetEluna() const
 
 ElunaEventProcessor* WorldObject::GetElunaEvents(int32 mapId)
 {
-    Eluna* eluna = nullptr;
-    if (mapId == -1)
-        eluna = sWorld->GetEluna();
-    else
-        eluna = GetEluna();
-
+    Eluna* eluna = mapId == -1 ? sWorld->GetEluna() : GetEluna();
     if (!eluna)
         return nullptr;
 
