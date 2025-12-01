@@ -1,0 +1,46 @@
+{
+	"sources" : 
+	[
+		{
+			"file" : "/home/runner/work/ElunaTrinityWotlk/ElunaTrinityWotlk/bin/_deps/lua52-subbuild/CMakeFiles/lua52-populate"
+		},
+		{
+			"file" : "/home/runner/work/ElunaTrinityWotlk/ElunaTrinityWotlk/bin/_deps/lua52-subbuild/CMakeFiles/lua52-populate.rule"
+		},
+		{
+			"file" : "/home/runner/work/ElunaTrinityWotlk/ElunaTrinityWotlk/bin/_deps/lua52-subbuild/CMakeFiles/lua52-populate-complete.rule"
+		},
+		{
+			"file" : "/home/runner/work/ElunaTrinityWotlk/ElunaTrinityWotlk/bin/_deps/lua52-subbuild/lua52-populate-prefix/src/lua52-populate-stamp/lua52-populate-build.rule"
+		},
+		{
+			"file" : "/home/runner/work/ElunaTrinityWotlk/ElunaTrinityWotlk/bin/_deps/lua52-subbuild/lua52-populate-prefix/src/lua52-populate-stamp/lua52-populate-configure.rule"
+		},
+		{
+			"file" : "/home/runner/work/ElunaTrinityWotlk/ElunaTrinityWotlk/bin/_deps/lua52-subbuild/lua52-populate-prefix/src/lua52-populate-stamp/lua52-populate-download.rule"
+		},
+		{
+			"file" : "/home/runner/work/ElunaTrinityWotlk/ElunaTrinityWotlk/bin/_deps/lua52-subbuild/lua52-populate-prefix/src/lua52-populate-stamp/lua52-populate-install.rule"
+		},
+		{
+			"file" : "/home/runner/work/ElunaTrinityWotlk/ElunaTrinityWotlk/bin/_deps/lua52-subbuild/lua52-populate-prefix/src/lua52-populate-stamp/lua52-populate-mkdir.rule"
+		},
+		{
+			"file" : "/home/runner/work/ElunaTrinityWotlk/ElunaTrinityWotlk/bin/_deps/lua52-subbuild/lua52-populate-prefix/src/lua52-populate-stamp/lua52-populate-patch.rule"
+		},
+		{
+			"file" : "/home/runner/work/ElunaTrinityWotlk/ElunaTrinityWotlk/bin/_deps/lua52-subbuild/lua52-populate-prefix/src/lua52-populate-stamp/lua52-populate-test.rule"
+		},
+		{
+			"file" : "/home/runner/work/ElunaTrinityWotlk/ElunaTrinityWotlk/bin/_deps/lua52-subbuild/lua52-populate-prefix/src/lua52-populate-stamp/lua52-populate-update.rule"
+		}
+	],
+	"target" : 
+	{
+		"labels" : 
+		[
+			"lua52-populate"
+		],
+		"name" : "lua52-populate"
+	}
+}
