@@ -3386,6 +3386,10 @@ void Player::LearnSpell(uint32 spell_id, bool dependent, uint32 fromSkill /*= 0*
         data << uint16(0);
         SendDirectMessage(&data);
 
+        // If this is a language spell, resend initial spells to update the language menu
+        if (IsLanguageSpell(spell_id))
+            SendInitialSpells();
+
 #ifdef ELUNA
         if (Eluna* e = GetEluna())
             e->OnLearnSpell(this, spell_id);
@@ -3624,6 +3628,10 @@ void Player::RemoveSpell(uint32 spell_id, bool disabled, bool learn_low_rank)
         WorldPacket data(SMSG_REMOVED_SPELL, 4);
         data << uint32(spell_id);
         SendDirectMessage(&data);
+
+        // If this is a language spell, resend initial spells to update the language menu
+        if (IsLanguageSpell(spell_id))
+            SendInitialSpells();
     }
 }
 

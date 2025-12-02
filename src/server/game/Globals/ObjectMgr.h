@@ -892,6 +892,7 @@ struct LanguageDesc
 
 TC_GAME_API extern LanguageDesc lang_description[LANGUAGES_COUNT];
 LanguageDesc const* GetLanguageDescByID(uint32 lang);
+bool IsLanguageSpell(uint32 spellId);
 
 enum EncounterCreditType : uint8
 {
