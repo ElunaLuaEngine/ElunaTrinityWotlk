@@ -188,17 +188,6 @@ LanguageDesc const* GetLanguageDescByID(uint32 lang)
     return nullptr;
 }
 
-bool IsLanguageSpell(uint32 spellId)
-{
-    for (uint8 i = 0; i < LANGUAGES_COUNT; ++i)
-    {
-        if (lang_description[i].spell_id == spellId)
-            return true;
-    }
-
-    return false;
-}
-
 bool SpellClickInfo::IsFitToRequirements(Unit const* clicker, Unit const* clickee) const
 {
     Player const* playerClicker = clicker->ToPlayer();
