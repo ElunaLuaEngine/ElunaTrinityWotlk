@@ -62,6 +62,7 @@ class WorldObject;
 class WorldPacket;
 class ZoneScript;
 #ifdef ELUNA
+class ElunaEventProcessorInfo;
 class ElunaEventProcessor;
 class Eluna;
 #endif
@@ -227,7 +228,7 @@ class TC_GAME_API Object
         Object();
 
         void _InitValues();
-        void _Create(ObjectGuid::LowType guidlow, uint32 entry, HighGuid guidhigh);
+        void _Create(ObjectGuid const& guid);
         std::string _ConcatFields(uint16 startIndex, uint16 size) const;
         [[nodiscard]] bool _LoadIntoDataField(std::string const& data, uint32 startOffset, uint32 count);
 
@@ -349,7 +350,6 @@ class TC_GAME_API WorldObject : public Object, public WorldLocation
 
         virtual void Update(uint32 /*time_diff*/) { }
 
-        void _Create(ObjectGuid::LowType guidlow, HighGuid guidhigh, uint32 phaseMask);
         void AddToWorld() override;
         void RemoveFromWorld() override;
 
@@ -569,12 +569,12 @@ class TC_GAME_API WorldObject : public Object, public WorldLocation
         uint32  LastUsedScriptID;
 
 #ifdef ELUNA
-        std::unique_ptr <ElunaEventProcessor> elunaMapEvents;
-        std::unique_ptr <ElunaEventProcessor> elunaWorldEvents;
+        std::unique_ptr<ElunaProcessorInfo> elunaMapEvents;
+        std::unique_ptr<ElunaProcessorInfo> elunaWorldEvents;
 
         Eluna* GetEluna() const;
 
-        std::unique_ptr<ElunaEventProcessor>& GetElunaEvents(int32 mapId) { return (mapId == -1) ? elunaWorldEvents : elunaMapEvents; }
+        ElunaEventProcessor* GetElunaEvents(int32 mapId);
 
         LuaVal lua_data = LuaVal({});
 #endif

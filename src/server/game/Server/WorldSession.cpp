@@ -201,12 +201,6 @@ std::string WorldSession::GetPlayerInfo() const
     return Trinity::StringFormat("[Player: Account: {}]", GetAccountId());
 }
 
-/// Get player guid if available. Use for logging purposes only
-ObjectGuid::LowType WorldSession::GetGUIDLow() const
-{
-    return GetPlayer() ? GetPlayer()->GetGUID().GetCounter() : 0;
-}
-
 /// Send a packet to the client
 void WorldSession::SendPacket(WorldPacket const* packet)
 {
@@ -529,7 +523,8 @@ void WorldSession::LogoutPlayer(bool save)
 
     if (_player)
     {
-        if (ObjectGuid lguid = _player->GetLootGUID())
+        ObjectGuid lguid = _player->GetLootGUID();
+        if (!lguid.IsEmpty())
             DoLootRelease(lguid);
 
         ///- If the player just died before logging out, make him appear as a ghost
@@ -1173,6 +1168,8 @@ void WorldSession::ReadAddonsInfo(ByteBuffer &data)
     ByteBuffer addonInfo;
     addonInfo.resize(size);
 
+    _addons.SecureAddons.clear();
+
     if (uncompress(addonInfo.contents(), &uSize, data.contents() + pos, data.size() - pos) == Z_OK)
     {
         try
@@ -1221,9 +1218,8 @@ void WorldSession::ReadAddonsInfo(ByteBuffer &data)
 
             addonInfo.rpos(addonInfo.size() - 4);
 
-            uint32 lastBannedAddOnTimestamp;
-            addonInfo >> lastBannedAddOnTimestamp;
-            TC_LOG_DEBUG("addon", "AddOn: Newest banned addon timestamp: {}", lastBannedAddOnTimestamp);
+            addonInfo >> _addons.LastBannedAddOnTimestamp;
+            TC_LOG_DEBUG("addon", "AddOn: Newest banned addon timestamp: {}", _addons.LastBannedAddOnTimestamp);
         }
         catch (ByteBufferException const& e)
         {
@@ -1292,10 +1288,7 @@ void WorldSession::SendAddonsInfo()
     std::size_t sizePos = data.wpos();
     uint32 bannedAddonCount = 0;
     data << uint32(0);
-    auto itr = std::lower_bound(bannedAddons->begin(), bannedAddons->end(), _addons.LastBannedAddOnTimestamp, [](BannedAddon const& bannedAddon, uint32 timestamp)
-    {
-        return bannedAddon.Timestamp < timestamp;
-    });
+    auto itr = std::ranges::lower_bound(*bannedAddons, lastBannedAddOnTimestamp, std::ranges::less(), &BannedAddon::Timestamp);
     for (; itr != bannedAddons->end(); ++itr)
     {
         data << uint32(itr->Id);
@@ -1786,6 +1779,18 @@ void WorldSession::SendTimeSync()
     // Schedule next sync in 10 sec (except for the 2 first packets, which are spaced by only 5s)
     _timeSyncTimer = _timeSyncNextCounter == 0 ? 5000 : 10000;
     _timeSyncNextCounter++;
+}
+
+uint32 WorldSession::AdjustClientMovementTime(uint32 time) const
+{
+    int64 movementTime = int64(time) + _timeSyncClockDelta;
+    if (_timeSyncClockDelta == 0 || movementTime < 0 || movementTime > 0xFFFFFFFF)
+    {
+        TC_LOG_WARN("misc", "The computed movement time using clockDelta is erronous. Using fallback instead");
+        return GameTime::GetGameTimeMS();
+    }
+    else
+        return uint32(movementTime);
 }
 
 bool WorldSession::IsRightUnitBeingMoved(ObjectGuid guid)

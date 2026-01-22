@@ -768,11 +768,11 @@ enum Thassarian
     SAY_LERYSSA_3               = 2,
     SAY_LERYSSA_4               = 3,
 
-    PATH_THASSARIAN             = 1013030,
-    PATH_ARTHAS                 = 1013031,
-    PATH_TALBOT                 = 1013032,
-    PATH_ARLOS                  = 1013033,
-    PATH_LERYSSA                = 1013034
+    PATH_THASSARIAN             = 8104240,
+    PATH_ARTHAS                 = 8104248,
+    PATH_TALBOT                 = 8104256,
+    PATH_ARLOS                  = 8104264,
+    PATH_LERYSSA                = 8104272
 };
 
 struct npc_thassarian : public ScriptedAI
@@ -1348,43 +1348,108 @@ private:
     ObjectGuid _playerGUID;
 };
 
-enum ShorteningBlaster
-{
-    SPELL_SHORTENING_BLASTER_BIGGER1    = 45674,
-    SPELL_SHORTENING_BLASTER_SHRUNK1    = 45675,
-    SPELL_SHORTENING_BLASTER_YELLOW1    = 45678,
-    SPELL_SHORTENING_BLASTER_GHOST1     = 45682,
-    SPELL_SHORTENING_BLASTER_POLYMORPH1 = 45684,
+/*######
+## Quest 11653: Hah... You're Not So Big Now!
+######*/
 
-    SPELL_SHORTENING_BLASTER_BIGGER2    = 45673,
-    SPELL_SHORTENING_BLASTER_SHRUNK2    = 45672,
-    SPELL_SHORTENING_BLASTER_YELLOW2    = 45677,
-    SPELL_SHORTENING_BLASTER_GHOST2     = 45682,
-    SPELL_SHORTENING_BLASTER_POLYMORPH2 = 45683
+enum HahYoureNotSoBigNow
+{
+    SPELL_BIGGER_1                 = 45674,
+    SPELL_SHRUNK_1                 = 45675,
+    SPELL_YELLOW_1                 = 45678,
+    SPELL_GHOST_1                  = 45682,
+    SPELL_POLYMORPH_1              = 45684,
+
+    SPELL_BIGGER_2                 = 45673,
+    SPELL_SHRUNK_2                 = 45672,
+    SPELL_YELLOW_2                 = 45677,
+    SPELL_GHOST_2                  = 45681,
+    SPELL_POLYMORPH_2              = 45683,
+
+    SPELL_MAGNATAUR_KILL_CREDIT    = 45686,
+    SPELL_MAGNATAUR_ON_DEATH_2     = 45685
 };
 
-// 45668 - Crafty's Ultra-Advanced Proto-Typical Shortening Blaster
-class spell_q11653_shortening_blaster : public SpellScript
-{
-    PrepareSpellScript(spell_q11653_shortening_blaster);
+static constexpr std::array<uint32, 5> BlasterCasterSpells = { SPELL_BIGGER_1, SPELL_SHRUNK_1, SPELL_YELLOW_1, SPELL_GHOST_1, SPELL_POLYMORPH_1 };
+static constexpr std::array<uint32, 5> BlasterTargetSpells = { SPELL_BIGGER_2, SPELL_SHRUNK_2, SPELL_YELLOW_2, SPELL_GHOST_2, SPELL_POLYMORPH_2 };
 
-    void HandleScript(SpellEffIndex /* effIndex */)
+// 45668 - Crafty's Ultra-Advanced Proto-Typical Shortening Blaster
+class spell_borean_tundra_shortening_blaster : public SpellScript
+{
+    PrepareSpellScript(spell_borean_tundra_shortening_blaster);
+
+    bool Validate(SpellInfo const* /*spellInfo*/) override
+    {
+        return ValidateSpellInfo(BlasterCasterSpells) && ValidateSpellInfo(BlasterTargetSpells);
+    }
+
+    void HandleScript(SpellEffIndex /*effIndex*/)
     {
         Unit* caster = GetCaster();
         Unit* target = GetHitUnit();
 
-        uint32 spellId = RAND(SPELL_SHORTENING_BLASTER_BIGGER1, SPELL_SHORTENING_BLASTER_SHRUNK1, SPELL_SHORTENING_BLASTER_YELLOW1,
-            SPELL_SHORTENING_BLASTER_GHOST1, SPELL_SHORTENING_BLASTER_POLYMORPH1);
-        uint32 spellId2 = RAND(SPELL_SHORTENING_BLASTER_BIGGER2, SPELL_SHORTENING_BLASTER_SHRUNK2, SPELL_SHORTENING_BLASTER_YELLOW2,
-            SPELL_SHORTENING_BLASTER_GHOST2, SPELL_SHORTENING_BLASTER_POLYMORPH2);
-
-        caster->CastSpell(caster, spellId, true);
-        target->CastSpell(target, spellId2, true);
+        caster->CastSpell(caster, Trinity::Containers::SelectRandomContainerElement(BlasterCasterSpells));
+        target->CastSpell(target, Trinity::Containers::SelectRandomContainerElement(BlasterTargetSpells));
     }
 
     void Register() override
     {
-        OnEffectHitTarget += SpellEffectFn(spell_q11653_shortening_blaster::HandleScript, EFFECT_0, SPELL_EFFECT_SCRIPT_EFFECT);
+        OnEffectHitTarget += SpellEffectFn(spell_borean_tundra_shortening_blaster::HandleScript, EFFECT_0, SPELL_EFFECT_SCRIPT_EFFECT);
+    }
+};
+
+// 45691 - Hah... : Magnataur On Death 1
+class spell_borean_tundra_magnataur_on_death_1 : public SpellScript
+{
+    PrepareSpellScript(spell_borean_tundra_magnataur_on_death_1);
+
+    bool Validate(SpellInfo const* /*spellInfo*/) override
+    {
+        return ValidateSpellInfo(BlasterTargetSpells) && ValidateSpellInfo({ SPELL_MAGNATAUR_KILL_CREDIT, SPELL_MAGNATAUR_ON_DEATH_2 });
+    }
+
+    void HandleScript(SpellEffIndex /*effIndex*/)
+    {
+        Creature* caster = GetCaster()->ToCreature();
+        if (!caster)
+            return;
+
+        Player* player = caster->GetLootRecipient();
+        if (!player)
+            return;
+
+        if (std::ranges::none_of(BlasterTargetSpells, [caster](uint32 spell) { return caster->HasAura(spell); }))
+            return;
+
+        player->CastSpell(player, SPELL_MAGNATAUR_KILL_CREDIT);
+        caster->CastSpell(caster, SPELL_MAGNATAUR_ON_DEATH_2);
+    }
+
+    void Register() override
+    {
+        OnEffectHit += SpellEffectFn(spell_borean_tundra_magnataur_on_death_1::HandleScript, EFFECT_0, SPELL_EFFECT_SCRIPT_EFFECT);
+    }
+};
+
+// 45685 - Hah... : Magnataur On Death 2
+class spell_borean_tundra_magnataur_on_death_2 : public SpellScript
+{
+    PrepareSpellScript(spell_borean_tundra_magnataur_on_death_2);
+
+    bool Validate(SpellInfo const* /*spellInfo*/) override
+    {
+        return ValidateSpellInfo(BlasterTargetSpells);
+    }
+
+    void HandleDummy(SpellEffIndex /*effIndex*/)
+    {
+        for (uint32 spell : BlasterTargetSpells)
+            GetCaster()->RemoveAurasDueToSpell(spell);
+    }
+
+    void Register() override
+    {
+        OnEffectHit += SpellEffectFn(spell_borean_tundra_magnataur_on_death_2::HandleDummy, EFFECT_0, SPELL_EFFECT_DUMMY);
     }
 };
 
@@ -2009,6 +2074,36 @@ class spell_borean_tundra_taxi_coldarra_ledge_to_transitus_shield : public AuraS
     }
 };
 
+/*######
+## Quest 11712: Re-Cursive
+######*/
+
+enum ReCursive
+{
+    SPELL_SUMMON_FIZZCRANK_SURVIVOR     = 46022
+};
+
+// 45980 - Re-Cursive Transmatter Injection
+class spell_borean_tundra_re_cursive_transmatter_injection : public SpellScript
+{
+    PrepareSpellScript(spell_borean_tundra_re_cursive_transmatter_injection);
+
+    bool Validate(SpellInfo const* /*spellInfo*/) override
+    {
+        return ValidateSpellInfo({ SPELL_SUMMON_FIZZCRANK_SURVIVOR });
+    }
+
+    void HandleDummy(SpellEffIndex /*effIndex*/)
+    {
+        GetCaster()->CastSpell(GetCaster(), SPELL_SUMMON_FIZZCRANK_SURVIVOR);
+    }
+
+    void Register() override
+    {
+        OnEffectHitTarget += SpellEffectFn(spell_borean_tundra_re_cursive_transmatter_injection::HandleDummy, EFFECT_0, SPELL_EFFECT_DUMMY);
+    }
+};
+
 void AddSC_borean_tundra()
 {
     RegisterCreatureAI(npc_beryl_sorcerer);
@@ -2026,7 +2121,9 @@ void AddSC_borean_tundra()
     RegisterSpellScript(spell_windsoul_totem_aura);
     RegisterSpellScript(spell_q11719_bloodspore_ruination_45997);
     RegisterCreatureAI(npc_bloodmage_laurith);
-    RegisterSpellScript(spell_q11653_shortening_blaster);
+    RegisterSpellScript(spell_borean_tundra_shortening_blaster);
+    RegisterSpellScript(spell_borean_tundra_magnataur_on_death_1);
+    RegisterSpellScript(spell_borean_tundra_magnataur_on_death_2);
     RegisterSpellScript(spell_borean_tundra_nerubar_web_random_unit_not_on_quest);
     RegisterSpellScript(spell_borean_tundra_nerubar_web_random_unit_not_on_quest_dummy);
     RegisterSpellScript(spell_borean_tundra_nerubar_web_random_unit_on_quest_dummy);
@@ -2044,4 +2141,5 @@ void AddSC_borean_tundra()
     RegisterSpellScript(spell_borean_tundra_land_mine_barrier);
     RegisterSpellScript(spell_borean_tundra_taxi_amber_ledge_to_beryl_point_platform);
     RegisterSpellScript(spell_borean_tundra_taxi_coldarra_ledge_to_transitus_shield);
+    RegisterSpellScript(spell_borean_tundra_re_cursive_transmatter_injection);
 }
