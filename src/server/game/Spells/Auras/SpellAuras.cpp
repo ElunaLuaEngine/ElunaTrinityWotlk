@@ -2371,7 +2371,7 @@ void Aura::CallScriptEffectUpdatePeriodicHandlers(AuraEffect* aurEff)
 #ifdef ELUNA
     if (aurEff->GetCaster())
         if (Eluna* e = aurEff->GetCaster()->GetEluna())
-            e->OnPerodicTick(aurEff->GetBase(), aurEff);
+            e->OnPerodicUpdate(aurEff->GetBase(), aurEff);
 #endif
 }
 
@@ -2513,7 +2513,11 @@ bool Aura::CallScriptCheckProcHandlers(AuraApplication const* aurApp, ProcEventI
 
         (*scritr)->_FinishScriptCall();
     }
-
+#ifdef ELUNA
+    if (GetCaster())
+        if (Eluna* e = GetCaster()->GetEluna())
+            result = e->OnAuraCanProc(aurApp->GetBase(), eventInfo);
+#endif
     return result;
 }
 
@@ -2532,7 +2536,14 @@ bool Aura::CallScriptPrepareProcHandlers(AuraApplication const* aurApp, ProcEven
 
         (*scritr)->_FinishScriptCall();
     }
-
+#ifdef ELUNA
+    if (GetCaster())
+        if (Eluna* e = GetCaster()->GetEluna())
+        {
+            bool preventDefault = e->OnAuraProc(aurApp->GetBase(), eventInfo);
+            prepare = !preventDefault;
+        }
+#endif
     return prepare;
 }
 
