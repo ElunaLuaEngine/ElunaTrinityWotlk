@@ -8088,29 +8088,29 @@ bool Spell::CallScriptEffectHandlers(SpellEffIndex effIndex, SpellEffectHandleMo
             preventDefault = (*scritr)->_IsDefaultEffectPrevented(effIndex);
 
         (*scritr)->_FinishScriptCall();
-#ifdef ELUNA
-        if (Eluna* e = GetCaster()->GetEluna())
-        {
-            switch (mode)
-            {
-            case SPELL_EFFECT_HANDLE_LAUNCH:
-                preventDefault = e->OnEffectLaunch(this, effIndex, mode);
-                break;
-            case SPELL_EFFECT_HANDLE_LAUNCH_TARGET:
-                preventDefault = e->OnEffectLaunchTarget(this, effIndex, mode);
-                break;
-            case SPELL_EFFECT_HANDLE_HIT:
-                preventDefault = e->OnEffectHit(this, effIndex, mode);
-                break;
-            case SPELL_EFFECT_HANDLE_HIT_TARGET:
-                preventDefault = e->OnEffectHitTarget(this, effIndex, mode);
-                break;
-            default:
-                break;
-            }
-        }
-#endif
     }
+#ifdef ELUNA
+    if (Eluna* e = GetCaster()->GetEluna())
+    {
+        switch (mode)
+        {
+        case SPELL_EFFECT_HANDLE_LAUNCH:
+            preventDefault = e->OnEffectLaunch(this, effIndex, mode);
+            break;
+        case SPELL_EFFECT_HANDLE_LAUNCH_TARGET:
+            preventDefault = e->OnEffectLaunchTarget(this, effIndex, mode);
+            break;
+        case SPELL_EFFECT_HANDLE_HIT:
+            preventDefault = e->OnEffectHit(this, effIndex, mode);
+            break;
+        case SPELL_EFFECT_HANDLE_HIT_TARGET:
+            preventDefault = e->OnEffectHitTarget(this, effIndex, mode);
+            break;
+        default:
+            break;
+        }
+    }
+#endif
     return preventDefault;
 }
 
