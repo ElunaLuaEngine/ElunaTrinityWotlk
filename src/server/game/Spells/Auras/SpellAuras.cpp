@@ -2348,7 +2348,7 @@ bool Aura::CallScriptEffectPeriodicHandlers(AuraEffect const* aurEff, AuraApplic
     {
         if (aurApp->GetTarget())
             if (Eluna* e = aurApp->GetTarget()->GetEluna())
-                preventDefault = e->OnPerodicTick(aurApp->GetBase(), aurEff, aurApp->GetTarget());
+                preventDefault = e->OnPeriodicTick(aurApp->GetBase(), aurEff, aurApp->GetTarget());
     }
 #endif
 
@@ -2371,7 +2371,7 @@ void Aura::CallScriptEffectUpdatePeriodicHandlers(AuraEffect* aurEff)
 #ifdef ELUNA
     if (aurEff->GetCaster())
         if (Eluna* e = aurEff->GetCaster()->GetEluna())
-            e->OnPerodicUpdate(aurEff->GetBase(), aurEff);
+            e->OnPeriodicUpdate(aurEff->GetBase(), aurEff);
 #endif
 }
 
@@ -2409,7 +2409,7 @@ void Aura::CallScriptEffectCalcPeriodicHandlers(AuraEffect const* aurEff, bool& 
 #ifdef ELUNA
     if (aurEff->GetCaster())
         if (Eluna* e = aurEff->GetCaster()->GetEluna())
-            e->OnCalcPerodic(aurEff->GetBase(), aurEff, isPeriodic, amplitude);
+            e->OnCalcPeriodic(aurEff->GetBase(), aurEff, isPeriodic, amplitude);
 #endif
 }
 
