@@ -8095,16 +8095,16 @@ bool Spell::CallScriptEffectHandlers(SpellEffIndex effIndex, SpellEffectHandleMo
         switch (mode)
         {
         case SPELL_EFFECT_HANDLE_LAUNCH:
-            preventDefault = e->OnEffectLaunch(this, effIndex, mode);
+            preventDefault = e->OnEffectLaunch(this, effIndex, mode, preventDefault);
             break;
         case SPELL_EFFECT_HANDLE_LAUNCH_TARGET:
-            preventDefault = e->OnEffectLaunchTarget(this, effIndex, mode);
+            preventDefault = e->OnEffectLaunchTarget(this, effIndex, mode, preventDefault);
             break;
         case SPELL_EFFECT_HANDLE_HIT:
-            preventDefault = e->OnEffectHit(this, effIndex, mode);
+            preventDefault = e->OnEffectHit(this, effIndex, mode, preventDefault);
             break;
         case SPELL_EFFECT_HANDLE_HIT_TARGET:
-            preventDefault = e->OnEffectHitTarget(this, effIndex, mode);
+            preventDefault = e->OnEffectHitTarget(this, effIndex, mode, preventDefault);
             break;
         default:
             break;
