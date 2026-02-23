@@ -534,6 +534,13 @@ bool MotionMaster::StopOnDeath()
     return true;
 }
 
+void MotionMaster::InterruptOnTeleport()
+{
+    if (MovementGenerator* top = GetCurrentMovementGenerator())
+        if (!top->HasFlag(MOVEMENTGENERATOR_FLAG_DEACTIVATED | MOVEMENTGENERATOR_FLAG_FINALIZED))
+            top->Deactivate(_owner); // only deactivate top, don't remove it. non-resumable generators will clean up themselves on next update
+}
+
 void MotionMaster::MoveIdle()
 {
     Add(GetIdleMovementGenerator(), MOTION_SLOT_DEFAULT);
@@ -1162,7 +1169,9 @@ void MotionMaster::DirectAdd(MovementGenerator* movement, MovementSlot slot/* = 
             auto where = _generators.lower_bound(movement);
             if (!_generators.empty())
             {
-                bool replacesExisting = where != _generators.end() && !_generators.key_comp()(movement, *where);
+                bool replacesExisting = !movement->HasFlag(MOVEMENTGENERATOR_FLAG_IMMEDIATE)
+                    && where != _generators.end()
+                    && !_generators.key_comp()(movement, *where);
                 auto top = _generators.begin();
                 if (replacesExisting)
                     Remove(where, where == top, false);
