@@ -37,6 +37,9 @@
 #include "Vehicle.h"
 #include "World.h"
 #include "WorldPacket.h"
+#ifdef ELUNA
+#include "LuaEngine.h"
+#endif
 
 AuraCreateInfo::AuraCreateInfo(SpellInfo const* spellInfo, uint8 auraEffMask, WorldObject* owner) :
     _spellInfo(spellInfo), _auraEffectMask(auraEffMask), _owner(owner)
@@ -2212,6 +2215,12 @@ void Aura::CallScriptDispel(DispelInfo* dispelInfo)
 
         (*scritr)->_FinishScriptCall();
     }
+
+#ifdef ELUNA
+    if (GetCaster())
+        if (Eluna* e = GetCaster()->GetEluna())
+            e->OnAuraDispel(this, dispelInfo);
+#endif
 }
 
 void Aura::CallScriptAfterDispel(DispelInfo* dispelInfo)
@@ -2244,6 +2253,15 @@ bool Aura::CallScriptEffectApplyHandlers(AuraEffect const* aurEff, AuraApplicati
         (*scritr)->_FinishScriptCall();
     }
 
+#ifdef ELUNA
+    if (!preventDefault)
+    {
+        if (aurApp->GetTarget())
+            if (Eluna* e = aurApp->GetTarget()->GetEluna())
+                preventDefault = e->OnAuraApplication(aurApp->GetBase(), aurEff, aurApp->GetTarget(), mode, true);
+    }
+#endif
+
     return preventDefault;
 }
 
@@ -2263,6 +2281,16 @@ bool Aura::CallScriptEffectRemoveHandlers(AuraEffect const* aurEff, AuraApplicat
 
         (*scritr)->_FinishScriptCall();
     }
+
+#ifdef ELUNA
+    if (!preventDefault)
+    {
+        if (aurApp->GetTarget())
+            if (Eluna* e = aurApp->GetTarget()->GetEluna())
+                preventDefault = e->OnAuraApplication(aurApp->GetBase(), aurEff, aurApp->GetTarget(), mode, false);
+    }
+#endif
+
     return preventDefault;
 }
 
@@ -2311,6 +2339,15 @@ bool Aura::CallScriptEffectPeriodicHandlers(AuraEffect const* aurEff, AuraApplic
         (*scritr)->_FinishScriptCall();
     }
 
+#ifdef ELUNA
+    if (!preventDefault)
+    {
+        if (aurApp->GetTarget())
+            if (Eluna* e = aurApp->GetTarget()->GetEluna())
+                preventDefault = e->OnPeriodicTick(aurApp->GetBase(), aurEff, aurApp->GetTarget());
+    }
+#endif
+
     return preventDefault;
 }
 
@@ -2326,6 +2363,12 @@ void Aura::CallScriptEffectUpdatePeriodicHandlers(AuraEffect* aurEff)
 
         (*scritr)->_FinishScriptCall();
     }
+
+#ifdef ELUNA
+    if (aurEff->GetCaster())
+        if (Eluna* e = aurEff->GetCaster()->GetEluna())
+            e->OnPeriodicUpdate(aurEff->GetBase(), aurEff);
+#endif
 }
 
 void Aura::CallScriptEffectCalcAmountHandlers(AuraEffect const* aurEff, int32& amount, bool& canBeRecalculated)
@@ -2340,6 +2383,11 @@ void Aura::CallScriptEffectCalcAmountHandlers(AuraEffect const* aurEff, int32& a
 
         (*scritr)->_FinishScriptCall();
     }
+#ifdef ELUNA
+    if (aurEff->GetCaster())
+        if (Eluna* e = aurEff->GetCaster()->GetEluna())
+            e->OnAuraCalcAmount(aurEff->GetBase(), aurEff, amount, canBeRecalculated);
+#endif
 }
 
 void Aura::CallScriptEffectCalcPeriodicHandlers(AuraEffect const* aurEff, bool& isPeriodic, int32& amplitude)
@@ -2354,6 +2402,11 @@ void Aura::CallScriptEffectCalcPeriodicHandlers(AuraEffect const* aurEff, bool& 
 
         (*scritr)->_FinishScriptCall();
     }
+#ifdef ELUNA
+    if (aurEff->GetCaster())
+        if (Eluna* e = aurEff->GetCaster()->GetEluna())
+            e->OnCalcPeriodic(aurEff->GetBase(), aurEff, isPeriodic, amplitude);
+#endif
 }
 
 void Aura::CallScriptEffectCalcSpellModHandlers(AuraEffect const* aurEff, SpellModifier*& spellMod)
@@ -2456,7 +2509,11 @@ bool Aura::CallScriptCheckProcHandlers(AuraApplication const* aurApp, ProcEventI
 
         (*scritr)->_FinishScriptCall();
     }
-
+#ifdef ELUNA
+    if (GetCaster())
+        if (Eluna* e = GetCaster()->GetEluna())
+            result = e->OnAuraCanProc(aurApp->GetBase(), eventInfo);
+#endif
     return result;
 }
 
@@ -2475,7 +2532,14 @@ bool Aura::CallScriptPrepareProcHandlers(AuraApplication const* aurApp, ProcEven
 
         (*scritr)->_FinishScriptCall();
     }
-
+#ifdef ELUNA
+    if (GetCaster())
+        if (Eluna* e = GetCaster()->GetEluna())
+        {
+            bool preventDefault = e->OnAuraProc(aurApp->GetBase(), eventInfo);
+            prepare = !preventDefault;
+        }
+#endif
     return prepare;
 }
 
