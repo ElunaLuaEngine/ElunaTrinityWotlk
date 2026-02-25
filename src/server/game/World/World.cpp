@@ -171,6 +171,10 @@ World::~World()
     MMAP::MMapFactory::clear();
 
     /// @todo free addSessQueue
+#ifdef ELUNA
+    if (GetEluna())
+        sElunaMgr->Destroy(_elunaInfo);
+#endif
 }
 
 World* World::instance()
