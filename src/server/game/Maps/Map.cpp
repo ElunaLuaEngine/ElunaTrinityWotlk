@@ -108,6 +108,10 @@ Map::~Map()
         sMapMgr->DecreaseScheduledScriptCount(m_scriptSchedule.size());
 
     MMAP::MMapFactory::createOrGetMMapManager()->unloadMapInstance(GetId(), i_InstanceId);
+#ifdef ELUNA
+    if(GetEluna())
+        sElunaMgr->Destroy(_elunaInfo);
+#endif
 }
 
 bool Map::ExistMap(uint32 mapid, int gx, int gy)

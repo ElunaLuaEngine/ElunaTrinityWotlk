@@ -385,7 +385,7 @@ AuraEffect::AuraEffect(Aura* base, SpellEffectInfo const& spellEfffectInfo, int3
 m_base(base), m_spellInfo(base->GetSpellInfo()), m_spellEffectInfo(spellEfffectInfo),
 m_baseAmount(baseAmount ? *baseAmount : spellEfffectInfo.BasePoints),
 _amount(), m_spellmod(nullptr), _periodicTimer(0), _amplitude(0), _ticksDone(0),
-m_canBeRecalculated(true), m_isPeriodic(false)
+m_canBeRecalculated(true), m_isPeriodic(false), m_scriptRef(this, NoopAuraEffectDeleter())
 {
     CalculatePeriodic(caster, true, false);
 
@@ -396,6 +396,7 @@ m_canBeRecalculated(true), m_isPeriodic(false)
 
 AuraEffect::~AuraEffect()
 {
+    m_scriptRef = nullptr;
     delete m_spellmod;
 }
 

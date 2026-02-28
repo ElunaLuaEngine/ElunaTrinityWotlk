@@ -99,6 +99,7 @@ class TC_GAME_API AuraEffect
 
         SpellEffectInfo const& GetSpellEffectInfo() const { return m_spellEffectInfo; }
 
+        Trinity::unique_weak_ptr<AuraEffect> GetWeakPtr() const { return m_scriptRef; }
     private:
         Aura* const m_base;
 
@@ -120,6 +121,8 @@ class TC_GAME_API AuraEffect
 
         float GetCritChanceFor(Unit const* caster, Unit const* target) const;
 
+        struct NoopAuraEffectDeleter { void operator()(AuraEffect*) const { /*noop - not managed*/ } };
+        Trinity::unique_trackable_ptr<AuraEffect> m_scriptRef;
     public:
         // aura effect apply/remove handlers
         void HandleNULL(AuraApplication const* /*aurApp*/, uint8 /*mode*/, bool /*apply*/) const
