@@ -28,6 +28,7 @@
 #include "CombatLogPackets.h"
 #include "CombatPackets.h"
 #include "GuildPackets.h"
+#include "InspectPackets.h"
 #include "LFGPackets.h"
 #include "MailPackets.h"
 #include "MiscPackets.h"
@@ -40,6 +41,7 @@
 #include "SystemPackets.h"
 #include "TalentPackets.h"
 #include "TotemPackets.h"
+#include "TradePackets.h"
 #include "WorldStatePackets.h"
 
 #endif // AllPackets_h__
