@@ -2270,12 +2270,12 @@ void Spell::EffectLearnSpell()
 
     if (m_CastItem && !effectInfo->TriggerSpell)
     {
-        for (_Spell const& itemEffect : m_CastItem->GetTemplate()->Spells)
+        for (ItemEffect const& itemEffect : m_CastItem->GetTemplate()->Effects)
         {
-            if (itemEffect.SpellTrigger != ITEM_SPELLTRIGGER_LEARN_SPELL_ID)
+            if (itemEffect.TriggerType != ITEM_SPELLTRIGGER_LEARN_SPELL_ID)
                 continue;
 
-            player->LearnSpell(itemEffect.SpellId, false);
+            player->LearnSpell(itemEffect.SpellID, false);
         }
     }
 
@@ -3832,7 +3832,7 @@ void Spell::EffectApplyGlyph()
             }
 
             // remove old glyph
-            if (uint32 oldGlyph = player->GetGlyph(player->GetActiveSpec(), m_glyphIndex))
+            if (uint32 oldGlyph = player->GetGlyph(player->GetActiveTalentGroup(), m_glyphIndex))
             {
                 if (GlyphPropertiesEntry const* oldGlyphProperties = sGlyphPropertiesStore.LookupEntry(oldGlyph))
                 {
@@ -5341,7 +5341,7 @@ void Spell::EffectSpecCount()
     if (!unitTarget || unitTarget->GetTypeId() != TYPEID_PLAYER)
         return;
 
-    unitTarget->ToPlayer()->UpdateSpecCount(damage);
+    unitTarget->ToPlayer()->UpdateTalentGroupCount(damage);
 }
 
 void Spell::EffectActivateSpec()
@@ -5352,7 +5352,7 @@ void Spell::EffectActivateSpec()
     if (!unitTarget || unitTarget->GetTypeId() != TYPEID_PLAYER)
         return;
 
-    unitTarget->ToPlayer()->ActivateSpec(damage-1);  // damage is 1 or 2, spec is 0 or 1
+    unitTarget->ToPlayer()->ActivateTalentGroup(damage-1);  // damage is 1 or 2, spec is 0 or 1
 }
 
 void Spell::EffectPlaySound()
@@ -5468,7 +5468,7 @@ void Spell::EffectRechargeManaGem()
     if (Item* pItem = player->GetItemByEntry(item_id))
     {
         for (int x = 0; x < MAX_ITEM_PROTO_SPELLS; ++x)
-            pItem->SetSpellCharges(x, pProto->Spells[x].SpellCharges);
+            pItem->SetSpellCharges(x, pProto->Effects[x].Charges);
         pItem->SetState(ITEM_CHANGED, player);
     }
 }
