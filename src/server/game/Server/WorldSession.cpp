@@ -39,6 +39,7 @@
 #include "Log.h"
 #include "Map.h"
 #include "Metric.h"
+#include "MiscPackets.h"
 #include "MovementPackets.h"
 #include "MoveSpline.h"
 #include "ObjectAccessor.h"
@@ -891,10 +892,9 @@ void WorldSession::LoadTutorialsData(PreparedQueryResult result)
 
 void WorldSession::SendTutorialsData()
 {
-    WorldPacket data(SMSG_TUTORIAL_FLAGS, 4 * MAX_ACCOUNT_TUTORIAL_VALUES);
-    for (uint8 i = 0; i < MAX_ACCOUNT_TUTORIAL_VALUES; ++i)
-        data << m_Tutorials[i];
-    SendPacket(&data);
+    WorldPackets::Misc::TutorialFlags packet;
+    memcpy(packet.TutorialData.data(), m_Tutorials, sizeof(packet.TutorialData));
+    SendPacket(packet.Write());
 }
 
 void WorldSession::SaveTutorialsData(CharacterDatabaseTransaction trans)
@@ -1557,9 +1557,9 @@ void WorldSession::ResetTimeSync()
 
 void WorldSession::SendTimeSync()
 {
-    WorldPacket data(SMSG_TIME_SYNC_REQ, 4);
-    data << uint32(_timeSyncNextCounter);
-    SendPacket(&data);
+    WorldPackets::Misc::TimeSyncRequest timeSyncRequest;
+    timeSyncRequest.SequenceIndex = _timeSyncNextCounter;
+    SendPacket(timeSyncRequest.Write());
 
     _pendingTimeSyncRequests[_timeSyncNextCounter] = getMSTime();
 
