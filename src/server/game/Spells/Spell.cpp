@@ -8034,8 +8034,11 @@ SpellCastResult Spell::CallScriptCheckCastHandlers()
         (*scritr)->_FinishScriptCall();
     }
 #ifdef ELUNA
+    SpellCastResult elunaResult = SPELL_CAST_OK;
     if (Eluna* e = GetCaster()->GetEluna())
-        retVal = SpellCastResult(e->OnCheckCast(this));
+        elunaResult = SpellCastResult(e->OnCheckCast(this));
+    if (elunaResult != SPELL_CAST_OK)
+        retVal = elunaResult;
 #endif
     return retVal;
 }
