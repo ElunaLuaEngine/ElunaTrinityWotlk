@@ -18,6 +18,7 @@
 #include "Creature.h"
 #include "BattlegroundMgr.h"
 #include "CellImpl.h"
+#include "CombatPackets.h"
 #include "Common.h"
 #include "Containers.h"
 #include "CreatureAI.h"
@@ -2312,12 +2313,12 @@ Unit* Creature::SelectNearestTargetInAttackDistance(float dist) const
 
 void Creature::SendAIReaction(AiReaction reactionType)
 {
-    WorldPacket data(SMSG_AI_REACTION, 12);
+    WorldPackets::Combat::AIReaction packet;
 
-    data << GetGUID();
-    data << uint32(reactionType);
+    packet.UnitGUID = GetGUID();
+    packet.Reaction = reactionType;
 
-    ((WorldObject*)this)->SendMessageToSet(&data, true);
+    SendMessageToSet(packet.Write(), true);
 
     TC_LOG_DEBUG("network", "WORLD: Sent SMSG_AI_REACTION, type {}.", reactionType);
 }

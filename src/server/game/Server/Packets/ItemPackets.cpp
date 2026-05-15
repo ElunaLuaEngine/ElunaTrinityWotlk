@@ -15,29 +15,15 @@
  * with this program. If not, see <http://www.gnu.org/licenses/>.
  */
 
-#ifndef TRINITYSERVER_PACKET_BUILDER_H
-#define TRINITYSERVER_PACKET_BUILDER_H
+#include "ItemPackets.h"
 
-#include "Define.h"
-
-class ByteBuffer;
-namespace G3D
+namespace WorldPackets::Item
 {
-    class Vector3;
-}
-
-namespace Movement
+WorldPacket const* SetProficiency::Write()
 {
-    class MoveSpline;
-    class PacketBuilder
-    {
-        static void WriteCommonMonsterMovePart(MoveSpline const& mov, ByteBuffer& data);
-    public:
+    _worldPacket << uint8(ProficiencyClass);
+    _worldPacket << uint32(ProficiencyMask);
 
-        static void WriteMonsterMove(MoveSpline const& mov, ByteBuffer& data);
-        static void WriteStopMovement(G3D::Vector3 const& loc, uint32 splineId, ByteBuffer& data);
-        static void WriteCreate(MoveSpline const& mov, ByteBuffer& data);
-        static void WriteSplineSync(MoveSpline const& mov, ByteBuffer& data);
-    };
+    return &_worldPacket;
 }
-#endif // TRINITYSERVER_PACKET_BUILDER_H
+}

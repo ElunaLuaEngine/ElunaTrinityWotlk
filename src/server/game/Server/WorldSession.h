@@ -153,6 +153,7 @@ namespace WorldPackets
     namespace Chat
     {
         class ChatMessage;
+        class CTextEmote;
         class EmoteClient;
     }
 
@@ -161,6 +162,11 @@ namespace WorldPackets
         class AttackSwing;
         class AttackStop;
         class SetSheathed;
+    }
+
+    namespace EquipmentSet
+    {
+        class SaveEquipmentSet;
     }
 
     namespace Guild
@@ -280,6 +286,8 @@ namespace WorldPackets
 
     namespace Quest
     {
+        class QuestGiverStatusQuery;
+        class QuestGiverStatusMultipleQuery;
         class QueryQuestInfo;
     }
 
@@ -565,21 +573,21 @@ class TC_GAME_API WorldSession
         bool CheckStableMaster(ObjectGuid guid);
 
         // Account Data
-        AccountData const* GetAccountData(AccountDataType type) const { return &m_accountData[type]; }
-        void SetAccountData(AccountDataType type, time_t tm, std::string const& data);
+        AccountData const* GetAccountData(AccountDataType type) const { return &_accountData[type]; }
+        void SetAccountData(AccountDataType type, time_t time, std::string const& data);
         void SendAccountDataTimes(uint32 mask);
         void LoadAccountData(PreparedQueryResult result, uint32 mask);
 
         void LoadTutorialsData(PreparedQueryResult result);
         void SendTutorialsData();
         void SaveTutorialsData(CharacterDatabaseTransaction trans);
-        uint32 GetTutorialInt(uint8 index) const { return m_Tutorials[index]; }
+        uint32 GetTutorialInt(uint8 index) const { return _tutorials[index]; }
         void SetTutorialInt(uint8 index, uint32 value)
         {
-            if (m_Tutorials[index] != value)
+            if (_tutorials[index] != value)
             {
-                m_Tutorials[index] = value;
-                m_TutorialsChanged |= TUTORIALS_FLAG_CHANGED;
+                _tutorials[index] = value;
+                _tutorialsChanged |= TUTORIALS_FLAG_CHANGED;
             }
         }
         void LoadInstanceTimeRestrictions(PreparedQueryResult result);
@@ -951,8 +959,8 @@ class TC_GAME_API WorldSession
         void HandleTalentWipeConfirmOpcode(WorldPackets::Talent::ConfirmRespecWipe& confirmRespecWipe);
         void HandleUnlearnSkillOpcode(WorldPacket& recvPacket);
 
-        void HandleQuestgiverStatusQueryOpcode(WorldPacket& recvPacket);
-        void HandleQuestgiverStatusMultipleQuery(WorldPacket& recvPacket);
+        void HandleQuestgiverStatusQueryOpcode(WorldPackets::Quest::QuestGiverStatusQuery& packet);
+        void HandleQuestgiverStatusMultipleQuery(WorldPackets::Quest::QuestGiverStatusMultipleQuery& packet);
         void HandleQuestgiverHelloOpcode(WorldPacket& recvPacket);
         void HandleQuestgiverAcceptQuestOpcode(WorldPacket& recvPacket);
         void HandleQuestgiverQueryQuestOpcode(WorldPacket& recvPacket);
@@ -974,7 +982,7 @@ class TC_GAME_API WorldSession
         void SendPlayerAmbiguousNotice(std::string const& name);
         void SendWrongFactionNotice();
         void SendChatRestrictedNotice(ChatRestrictionType restriction);
-        void HandleTextEmoteOpcode(WorldPacket& recvPacket);
+        void HandleTextEmoteOpcode(WorldPackets::Chat::CTextEmote& packet);
         void HandleChatIgnoredOpcode(WorldPacket& recvPacket);
 
         void HandleReclaimCorpse(WorldPackets::Misc::ReclaimCorpse& packet);
@@ -1176,7 +1184,7 @@ class TC_GAME_API WorldSession
         void HandleMirrorImageDataRequest(WorldPacket& recvData);
         void HandleRemoveGlyph(WorldPacket& recvData);
         void HandleQueryInspectAchievements(WorldPacket& recvData);
-        void HandleEquipmentSetSave(WorldPacket& recvData);
+        void HandleEquipmentSetSave(WorldPackets::EquipmentSet::SaveEquipmentSet& saveEquipmentSet);
         void HandleEquipmentSetDelete(WorldPacket& recvData);
         void HandleEquipmentSetUse(WorldPacket& recvData);
         void HandleWorldStateUITimerUpdate(WorldPackets::Misc::UITimeRequest& recvData);
@@ -1277,9 +1285,9 @@ class TC_GAME_API WorldSession
         LocaleConstant m_sessionDbLocaleIndex;
         Minutes _timezoneOffset;
         std::atomic<uint32> m_latency;
-        AccountData m_accountData[NUM_ACCOUNT_DATA_TYPES];
-        uint32 m_Tutorials[MAX_ACCOUNT_TUTORIAL_VALUES];
-        uint8  m_TutorialsChanged;
+        AccountData _accountData[NUM_ACCOUNT_DATA_TYPES];
+        std::array<uint32, MAX_ACCOUNT_TUTORIAL_VALUES> _tutorials;
+        uint8  _tutorialsChanged;
 
         std::unordered_map<uint32 /*instanceId*/, SystemTimePoint/*releaseTime*/> _instanceResetTimes;
 

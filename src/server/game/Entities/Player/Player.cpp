@@ -44,6 +44,7 @@
 #include "CreatureAI.h"
 #include "DatabaseEnv.h"
 #include "DisableMgr.h"
+#include "EquipmentSetPackets.h"
 #include "Formulas.h"
 #include "GameClient.h"
 #include "GameEventMgr.h"
@@ -60,6 +61,7 @@
 #include "InstanceSaveMgr.h"
 #include "InstanceScript.h"
 #include "Item.h"
+#include "ItemPackets.h"
 #include "KillRewarder.h"
 #include "Language.h"
 #include "LFGMgr.h"
@@ -82,6 +84,7 @@
 #include "PoolMgr.h"
 #include "QueryHolder.h"
 #include "QuestDef.h"
+#include "QuestPackets.h"
 #include "QuestPools.h"
 #include "Realm.h"
 #include "ReputationMgr.h"
@@ -1724,12 +1727,16 @@ bool Player::TeleportTo(uint32 mapid, float x, float y, float z, float orientati
             if (!GetSession()->PlayerLogout())
             {
                 // send transfer packets
-                WorldPacket data(SMSG_TRANSFER_PENDING, 4 + 4 + 4);
-                data << uint32(mapid);
+                WorldPackets::Movement::TransferPending transferPending;
+                transferPending.MapID = mapid;
                 if (Transport* transport = GetTransport())
-                    data << transport->GetEntry() << GetMapId();
+                {
+                    WorldPackets::Movement::ShipTransferPending& shipTransferPending = transferPending.Ship.emplace();
+                    shipTransferPending.ID = transport->GetEntry();
+                    shipTransferPending.OriginMapID = GetMapId();
+                }
 
-                SendDirectMessage(&data);
+                SendDirectMessage(transferPending.Write());
             }
 
             // remove from old map now
@@ -6005,7 +6012,7 @@ void Player::SendActionButtons(uint32 state) const
 
     packet.Reason = state;
 
-    GetSession()->SendPacket(packet.Write());
+    SendDirectMessage(packet.Write());
 }
 
 bool Player::IsActionButtonDataValid(uint8 button, uint32 action, uint8 type) const
@@ -16728,15 +16735,10 @@ void Player::SendQuestUpdateAddPlayer(Quest const* quest, uint16 old_count, uint
 
 void Player::SendQuestGiverStatusMultiple()
 {
-    uint32 count = 0;
-
-    WorldPacket data(SMSG_QUESTGIVER_STATUS_MULTIPLE, 4);
-    data << uint32(count);                                  // placeholder
+    WorldPackets::Quest::QuestGiverStatusMultiple response;
 
     for (auto itr = m_clientGUIDs.begin(); itr != m_clientGUIDs.end(); ++itr)
     {
-        uint32 questStatus = DIALOG_STATUS_NONE;
-
         if (itr->IsAnyTypeCreature())
         {
             // need also pet quests case support
@@ -16746,11 +16748,7 @@ void Player::SendQuestGiverStatusMultiple()
             if (!questgiver->HasNpcFlag(UNIT_NPC_FLAG_QUESTGIVER))
                 continue;
 
-            questStatus = GetQuestDialogStatus(questgiver);
-
-            data << questgiver->GetGUID();
-            data << uint8(questStatus);
-            ++count;
+            response.QuestGiver.emplace_back(questgiver->GetGUID(), GetQuestDialogStatus(questgiver));
         }
         else if (itr->IsGameObject())
         {
@@ -16758,16 +16756,11 @@ void Player::SendQuestGiverStatusMultiple()
             if (!questgiver || questgiver->GetGoType() != GAMEOBJECT_TYPE_QUESTGIVER)
                 continue;
 
-            questStatus = GetQuestDialogStatus(questgiver);
-
-            data << questgiver->GetGUID();
-            data << uint8(questStatus);
-            ++count;
+            response.QuestGiver.emplace_back(questgiver->GetGUID(), GetQuestDialogStatus(questgiver));
         }
     }
 
-    data.put<uint32>(0, count);                             // write real count
-    SendDirectMessage(&data);
+    SendDirectMessage(response.Write());
 }
 
 bool Player::HasPvPForcingQuest() const
@@ -16942,6 +16935,12 @@ void Player::SendBindPointUpdate()
     packet.BindPosition = Position(m_homebindX, m_homebindY, m_homebindZ);
     packet.BindMapID = m_homebindMapId;
     packet.BindAreaID = m_homebindAreaId;
+    SendDirectMessage(packet.Write());
+}
+
+void Player::SendPlayerBound(ObjectGuid const& binderGuid, uint32 areaId) const
+{
+    WorldPackets::Misc::PlayerBound packet(binderGuid, areaId);
     SendDirectMessage(packet.Write());
 }
 
@@ -21023,9 +21022,10 @@ void Player::SetSpellModTakingSpell(Spell* spell, bool apply)
 // send Proficiency
 void Player::SendProficiency(ItemClass itemClass, uint32 itemSubclassMask) const
 {
-    WorldPacket data(SMSG_SET_PROFICIENCY, 1 + 4);
-    data << uint8(itemClass) << uint32(itemSubclassMask);
-    SendDirectMessage(&data);
+    WorldPackets::Item::SetProficiency packet;
+    packet.ProficiencyMask = itemSubclassMask;
+    packet.ProficiencyClass = itemClass;
+    SendDirectMessage(packet.Write());
 }
 
 void Player::RemovePetitionsAndSigns(ObjectGuid guid, CharterTypes type)
@@ -22510,6 +22510,7 @@ void Player::SendInitialPacketsBeforeAddToMap()
 
     /// SMSG_INITIAL_SPELLS
     SendInitialSpells();
+
     /// SMSG_SEND_UNLEARN_SPELLS
     SendUnlearnSpells();
 
@@ -22655,21 +22656,11 @@ void Player::SendUpdateToOutOfRangeGroupMembers()
 
 void Player::SendTransferAborted(uint32 mapid, TransferAbortReason reason, uint8 arg) const
 {
-    WorldPacket data(SMSG_TRANSFER_ABORTED, 4+2);
-    data << uint32(mapid);
-    data << uint8(reason);                                 // transfer abort reason
-    switch (reason)
-    {
-        case TRANSFER_ABORT_INSUF_EXPAN_LVL:
-        case TRANSFER_ABORT_DIFFICULTY:
-        case TRANSFER_ABORT_UNIQUE_MESSAGE:
-            // these are the ONLY cases that have an extra argument in the packet!!!
-            data << uint8(arg);
-            break;
-        default:
-            break;
-    }
-    SendDirectMessage(&data);
+    WorldPackets::Movement::TransferAborted transferAborted;
+    transferAborted.MapID = mapid;
+    transferAborted.Arg = arg;
+    transferAborted.TransfertAbort = reason;
+    SendDirectMessage(transferAborted.Write());
 }
 
 void Player::SendInstanceResetWarning(uint32 mapid, Difficulty difficulty, uint32 time, bool welcome) const
@@ -25462,72 +25453,55 @@ void Player::SendTalentsInfoData(bool pet)
     SendDirectMessage(updateTalentData.Write());
 }
 
+ObjectGuid const EquipmentSetInfo::IgnoredSlot = []
+{
+    ObjectGuid guid;
+    guid.SetRawValue(1);
+    return guid;
+}();
+
 void Player::SendEquipmentSetList()
 {
-    uint32 count = 0;
-    WorldPacket data(SMSG_EQUIPMENT_SET_LIST, 1000); // guess size
-    size_t count_pos = data.wpos();
-    data << uint32(count);                                  // count placeholder
-
-    static ObjectGuid const IgnoredSlot = []
-    {
-        ObjectGuid guid;
-        guid.SetRawValue(1);
-        return guid;
-    }();
+    WorldPackets::EquipmentSet::LoadEquipmentSet data;
 
     for (EquipmentSetContainer::value_type const& eqSet : _equipmentSets)
     {
         if (eqSet.second.State == EQUIPMENT_SET_DELETED)
             continue;
 
-        data.appendPackGUID(eqSet.first);
-        data << uint32(eqSet.second.Data.SetID);
-        data << eqSet.second.Data.SetName;
-        data << eqSet.second.Data.SetIcon;
-
-        for (uint32 i = 0; i < EQUIPMENT_SLOT_END; ++i)
-        {
-            // ignored slots stored in IgnoreMask, client wants "1" as raw GUID, so no HighGuid::Item
-            if (eqSet.second.Data.IgnoreMask & (1 << i))
-                data << IgnoredSlot.WriteAsPacked();
-            else
-                data << eqSet.second.Data.Pieces[i].WriteAsPacked();
-        }
-
-        ++count;                                            // client have limit but it checked at loading and set
+        data.SetData.push_back(&eqSet.second.Data);
     }
-    data.put<uint32>(count_pos, count);
-    SendDirectMessage(&data);
+
+    SendDirectMessage(data.Write());
 }
 
-void Player::SetEquipmentSet(EquipmentSetInfo::EquipmentSetData const& eqSet)
+void Player::SetEquipmentSet(EquipmentSetInfo::EquipmentSetData const& newEqSet)
 {
-    if (eqSet.Guid != 0)
+    if (newEqSet.Guid != 0)
     {
         // something wrong...
-        auto itr = _equipmentSets.find(eqSet.Guid);
-        if (itr == _equipmentSets.end() || itr->second.Data.Guid != eqSet.Guid)
+        auto itr = _equipmentSets.find(newEqSet.Guid);
+        if (itr == _equipmentSets.end() || itr->second.Data.Guid != newEqSet.Guid)
         {
             TC_LOG_ERROR("entities.player", "Player::SetEquipmentSet: Player '{}' ({}) tried to save nonexistent equipment set {} (index: {})",
-                GetName(), GetGUID().ToString(), eqSet.Guid, eqSet.SetID);
+                GetName(), GetGUID().ToString(), newEqSet.Guid, newEqSet.SetID);
             return;
         }
     }
 
-    uint64 setGuid = (eqSet.Guid != 0) ? eqSet.Guid : sObjectMgr->GenerateEquipmentSetGuid();
+    uint64 setGuid = (newEqSet.Guid != 0) ? newEqSet.Guid : sObjectMgr->GenerateEquipmentSetGuid();
 
     EquipmentSetInfo& eqSlot = _equipmentSets[setGuid];
-    eqSlot.Data = eqSet;
+    eqSlot.Data = newEqSet;
 
-    if (eqSet.Guid == 0)
+    if (eqSlot.Data.Guid == 0)
     {
         eqSlot.Data.Guid = setGuid;
 
-        WorldPacket data(SMSG_EQUIPMENT_SET_SAVED, 4 + 1);
-        data << uint32(eqSlot.Data.SetID);
-        data.appendPackGUID(eqSlot.Data.Guid);
-        SendDirectMessage(&data);
+        WorldPackets::EquipmentSet::EquipmentSetID data;
+        data.GUID = eqSlot.Data.Guid;
+        data.SetID = eqSlot.Data.SetID;
+        SendDirectMessage(data.Write());
     }
 
     eqSlot.State = (eqSlot.State == EQUIPMENT_SET_NEW ? EQUIPMENT_SET_NEW : EQUIPMENT_SET_CHANGED);
@@ -25604,11 +25578,11 @@ void Player::_SaveBGData(CharacterDatabaseTransaction trans)
     trans->Append(stmt);
 }
 
-void Player::DeleteEquipmentSet(uint64 setGuid)
+void Player::DeleteEquipmentSet(uint64 id)
 {
     for (EquipmentSetContainer::iterator itr = _equipmentSets.begin(); itr != _equipmentSets.end();)
     {
-        if (itr->second.Data.Guid == setGuid)
+        if (itr->second.Data.Guid == id)
         {
             if (itr->second.State == EQUIPMENT_SET_NEW)
                 itr = _equipmentSets.erase(itr);

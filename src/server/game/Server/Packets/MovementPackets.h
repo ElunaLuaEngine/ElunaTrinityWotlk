@@ -21,6 +21,12 @@
 #include "Packet.h"
 #include "MovementInfo.h"
 #include "ObjectGuid.h"
+#include "Optional.h"
+
+namespace Movement
+{
+    class MoveSpline;
+}
 
 namespace WorldPackets
 {
@@ -46,6 +52,66 @@ namespace WorldPackets
             MovementInfo* Status = nullptr;
         };
 
+        struct MonsterSplineJumpExtraData
+        {
+            float JumpGravity = 0.0f;
+            uint32 StartTime = 0;
+        };
+
+        struct MonsterSplineAnimTierTransition
+        {
+            uint32 StartTime = 0;
+            uint8 AnimTier = 0;
+        };
+
+        struct MovementSpline
+        {
+            uint32 Flags = 0;    // Spline flags
+            uint8 Face = 0;    // Movement direction (see MonsterMoveType enum)
+            uint32 MoveTime = 0;
+            std::vector<TaggedPosition<Position::XYZ>> Points;   // Spline path
+            std::vector<TaggedPosition<Position::PackedXYZ>> PackedDeltas;
+            Optional<MonsterSplineJumpExtraData> JumpExtraData;
+            Optional<MonsterSplineAnimTierTransition> AnimTierTransition;
+            float FaceDirection = 0.0f;
+            ObjectGuid FaceGUID;
+            TaggedPosition<Position::XYZ> FaceSpot;
+        };
+
+        struct MovementMonsterSpline
+        {
+            uint32 ID = 0;
+            MovementSpline Move;
+        };
+
+        struct MovementSplineTransport
+        {
+            ObjectGuid TransportGUID;
+            int8 VehicleSeat = -1;
+        };
+
+        class CommonMovement
+        {
+        public:
+            static void WriteCreateObjectSplineDataBlock(::Movement::MoveSpline const& moveSpline, ByteBuffer& data);
+        };
+
+        class MonsterMove final : public ServerPacket
+        {
+        public:
+            explicit MonsterMove() : ServerPacket(SMSG_MONSTER_MOVE, 64) { }
+
+            void InitializeSplineData(::Movement::MoveSpline const& moveSpline);
+
+            WorldPacket const* Write() override;
+
+            MovementMonsterSpline SplineData;
+            ObjectGuid MoverGUID;
+            Optional<MovementSplineTransport> Transport;
+            bool VehicleExitVoluntary = false;
+            TaggedPosition<Position::XYZ> Pos;
+        };
+
         class FlightSplineSync final : public ServerPacket
         {
         public:
@@ -57,10 +123,74 @@ namespace WorldPackets
             float SplineDist = 0.0f;
         };
 
+        class MoveSplineSetSpeed : public ServerPacket
+        {
+        public:
+            explicit MoveSplineSetSpeed(OpcodeServer opcode) : ServerPacket(opcode, 8 + 4) { }
+
+            WorldPacket const* Write() override;
+
+            ObjectGuid MoverGUID;
+            float Speed = 1.0f;
+        };
+
+        class MoveSetSpeed : public ServerPacket
+        {
+        public:
+            explicit MoveSetSpeed(OpcodeServer opcode) : ServerPacket(opcode, 8 + 4 + 1 + 4) { }
+
+            WorldPacket const* Write() override;
+
+            ObjectGuid MoverGUID;
+            uint32 SequenceIndex = 0; ///< Unit movement packet index, incremented each time
+            float Speed = 1.0f;
+            bool Unknown = true;
+        };
+
+        class MoveUpdateSpeed : public ServerPacket
+        {
+        public:
+            explicit MoveUpdateSpeed(OpcodeServer opcode) : ServerPacket(opcode, 8 + 30 + 4) { }
+
+            WorldPacket const* Write() override;
+
+            MovementInfo* Status = nullptr;
+            float Speed = 1.0f;
+        };
+
+        struct ShipTransferPending
+        {
+            uint32 ID = 0;              ///< gameobject_template.entry of the transport the player is teleporting on
+            int32 OriginMapID = -1;     ///< Map id the player is currently on (before teleport)
+        };
+
+        class TransferPending final : public ServerPacket
+        {
+        public:
+            explicit TransferPending() : ServerPacket(SMSG_TRANSFER_PENDING, 4 + 4 + 4) { }
+
+            WorldPacket const* Write() override;
+
+            int32 MapID = -1;
+            Optional<ShipTransferPending> Ship;
+        };
+
+        class TransferAborted final : public ServerPacket
+        {
+        public:
+            explicit TransferAborted() : ServerPacket(SMSG_TRANSFER_ABORTED, 4 + 1 + 1) { }
+
+            WorldPacket const* Write() override;
+
+            uint32 MapID = 0;
+            uint8 Arg = 0;
+            uint8 TransfertAbort = 0;
+        };
+
         class NewWorld final : public ServerPacket
         {
         public:
-            explicit NewWorld() : ServerPacket(SMSG_NEW_WORLD, 4 + 4 + 4 + 4 + 4) {}
+            explicit NewWorld() : ServerPacket(SMSG_NEW_WORLD, 4 + 4 + 4 + 4 + 4) { }
 
             WorldPacket const* Write() override;
 
