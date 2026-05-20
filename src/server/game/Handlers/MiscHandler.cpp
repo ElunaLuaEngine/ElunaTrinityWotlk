@@ -52,6 +52,7 @@
 #include "LuaEngine.h"
 #endif
 #include "SpellInfo.h"
+#include "SpellPackets.h"
 #include "WhoListStorage.h"
 #include "World.h"
 #include "WorldPacket.h"
@@ -531,24 +532,21 @@ void WorldSession::HandleZoneUpdateOpcode(WorldPacket& recvData)
     //GetPlayer()->SendInitWorldStates(true, newZone);
 }
 
-void WorldSession::HandleSetSelectionOpcode(WorldPacket& recvData)
+void WorldSession::HandleSetSelectionOpcode(WorldPackets::Misc::SetSelection& packet)
 {
-    ObjectGuid guid;
-    recvData >> guid;
-
-    _player->SetSelection(guid);
+    _player->SetSelection(packet.Selection);
 
     // Update target of current autoshoot spell
-    if (!guid.IsEmpty())
+    if (!packet.Selection.IsEmpty())
     {
         if (Spell* autoReapeatSpell = _player->GetCurrentSpell(CURRENT_AUTOREPEAT_SPELL))
         {
             if (!autoReapeatSpell->GetSpellInfo()->HasAttribute(SPELL_ATTR4_UNK24) // client automatically handles spells with SPELL_ATTR4_AUTO_RANGED_COMBAT
-                && autoReapeatSpell->m_targets.GetUnitTargetGUID() != guid)
+                && autoReapeatSpell->m_targets.GetUnitTargetGUID() != packet.Selection)
             {
                 Unit* unitTarget = [&]() -> Unit*
                 {
-                    Unit* unit = ObjectAccessor::GetUnit(*_player, guid);
+                    Unit* unit = ObjectAccessor::GetUnit(*_player, packet.Selection);
                     if (unit && _player->IsValidAttackTarget(unit, autoReapeatSpell->GetSpellInfo()))
                         return unit;
                     return nullptr;
@@ -901,17 +899,17 @@ void WorldSession::HandleRequestAccountData(WorldPackets::ClientConfig::RequestA
     SendPacket(data.Write());
 }
 
-void WorldSession::HandleSetActionButtonOpcode(WorldPacket& recvData)
+void WorldSession::HandleSetActionButtonOpcode(WorldPackets::Spells::SetActionButton& packet)
 {
-    uint8 button;
-    uint32 packetData;
-    recvData >> button >> packetData;
-    TC_LOG_DEBUG("network", "CMSG_SET_ACTION_BUTTON Button: {} Data: {}", button, packetData);
+    uint32 action = ACTION_BUTTON_ACTION(packet.Action);
+    uint8 type = ACTION_BUTTON_TYPE(packet.Action);
 
-    if (!packetData)
-        GetPlayer()->removeActionButton(button);
+    TC_LOG_DEBUG("network", "CMSG_SET_ACTION_BUTTON Button: {} Action: {} Type: {}", packet.Index, action, uint32(type));
+
+    if (!packet.Action)
+        GetPlayer()->removeActionButton(packet.Index);
     else
-        GetPlayer()->addActionButton(button, ACTION_BUTTON_ACTION(packetData), ACTION_BUTTON_TYPE(packetData));
+        GetPlayer()->addActionButton(packet.Index, action, type);
 }
 
 void WorldSession::HandleCompleteCinematic(WorldPackets::Misc::CompleteCinematic& /*packet*/)
@@ -1441,7 +1439,7 @@ void WorldSession::HandleUpdateMissileTrajectory(WorldPacket& recvPacket)
     spell->m_targets.ModSrc(firePos);
     spell->m_targets.ModDst(impactPos);
 
-    spell->m_targets.SetElevation(elevation);
+    spell->m_targets.SetPitch(elevation);
     spell->m_targets.SetSpeed(speed);
 
     if (moveStop)
