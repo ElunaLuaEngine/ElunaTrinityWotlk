@@ -3371,10 +3371,6 @@ void Player::LearnSpell(uint32 spell_id, bool dependent, uint32 fromSkill /*= 0*
         WorldPackets::Spells::LearnedSpell learnedSpell;
         learnedSpell.SpellID = spell_id;
         SendDirectMessage(learnedSpell.Write());
-        WorldPacket data(SMSG_LEARNED_SPELL, 6);
-        data << uint32(spell_id);
-        data << uint16(0);
-        SendDirectMessage(&data);
 
 #ifdef ELUNA
         if (Eluna* e = GetEluna())
