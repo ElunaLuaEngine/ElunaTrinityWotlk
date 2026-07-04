@@ -239,6 +239,11 @@ namespace WorldPackets
         class LFGLeave;
     }
 
+    namespace Loot
+    {
+        class LootUnit;
+    }
+
     namespace Mail
     {
         class MailCreateTextItem;
@@ -536,7 +541,7 @@ class TC_GAME_API WorldSession
         void SetSecurity(AccountTypes security) { _security = security; }
         std::string const& GetRemoteAddress() const { return m_Address; }
         void SetPlayer(Player* player);
-        uint8 Expansion() const { return m_expansion; }
+        uint8 GetExpansion() const { return m_expansion; }
 
         void InitWarden(SessionKey const& k, std::string const& os);
         Warden* GetWarden() { return _warden.get(); }
@@ -764,7 +769,7 @@ class TC_GAME_API WorldSession
         void HandleRepopRequest(WorldPackets::Misc::RepopRequest& packet);
         void HandleAutostoreLootItemOpcode(WorldPacket& recvPacket);
         void HandleLootMoneyOpcode(WorldPacket& recvPacket);
-        void HandleLootOpcode(WorldPacket& recvPacket);
+        void HandleLootOpcode(WorldPackets::Loot::LootUnit& packet);
         void HandleLootReleaseOpcode(WorldPacket& recvPacket);
         void HandleLootMasterGiveOpcode(WorldPacket& recvPacket);
         void HandleWhoOpcode(WorldPacket& recvPacket);
