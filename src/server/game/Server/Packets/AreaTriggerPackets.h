@@ -15,22 +15,25 @@
  * with this program. If not, see <http://www.gnu.org/licenses/>.
  */
 
-#include "Common.h"
-#include "Log.h"
-#include "WorldPacket.h"
-#include "WorldSession.h"
+#ifndef TRINITYCORE_AREA_TRIGGER_PACKETS_H
+#define TRINITYCORE_AREA_TRIGGER_PACKETS_H
 
-void WorldSession::HandleVoiceSessionEnableOpcode(WorldPacket& recvData)
+#include "Packet.h"
+
+namespace WorldPackets
 {
-    TC_LOG_DEBUG("network", "WORLD: CMSG_VOICE_SESSION_ENABLE");
-    // uint8 isVoiceEnabled, uint8 isMicrophoneEnabled
-    recvData.read_skip<uint8>();
-    recvData.read_skip<uint8>();
+    namespace AreaTrigger
+    {
+        class AreaTrigger final : public ClientPacket
+        {
+        public:
+            explicit AreaTrigger(WorldPacket&& packet) : ClientPacket(CMSG_AREATRIGGER, std::move(packet)) { }
+
+            void Read() override;
+
+            int32 AreaTriggerID = 0;
+        };
+    }
 }
 
-void WorldSession::HandleSetActiveVoiceChannel(WorldPacket& recvData)
-{
-    TC_LOG_DEBUG("network", "WORLD: CMSG_SET_ACTIVE_VOICE_CHANNEL");
-    recvData.read_skip<uint32>();
-    recvData.read_skip<char*>();
-}
+#endif // TRINITYCORE_AREA_TRIGGER_PACKETS_H
