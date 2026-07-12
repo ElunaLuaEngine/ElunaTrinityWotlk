@@ -58,8 +58,8 @@ struct ItemTemplate;
 struct MovementInfo;
 struct Petition;
 struct TradeStatusInfo;
-enum AuctionAction : uint8;
-enum AuctionError : uint8;
+enum AuctionCommand : uint8;
+enum AuctionResult : uint8;
 enum InventoryResult : uint8;
 
 namespace lfg
@@ -83,6 +83,11 @@ namespace WorldPackets
     namespace AreaTrigger
     {
         class AreaTrigger;
+    }
+
+    namespace AuctionHouse
+    {
+        class AuctionHelloRequest;
     }
 
     namespace Bank
@@ -258,6 +263,9 @@ namespace WorldPackets
     namespace Loot
     {
         class LootUnit;
+        class LootItem;
+        class LootRelease;
+        class LootMoney;
     }
 
     namespace Mail
@@ -331,6 +339,7 @@ namespace WorldPackets
         class QueryGameObject;
         class QueryCorpseLocationFromClient;
         class QueryCorpseTransport;
+        class QueryTime;
         class QueryItemSingle;
         class QuestPOIQuery;
     }
@@ -665,7 +674,7 @@ class TC_GAME_API WorldSession
          * @param   errorCode       The resulting error code.
          * @param   bagResult       (Optional) InventoryResult.
          */
-        void SendAuctionCommandResult(AuctionEntry const* auction, AuctionAction command, AuctionError errorCode, InventoryResult bagResult = InventoryResult(0));
+        void SendAuctionCommandResult(AuctionEntry const* auction, AuctionCommand command, AuctionResult errorCode, InventoryResult bagResult = InventoryResult(0));
         void SendAuctionBidderNotification(uint32 location, uint32 auctionId, ObjectGuid bidder, uint32 bidSum, uint32 diff, uint32 item_template);
         void SendAuctionOwnerNotification(AuctionEntry* auction);
         void SendAuctionRemovedNotification(uint32 auctionId, uint32 itemEntry, int32 randomPropertyId);
@@ -788,10 +797,10 @@ class TC_GAME_API WorldSession
         void HandleRepairItemOpcode(WorldPackets::Item::RepairItem& packet);
 
         void HandleRepopRequest(WorldPackets::Misc::RepopRequest& packet);
-        void HandleAutostoreLootItemOpcode(WorldPacket& recvPacket);
-        void HandleLootMoneyOpcode(WorldPacket& recvPacket);
+        void HandleAutostoreLootItemOpcode(WorldPackets::Loot::LootItem& packet);
+        void HandleLootMoneyOpcode(WorldPackets::Loot::LootMoney& packet);
         void HandleLootOpcode(WorldPackets::Loot::LootUnit& packet);
-        void HandleLootReleaseOpcode(WorldPacket& recvPacket);
+        void HandleLootReleaseOpcode(WorldPackets::Loot::LootRelease& packet);
         void HandleLootMasterGiveOpcode(WorldPacket& recvPacket);
         void HandleWhoOpcode(WorldPacket& recvPacket);
         void HandleLogoutRequestOpcode(WorldPackets::Character::LogoutRequest& logoutRequest);
@@ -841,7 +850,7 @@ class TC_GAME_API WorldSession
         void HandleGameobjectReportUse(WorldPackets::GameObject::GameObjReportUse& packet);
 
         void HandleNameQueryOpcode(WorldPackets::Query::QueryPlayerName& queryPlayerName);
-        void HandleQueryTimeOpcode(WorldPacket& recvPacket);
+        void HandleQueryTimeOpcode(WorldPackets::Query::QueryTime& queryTime);
         void HandleCreatureQueryOpcode(WorldPackets::Query::QueryCreature& query);
 
         void HandleGameObjectQueryOpcode(WorldPackets::Query::QueryGameObject& query);
@@ -952,7 +961,7 @@ class TC_GAME_API WorldSession
         void HandleSetTradeItemOpcode(WorldPacket& recvPacket);
         void HandleUnacceptTradeOpcode(WorldPacket& recvPacket);
 
-        void HandleAuctionHelloOpcode(WorldPacket& recvPacket);
+        void HandleAuctionHelloOpcode(WorldPackets::AuctionHouse::AuctionHelloRequest& packet);
         void HandleAuctionListItems(WorldPacket& recvData);
         void HandleAuctionListBidderItems(WorldPacket& recvData);
         void HandleAuctionSellItem(WorldPacket& recvData);

@@ -1375,7 +1375,7 @@ class TC_GAME_API Player : public Unit, public GridObject<Player>
         bool m_mailsUpdated;
 
         void SetBindPoint(ObjectGuid guid) const;
-        void SendTalentWipeConfirm(ObjectGuid trainerGuid) const;
+        void SendRespecWipeConfirm(ObjectGuid const& guid, uint32 cost) const;
         void ResetPetTalents();
         void RegenerateAll();
         void Regenerate(Powers power);
@@ -1477,7 +1477,7 @@ class TC_GAME_API Player : public Unit, public GridObject<Player>
         void SetTalentGroupsCount(uint8 count) { _talentMgr->GroupsCount = count; }
 
         bool ResetTalents(bool involuntarily = false);
-        uint32 ResetTalentsCost() const;
+        uint32 GetNextResetTalentsCost() const;
         void IncreaseResetTalentsCostAndCounters(uint32 lastResetTalentsCost);
         void InitTalentForLevel();
         void BuildPlayerTalentsInfoData(WorldPackets::Talent::TalentInfoUpdate& talentInfo);
@@ -1950,9 +1950,9 @@ class TC_GAME_API Player : public Unit, public GridObject<Player>
         std::vector<ItemSetEffect*> ItemSetEff;
 
         void SendLoot(ObjectGuid guid, LootType loot_type);
-        void SendLootError(ObjectGuid guid, LootError error) const;
+        void SendLootError(ObjectGuid const& owner, LootError error) const;
         void SendLootRelease(ObjectGuid guid) const;
-        void SendNotifyLootItemRemoved(uint8 lootSlot) const;
+        void SendNotifyLootItemRemoved(uint8 lootListId) const;
         void SendNotifyLootMoneyRemoved() const;
 
         /*********************************************************/
@@ -2289,7 +2289,7 @@ class TC_GAME_API Player : public Unit, public GridObject<Player>
         /*********************************************************/
 
         void _LoadActions(PreparedQueryResult result);
-        void _LoadAuras(PreparedQueryResult result, uint32 timediff);
+        void _LoadAuras(PreparedQueryResult auraResult, uint32 timediff);
         void _LoadGlyphAuras();
         void _LoadBoundInstances(PreparedQueryResult result);
         void _LoadInventory(PreparedQueryResult result, uint32 timeDiff);
