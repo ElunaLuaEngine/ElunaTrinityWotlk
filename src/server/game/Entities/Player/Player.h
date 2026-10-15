@@ -439,6 +439,12 @@ enum PlayerFieldByte2Flags
     PLAYER_FIELD_BYTE2_INVISIBILITY_GLOW    = 0x40
 };
 
+enum PlayerFieldKillsOffsets
+{
+    PLAYER_FIELD_KILLS_OFFSET_TODAY_KILLS     = 0,
+    PLAYER_FIELD_KILLS_OFFSET_YESTERDAY_KILLS = 1
+};
+
 enum MirrorTimerType
 {
     FATIGUE_TIMER      = 0,
@@ -1167,8 +1173,8 @@ class TC_GAME_API Player : public Unit, public GridObject<Player>
         void RemoveItemFromBuyBackSlot(uint32 slot, bool del);
         uint32 GetMaxKeyringSize() const { return KEYRING_SLOT_END-KEYRING_SLOT_START; }
         void SendEquipError(InventoryResult msg, Item const* item1 = nullptr, Item const* item2 = nullptr, uint32 itemId = 0) const;
-        void SendBuyError(BuyResult msg, Creature* creature, uint32 item, uint32 param) const;
-        void SendSellError(SellResult msg, Creature* creature, ObjectGuid guid, uint32 param) const;
+        void SendBuyError(BuyResult msg, Creature const* creature, uint32 vendorslot) const;
+        void SendSellError(SellResult msg, Creature const* creature, ObjectGuid guid, uint32 param) const;
         void AddWeaponProficiency(uint32 newflag) { m_WeaponProficiency |= newflag; }
         void AddArmorProficiency(uint32 newflag) { m_ArmorProficiency |= newflag; }
         uint32 GetWeaponProficiency() const { return m_WeaponProficiency; }
@@ -1556,6 +1562,7 @@ class TC_GAME_API Player : public Unit, public GridObject<Player>
         void SendInitialActionButtons() const { SendActionButtons(1); }
         void SendActionButtons(uint32 state) const;
         bool IsActionButtonDataValid(uint8 button, uint32 action, uint8 type) const;
+        void SetMultiActionBars(uint8 mask) { SetByteValue(PLAYER_FIELD_BYTES, PLAYER_FIELD_BYTES_OFFSET_ACTION_BAR_TOGGLES, mask); }
 
         PvPInfo pvpInfo;
         void InitPvP();
@@ -1932,7 +1939,7 @@ class TC_GAME_API Player : public Unit, public GridObject<Player>
         void UpdateEquipSpellsAtFormChange();
         void CastItemCombatSpell(DamageInfo const& damageInfo);
         void CastItemCombatSpell(DamageInfo const& damageInfo, Item* item, ItemTemplate const* proto);
-        void CastItemUseSpell(Item* item, uint32 spellId, SpellCastTargets const& targets, uint8 cast_count, uint32 glyphIndex);
+        void CastItemUseSpell(Item* item, uint32 spellId, SpellCastTargets const& targets, uint8 castCount, uint32 misc);
 
         void SendEquipmentSetList();
         void SetEquipmentSet(EquipmentSetInfo::EquipmentSetData const& eqset);

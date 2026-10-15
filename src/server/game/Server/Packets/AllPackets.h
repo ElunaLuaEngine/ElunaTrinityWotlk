@@ -49,11 +49,14 @@
 #include "QueryPackets.h"
 #include "QuestPackets.h"
 #include "ReputationPackets.h"
+#include "SocialPackets.h"
 #include "SpellPackets.h"
 #include "SystemPackets.h"
 #include "TalentPackets.h"
+#include "TicketPackets.h"
 #include "TotemPackets.h"
 #include "TradePackets.h"
+#include "WhoPackets.h"
 #include "WorldStatePackets.h"
 
 #endif // TRINITYCORE_ALL_PACKETS_H

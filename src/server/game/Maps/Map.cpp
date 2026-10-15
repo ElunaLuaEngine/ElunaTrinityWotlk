@@ -3896,7 +3896,7 @@ Map::EnterState InstanceMap::CannotEnter(Player* player)
     }
 
     // cannot enter while an encounter is in progress (unless this is a relog, in which case it is permitted)
-    if (!player->IsLoading() && IsRaid() && GetInstanceScript() && GetInstanceScript()->IsEncounterInProgress())
+    if (!player->IsLoading() && GetInstanceScript() && GetInstanceScript()->IsEncounterInProgress())
         return CANNOT_ENTER_ZONE_IN_COMBAT;
 
     // cannot enter if player is permanent saved to a different instance id
@@ -4692,19 +4692,23 @@ Corpse* Map::ConvertCorpseToBones(ObjectGuid const& ownerGuid, bool insignia /*=
         bones = new Corpse();
         bones->Create(corpse->GetGUID().GetCounter());
 
-        for (uint8 i = OBJECT_FIELD_TYPE + 1; i < CORPSE_END; ++i)                    // don't overwrite guid and object type
-            bones->SetUInt32Value(i, corpse->GetUInt32Value(i));
+        bones->ReplaceAllCorpseDynamicFlags(corpse->GetCorpseDynamicFlags());
+        bones->SetOwnerGUID(corpse->GetOwnerGUID());
+        bones->SetPartyGUID(corpse->GetPartyGUID());
+        bones->SetDisplayId(corpse->GetDisplayId());
+        bones->SetRace(corpse->GetRace());
+        bones->SetSex(corpse->GetSex());
+        bones->SetSkinId(corpse->GetSkinId());
+        bones->SetFaceId(corpse->GetFaceId());
+        bones->SetHairStyleId(corpse->GetHairStyleId());
+        bones->SetHairColorId(corpse->GetHairColorId());
+        bones->SetFacialStyle(corpse->GetFacialStyle());
+        bones->ReplaceAllCorpseFlags(corpse->GetCorpseFlags() | CORPSE_FLAG_BONES);
 
         bones->SetCellCoord(corpse->GetCellCoord());
         bones->Relocate(corpse->GetPositionX(), corpse->GetPositionY(), corpse->GetPositionZ(), corpse->GetOrientation());
+
         bones->SetPhaseMask(corpse->GetPhaseMask(), false);
-
-        bones->SetUInt32Value(CORPSE_FIELD_FLAGS, CORPSE_FLAG_UNK2 | CORPSE_FLAG_BONES);
-        bones->SetGuidValue(CORPSE_FIELD_OWNER, ObjectGuid::Empty);
-
-        for (uint8 i = 0; i < EQUIPMENT_SLOT_END; ++i)
-            if (corpse->GetUInt32Value(CORPSE_FIELD_ITEM + i))
-                bones->SetUInt32Value(CORPSE_FIELD_ITEM + i, 0);
 
         AddCorpse(bones);
 

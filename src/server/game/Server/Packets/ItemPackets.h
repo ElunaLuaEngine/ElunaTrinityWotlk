@@ -37,6 +37,59 @@ namespace WorldPackets
             uint32 Slot = 0;
         };
 
+        class BuyItem final : public ClientPacket
+        {
+        public:
+            explicit BuyItem(WorldPacket&& packet) : ClientPacket(CMSG_BUY_ITEM, std::move(packet)) { }
+
+            void Read() override;
+
+            ObjectGuid VendorGUID;
+            uint32 ItemID = 0u;
+            uint32 Muid = 0u;
+            int32 Quantity = 0;
+        };
+
+        class BuyItemInSlot final : public ClientPacket
+        {
+        public:
+            explicit BuyItemInSlot(WorldPacket&& packet) : ClientPacket(CMSG_BUY_ITEM_IN_SLOT, std::move(packet)) { }
+
+            void Read() override;
+
+            ObjectGuid VendorGUID;
+            uint32 ItemID = 0u;
+            uint32 Muid = 0u;
+            uint8 Slot = 0u;
+            int32 Quantity = 0;
+            ObjectGuid ContainerGUID;
+        };
+
+        class BuySucceeded final : ServerPacket
+        {
+        public:
+            explicit BuySucceeded() : ServerPacket(SMSG_BUY_ITEM, 8 + 4 + 4 + 4) { }
+
+            WorldPacket const* Write() override;
+
+            ObjectGuid VendorGUID;
+            uint32 Muid = 0u;
+            uint32 QuantityBought = 0u;
+            int32 NewQuantity = 0;
+        };
+
+        class BuyFailed final : ServerPacket
+        {
+        public:
+            explicit BuyFailed() : ServerPacket(SMSG_BUY_FAILED, 8 + 4 + 1) { }
+
+            WorldPacket const* Write() override;
+
+            ObjectGuid VendorGUID;
+            uint32 Muid = 0u;
+            BuyResult Reason = BUY_ERR_CANT_FIND_ITEM;
+        };
+
         class GetItemPurchaseData final : public ClientPacket
         {
         public:
@@ -157,6 +210,18 @@ namespace WorldPackets
 
             uint8 Slot = 0;
             uint8 PackSlot = 0;
+        };
+
+        class AutoStoreBagItem final : public ClientPacket
+        {
+        public:
+            explicit AutoStoreBagItem(WorldPacket&& packet) : ClientPacket(CMSG_AUTOSTORE_BAG_ITEM, std::move(packet)) { }
+
+            void Read() override;
+
+            uint8 ContainerSlotB = 0;
+            uint8 ContainerSlotA = 0;
+            uint8 SlotA = 0;
         };
 
         class DestroyItem final : public ClientPacket

@@ -118,14 +118,6 @@ void Object::_Create(ObjectGuid const& guid)
     m_PackGUID.Set(guid);
 }
 
-std::string Object::_ConcatFields(uint16 startIndex, uint16 size) const
-{
-    std::ostringstream ss;
-    for (uint16 index = 0; index < size; ++index)
-        ss << GetUInt32Value(index + startIndex) << ' ';
-    return ss.str();
-}
-
 void Object::AddToWorld()
 {
     if (m_inWorld)
@@ -742,6 +734,15 @@ void Object::ApplyModInt32Value(uint16 index, int32 val, bool apply)
     int32 cur = GetInt32Value(index);
     cur += (apply ? val : -val);
     SetInt32Value(index, cur);
+}
+
+void Object::ApplyModUInt16Value(uint16 index, uint8 offset, int16 val, bool apply)
+{
+    int16 cur = GetUInt16Value(index, offset);
+    cur += (apply ? val : -val);
+    if (cur < 0)
+        cur = 0;
+    SetUInt16Value(index, offset, cur);
 }
 
 void Object::ApplyModSignedFloatValue(uint16 index, float val, bool apply)

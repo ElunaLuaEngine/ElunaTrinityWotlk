@@ -117,14 +117,9 @@ void SpellDestination::RelocateOffset(Position const& offset)
     _position.RelocateOffset(offset);
 }
 
-SpellCastTargets::SpellCastTargets() : m_pitch(0), m_speed(0), m_strTarget()
+SpellCastTargets::SpellCastTargets() : m_targetMask(0), m_objectTarget(nullptr), m_itemTarget(nullptr),
+    m_itemTargetEntry(0), m_pitch(0.0f), m_speed(0.0f)
 {
-    m_objectTarget = nullptr;
-    m_itemTarget = nullptr;
-
-    m_itemTargetEntry  = 0;
-
-    m_targetMask = 0;
 }
 
 SpellCastTargets::SpellCastTargets(Unit* caster, WorldPackets::Spells::SpellCastRequest const& spellCastRequest) :
@@ -590,14 +585,7 @@ m_caster((info->HasAttribute(SPELL_ATTR6_CAST_BY_CHARMER) && caster->GetCharmerO
     else
         m_originalCasterGUID = m_caster->GetGUID();
 
-    if (m_originalCasterGUID == m_caster->GetGUID())
-        m_originalCaster = m_caster->ToUnit();
-    else
-    {
-        m_originalCaster = ObjectAccessor::GetUnit(*m_caster, m_originalCasterGUID);
-        if (m_originalCaster && !m_originalCaster->IsInWorld())
-            m_originalCaster = nullptr;
-    }
+    UpdateOriginalCasterPointer();
 
     m_spellState = SPELL_STATE_NULL;
     _triggeredCastFlags = triggerFlags;
@@ -624,7 +612,7 @@ m_caster((info->HasAttribute(SPELL_ATTR6_CAST_BY_CHARMER) && caster->GetCharmerO
     m_hitMask = 0;
     focusObject = nullptr;
     m_cast_count = 0;
-    m_glyphIndex = 0;
+    m_misc.Data = 0;
     m_triggeredByAuraSpell  = nullptr;
     _spellAura = nullptr;
     _dynObjAura = nullptr;
@@ -3335,6 +3323,9 @@ void Spell::cancel(SpellCastResult result /*= SPELL_FAILED_INTERRUPTED*/, Option
     SetReferencedFromCurrent(false);
     if (m_selfContainer && *m_selfContainer == this)
         *m_selfContainer = nullptr;
+
+    // update original caster pointer to prevent access to non-existed already object (grid unload)
+    UpdateOriginalCasterPointer();
 
     // originalcaster handles gameobjects/dynobjects for gob caster
     if (m_originalCaster)
@@ -7311,7 +7302,7 @@ void Spell::DelayedChannel()
     SendChannelUpdate(m_timer);
 }
 
-bool Spell::UpdatePointers()
+void Spell::UpdateOriginalCasterPointer()
 {
     if (m_originalCasterGUID == m_caster->GetGUID())
         m_originalCaster = m_caster->ToUnit();
@@ -7321,6 +7312,11 @@ bool Spell::UpdatePointers()
         if (m_originalCaster && !m_originalCaster->IsInWorld())
             m_originalCaster = nullptr;
     }
+}
+
+bool Spell::UpdatePointers()
+{
+    UpdateOriginalCasterPointer();
 
     if (!m_focusObjectGUID.IsEmpty())
         focusObject = ObjectAccessor::GetGameObject(*m_caster, m_focusObjectGUID);
@@ -7454,7 +7450,7 @@ bool Spell::CheckEffectTarget(Unit const* target, SpellEffectInfo const& spellEf
             if (target->GetGUID() != corpse->GetOwnerGUID())
                 return false;
 
-            if (!corpse->HasFlag(CORPSE_FIELD_FLAGS, CORPSE_FLAG_LOOTABLE))
+            if (!corpse->HasCorpseFlag(CORPSE_FLAG_LOOTABLE))
                 return false;
 
             if (!corpse->IsWithinLOSInMap(m_caster, LINEOFSIGHT_ALL_CHECKS, VMAP::ModelIgnoreFlags::M2))

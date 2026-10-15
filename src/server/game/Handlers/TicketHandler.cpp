@@ -26,6 +26,7 @@
 #include "Player.h"
 #include "Random.h"
 #include "TicketMgr.h"
+#include "TicketPackets.h"
 #include "Util.h"
 #include "World.h"
 #include "WorldPacket.h"
@@ -96,7 +97,7 @@ void WorldSession::HandleGMTicketCreateOpcode(WorldPacket& recvData)
             }
             else
             {
-                TC_LOG_ERROR("network", "CMSG_GMTICKET_CREATE possibly corrupt. Uncompression failed.");
+                TC_LOG_ERROR("network", "CMSG_GM_TICKET_CREATE possibly corrupt. Uncompression failed.");
                 recvData.rfinish();
                 return;
             }
@@ -167,7 +168,7 @@ void WorldSession::HandleGMTicketDeleteOpcode(WorldPacket & /*recvData*/)
     }
 }
 
-void WorldSession::HandleGMTicketGetTicketOpcode(WorldPacket & /*recvData*/)
+void WorldSession::HandleGMTicketGetTicketOpcode(WorldPackets::Ticket::GMTicketGetTicket& /*packet*/)
 {
     SendQueryTimeResponse();
 
@@ -182,13 +183,13 @@ void WorldSession::HandleGMTicketGetTicketOpcode(WorldPacket & /*recvData*/)
         sTicketMgr->SendTicket(this, nullptr);
 }
 
-void WorldSession::HandleGMTicketSystemStatusOpcode(WorldPacket & /*recvData*/)
+void WorldSession::HandleGMTicketSystemStatusOpcode(WorldPackets::Ticket::GMTicketGetSystemStatus& /*packet*/)
 {
     // Note: This only disables the ticket UI at client side and is not fully reliable
-    // are we sure this is a uint32? Should ask Zor
-    WorldPacket data(SMSG_GMTICKET_SYSTEMSTATUS, 4);
-    data << uint32(sTicketMgr->GetStatus() ? GMTICKET_QUEUE_STATUS_ENABLED : GMTICKET_QUEUE_STATUS_DISABLED);
-    SendPacket(&data);
+    // Note: This disables the whole customer support UI after trying to send a ticket in disabled state (MessageBox: "GM Help Tickets are currently unavaiable."). UI remains disabled until the character relogs.
+    WorldPackets::Ticket::GMTicketSystemStatus response;
+    response.Status = sTicketMgr->GetStatus() ? GMTICKET_QUEUE_STATUS_ENABLED : GMTICKET_QUEUE_STATUS_DISABLED;
+    SendPacket(response.Write());
 }
 
 void WorldSession::HandleGMSurveySubmit(WorldPacket& recvData)

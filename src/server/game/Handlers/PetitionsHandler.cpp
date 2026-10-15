@@ -173,13 +173,13 @@ void WorldSession::HandlePetitionBuyOpcode(WorldPacket& recvData)
     ItemTemplate const* pProto = sObjectMgr->GetItemTemplate(charterid);
     if (!pProto)
     {
-        _player->SendBuyError(BUY_ERR_CANT_FIND_ITEM, nullptr, charterid, 0);
+        _player->SendBuyError(BUY_ERR_CANT_FIND_ITEM, nullptr, 0);
         return;
     }
 
     if (!_player->HasEnoughMoney(cost))
     {                                                       //player hasn't got enough money
-        _player->SendBuyError(BUY_ERR_NOT_ENOUGHT_MONEY, creature, charterid, 0);
+        _player->SendBuyError(BUY_ERR_NOT_ENOUGHT_MONEY, creature, 0);
         return;
     }
 
@@ -191,14 +191,12 @@ void WorldSession::HandlePetitionBuyOpcode(WorldPacket& recvData)
         return;
     }
 
-    _player->ModifyMoney(-(int32)cost);
+    _player->ModifyMoney(-int32(cost));
     Item* charter = _player->StoreNewItem(dest, charterid, true);
     if (!charter)
         return;
 
-    charter->SetUInt32Value(ITEM_FIELD_ENCHANTMENT_1_1, charter->GetGUID().GetCounter());
-    // ITEM_FIELD_ENCHANTMENT_1_1 is guild/arenateam id
-    // ITEM_FIELD_ENCHANTMENT_1_1+1 is current signatures count (showed on item)
+    charter->SetPetitionId(charter->GetGUID().GetCounter());
     charter->SetState(ITEM_CHANGED, _player);
     _player->SendNewItem(charter, 1, true, false);
 
@@ -321,7 +319,7 @@ void WorldSession::SendPetitionQueryOpcode(ObjectGuid petitionguid)
 
 void WorldSession::HandlePetitionRenameGuild(WorldPacket& recvData)
 {
-    TC_LOG_DEBUG("network", "Received opcode MSG_PETITION_RENAME");
+    TC_LOG_DEBUG("network", "Received opcode CMSG_PETITION_RENAME_GUILD");
 
     ObjectGuid petitionGuid;
     std::string newName;
@@ -483,6 +481,13 @@ void WorldSession::HandleSignPetition(WorldPacket& recvData)
     data << _player->GetGUID();
     data << uint32(PETITION_SIGN_OK);
     SendPacket(&data);
+
+    // update signs count on charter
+    if (Item* item = _player->GetItemByGuid(petitionGuid))
+    {
+        item->SetPetitionNumSignatures(signs);
+        item->SetState(ITEM_CHANGED, _player);
+    }
 
     // update for owner if online
     if (Player* owner = ObjectAccessor::FindConnectedPlayer(ownerGuid))

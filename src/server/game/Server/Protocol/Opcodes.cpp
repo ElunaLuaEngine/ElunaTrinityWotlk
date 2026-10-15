@@ -854,7 +854,7 @@ void OpcodeTable::Initialize()
     /*0x2D3*/ DEFINE_HANDLER(CMSG_BATTLEFIELD_STATUS,                      STATUS_LOGGEDIN, PROCESS_THREADUNSAFE, &WorldSession::HandleRequestBattlefieldStatusOpcode);
     /*0x2D4*/ DEFINE_SERVER_OPCODE_HANDLER(SMSG_BATTLEFIELD_STATUS,        STATUS_NEVER);
     /*0x2D5*/ DEFINE_HANDLER(CMSG_BATTLEFIELD_PORT,                        STATUS_LOGGEDIN, PROCESS_THREADUNSAFE, &WorldSession::HandleBattleFieldPortOpcode     );
-    /*0x2D6*/ DEFINE_HANDLER(MSG_INSPECT_HONOR_STATS,                      STATUS_LOGGEDIN, PROCESS_INPLACE,      &WorldSession::HandleInspectHonorStatsOpcode   );
+    /*0x2D6*/ DEFINE_HANDLER(MSG_INSPECT_HONOR_STATS,                      STATUS_LOGGEDIN, PROCESS_INPLACE,      &WorldSession::HandleRequestHonorStats         );
     /*0x2D7*/ DEFINE_HANDLER(CMSG_BATTLEMASTER_HELLO,                      STATUS_LOGGEDIN, PROCESS_THREADUNSAFE, &WorldSession::HandleBattlemasterHelloOpcode   );
     /*0x2D8*/ DEFINE_HANDLER(CMSG_MOVE_START_SWIM_CHEAT,                   STATUS_NEVER,    PROCESS_INPLACE,      &WorldSession::Handle_NULL                     );
     /*0x2D9*/ DEFINE_HANDLER(CMSG_MOVE_STOP_SWIM_CHEAT,                    STATUS_NEVER,    PROCESS_INPLACE,      &WorldSession::Handle_NULL                     );
@@ -1398,7 +1398,7 @@ void OpcodeTable::Initialize()
     /*0x4F3*/ DEFINE_HANDLER(CMSG_GMRESPONSE_CREATE_TICKET,                STATUS_NEVER,    PROCESS_INPLACE,      &WorldSession::Handle_NULL                     );
     /*0x4F4*/ DEFINE_HANDLER(CMSG_SERVERINFO,                              STATUS_NEVER,    PROCESS_INPLACE,      &WorldSession::Handle_NULL                     );
     /*0x4F5*/ DEFINE_SERVER_OPCODE_HANDLER(SMSG_SERVERINFO,                STATUS_NEVER);
-    /*0x4F6*/ DEFINE_HANDLER(CMSG_WORLD_STATE_UI_TIMER_UPDATE,             STATUS_LOGGEDIN, PROCESS_INPLACE,      &WorldSession::HandleWorldStateUITimerUpdate   );
+    /*0x4F6*/ DEFINE_HANDLER(CMSG_WORLD_STATE_UI_TIMER_UPDATE,             STATUS_LOGGEDIN, PROCESS_INPLACE,      &WorldSession::HandleUITimeRequest             );
     /*0x4F7*/ DEFINE_SERVER_OPCODE_HANDLER(SMSG_WORLD_STATE_UI_TIMER_UPDATE, STATUS_NEVER);
     /*0x4F8*/ DEFINE_HANDLER(CMSG_CHAR_RACE_CHANGE,                        STATUS_AUTHED,   PROCESS_THREADUNSAFE, &WorldSession::HandleCharRaceOrFactionChange   );
     /*0x4F9*/ DEFINE_HANDLER(MSG_VIEW_PHASE_SHIFT,                         STATUS_NEVER,    PROCESS_INPLACE,      &WorldSession::Handle_NULL                     );

@@ -492,7 +492,7 @@ void WorldSession::HandleBuybackItem(WorldPackets::Item::BuyBackItem& packet)
         uint32 price = _player->GetUInt32Value(PLAYER_FIELD_BUYBACK_PRICE_1 + packet.Slot - BUYBACK_SLOT_START);
         if (!_player->HasEnoughMoney(price))
         {
-            _player->SendBuyError(BUY_ERR_NOT_ENOUGHT_MONEY, creature, pItem->GetEntry(), 0);
+            _player->SendBuyError(BUY_ERR_NOT_ENOUGHT_MONEY, creature, 0);
             return;
         }
 
@@ -510,51 +510,39 @@ void WorldSession::HandleBuybackItem(WorldPackets::Item::BuyBackItem& packet)
         return;
     }
     else
-        _player->SendBuyError(BUY_ERR_CANT_FIND_ITEM, creature, 0, 0);
+        _player->SendBuyError(BUY_ERR_CANT_FIND_ITEM, creature, 0);
 }
 
-void WorldSession::HandleBuyItemInSlotOpcode(WorldPacket& recvData)
+void WorldSession::HandleBuyItemInSlotOpcode(WorldPackets::Item::BuyItemInSlot& packet)
 {
-    TC_LOG_DEBUG("network", "WORLD: Received CMSG_BUY_ITEM_IN_SLOT");
-    ObjectGuid vendorguid, bagguid;
-    uint32 item, slot, count;
-    uint8 bagslot;
-
-    recvData >> vendorguid >> item  >> slot >> bagguid >> bagslot >> count;
-
     // client expects count starting at 1, and we send vendorslot+1 to client already
-    if (slot > 0)
-        --slot;
+    if (packet.Muid > 0)
+        --packet.Muid;
     else
         return;                                             // cheating
 
     uint8 bag = NULL_BAG;
-    if (bagguid == GetPlayer()->GetGUID()) // The client sends the player guid when trying to store an item in the default backpack
+    if (packet.ContainerGUID == GetPlayer()->GetGUID()) // The client sends the player guid when trying to store an item in the default backpack
         bag = INVENTORY_SLOT_BAG_0;
-    else if (Item* bagItem = _player->GetItemByGuid(bagguid))
+    else if (Item* bagItem = _player->GetItemByGuid(packet.ContainerGUID))
         bag = bagItem->GetSlot();
     else
         return;
 
-    GetPlayer()->BuyItemFromVendorSlot(vendorguid, slot, item, count, bag, bagslot);
+    GetPlayer()->BuyItemFromVendorSlot(packet.VendorGUID, packet.Muid, packet.ItemID,
+        packet.Quantity, bag, packet.Slot);
 }
 
-void WorldSession::HandleBuyItemOpcode(WorldPacket& recvData)
+void WorldSession::HandleBuyItemOpcode(WorldPackets::Item::BuyItem& packet)
 {
-    TC_LOG_DEBUG("network", "WORLD: Received CMSG_BUY_ITEM");
-    ObjectGuid vendorguid;
-    uint32 item, slot, count;
-    uint8 unk1;
-
-    recvData >> vendorguid >> item >> slot >> count >> unk1;
-
     // client expects count starting at 1, and we send vendorslot+1 to client already
-    if (slot > 0)
-        --slot;
+    if (packet.Muid > 0)
+        --packet.Muid;
     else
         return; // cheating
 
-    GetPlayer()->BuyItemFromVendorSlot(vendorguid, slot, item, count, NULL_BAG, NULL_SLOT);
+    GetPlayer()->BuyItemFromVendorSlot(packet.VendorGUID, packet.Muid, packet.ItemID,
+        packet.Quantity, NULL_BAG, NULL_SLOT);
 }
 
 void WorldSession::HandleListInventoryOpcode(WorldPackets::NPC::Hello& packet)
@@ -657,42 +645,39 @@ void WorldSession::SendListInventory(ObjectGuid vendorGuid)
     SendPacket(packet.Write());
 }
 
-void WorldSession::HandleAutoStoreBagItemOpcode(WorldPacket& recvData)
+void WorldSession::HandleAutoStoreBagItemOpcode(WorldPackets::Item::AutoStoreBagItem& packet)
 {
-    //TC_LOG_DEBUG("network", "WORLD: CMSG_AUTOSTORE_BAG_ITEM");
-    uint8 srcbag, srcslot, dstbag;
+    TC_LOG_DEBUG("network", "HandleAutoStoreBagItemOpcode: receive ContainerSlotA: {}, SlotA: {}, ContainerSlotB: {}",
+        packet.ContainerSlotA, packet.SlotA, packet.ContainerSlotB);
 
-    recvData >> srcbag >> srcslot >> dstbag;
-    //TC_LOG_DEBUG("STORAGE: receive srcbag = {}, srcslot = {}, dstbag = {}", srcbag, srcslot, dstbag);
-
-    Item* pItem = _player->GetItemByPos(srcbag, srcslot);
-    if (!pItem)
+    Item* item = _player->GetItemByPos(packet.ContainerSlotA, packet.SlotA);
+    if (!item)
         return;
 
-    if (!_player->IsValidPos(dstbag, NULL_SLOT, false))      // can be autostore pos
+    if (!_player->IsValidPos(packet.ContainerSlotB, NULL_SLOT, false))      // can be autostore pos
     {
-        _player->SendEquipError(EQUIP_ERR_WRONG_SLOT, nullptr, nullptr);
+        _player->SendEquipError(EQUIP_ERR_WRONG_SLOT);
         return;
     }
 
-    uint16 src = pItem->GetPos();
+    uint16 src = item->GetPos();
 
     // check unequip potability for equipped items and bank bags
-    if (_player->IsEquipmentPos (src) || _player->IsBagPos (src))
+    if (_player->IsEquipmentPos(src) || _player->IsBagPos(src))
     {
-        InventoryResult msg = _player->CanUnequipItem(src, !_player->IsBagPos (src));
+        InventoryResult msg = _player->CanUnequipItem(src, !_player->IsBagPos(src));
         if (msg != EQUIP_ERR_OK)
         {
-            _player->SendEquipError(msg, pItem, nullptr);
+            _player->SendEquipError(msg, item);
             return;
         }
     }
 
     ItemPosCountVec dest;
-    InventoryResult msg = _player->CanStoreItem(dstbag, NULL_SLOT, dest, pItem, false);
+    InventoryResult msg = _player->CanStoreItem(packet.ContainerSlotB, NULL_SLOT, dest, item, false);
     if (msg != EQUIP_ERR_OK)
     {
-        _player->SendEquipError(msg, pItem, nullptr);
+        _player->SendEquipError(msg, item);
         return;
     }
 
@@ -700,12 +685,12 @@ void WorldSession::HandleAutoStoreBagItemOpcode(WorldPacket& recvData)
     if (dest.size() == 1 && dest[0].pos == src)
     {
         // just remove grey item state
-        _player->SendEquipError(EQUIP_ERR_INTERNAL_BAG_ERROR, pItem, nullptr);
+        _player->SendEquipError(EQUIP_ERR_INTERNAL_BAG_ERROR, item);
         return;
     }
 
-    _player->RemoveItem(srcbag, srcslot, true);
-    _player->StoreItem(dest, pItem, true);
+    _player->RemoveItem(packet.ContainerSlotA, packet.SlotA, true);
+    _player->StoreItem(dest, item, true);
 }
 
 void WorldSession::HandleSetAmmoOpcode(WorldPacket& recvData)
@@ -875,8 +860,8 @@ void WorldSession::HandleWrapItemOpcode(WorldPacket& recvData)
         case 17307: item->SetEntry(17308); break;
         case 21830: item->SetEntry(21831); break;
     }
-    item->SetGuidValue(ITEM_FIELD_GIFTCREATOR, _player->GetGUID());
-    item->SetUInt32Value(ITEM_FIELD_FLAGS, ITEM_FIELD_FLAG_WRAPPED);
+    item->SetGiftCreator(_player->GetGUID());
+    item->ReplaceAllItemFlags(ITEM_FIELD_FLAG_WRAPPED);
     item->SetState(ITEM_CHANGED, _player);
 
     if (item->GetState() == ITEM_NEW)                          // save new item, to have alway for `character_gifts` record in `item_instance`
