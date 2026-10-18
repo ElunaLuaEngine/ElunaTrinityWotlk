@@ -10040,13 +10040,13 @@ bool Player::HasItemTotemCategory(uint32 TotemCategory) const
     for (uint8 i = EQUIPMENT_SLOT_START; i < INVENTORY_SLOT_ITEM_END; ++i)
     {
         pItem = GetUseableItemByPos(INVENTORY_SLOT_BAG_0, i);
-        if (pItem && IsTotemCategoryCompatiableWith(pItem->GetTemplate()->GetTotemCategory(), TotemCategory))
+        if (pItem && IsTotemCategoryCompatibleWith(pItem->GetTemplate()->GetTotemCategory(), TotemCategory))
             return true;
     }
     for (uint8 i = KEYRING_SLOT_START; i < CURRENCYTOKEN_SLOT_END; ++i)
     {
         pItem = GetUseableItemByPos(INVENTORY_SLOT_BAG_0, i);
-        if (pItem && IsTotemCategoryCompatiableWith(pItem->GetTemplate()->GetTotemCategory(), TotemCategory))
+        if (pItem && IsTotemCategoryCompatibleWith(pItem->GetTemplate()->GetTotemCategory(), TotemCategory))
             return true;
     }
     for (uint8 i = INVENTORY_SLOT_BAG_START; i < INVENTORY_SLOT_BAG_END; ++i)
@@ -10056,7 +10056,7 @@ bool Player::HasItemTotemCategory(uint32 TotemCategory) const
             for (uint32 j = 0; j < pBag->GetBagSize(); ++j)
             {
                 pItem = GetUseableItemByPos(i, j);
-                if (pItem && IsTotemCategoryCompatiableWith(pItem->GetTemplate()->GetTotemCategory(), TotemCategory))
+                if (pItem && IsTotemCategoryCompatibleWith(pItem->GetTemplate()->GetTotemCategory(), TotemCategory))
                     return true;
             }
         }
@@ -11887,9 +11887,12 @@ Item* Player::EquipItem(uint16 pos, Item* pItem, bool update)
                     m_weaponChangeTimer = spellProto->StartRecoveryTime;
 
                     GetSpellHistory()->AddGlobalCooldown(spellProto, m_weaponChangeTimer);
-                    WorldPacket data;
-                    GetSpellHistory()->BuildCooldownPacket(data, SPELL_COOLDOWN_FLAG_INCLUDE_GCD, cooldownSpell, 0);
-                    SendDirectMessage(&data);
+
+                    WorldPackets::Spells::SpellCooldown spellCooldown;
+                    spellCooldown.Caster = GetGUID();
+                    spellCooldown.Flags = SPELL_COOLDOWN_FLAG_INCLUDE_GCD;
+                    spellCooldown.SpellCooldowns.emplace_back(cooldownSpell, 0);
+                    SendDirectMessage(spellCooldown.Write());
                 }
             }
         }
@@ -20198,10 +20201,7 @@ void Player::SendAutoRepeatCancel(Unit* target)
 
 void Player::SendExplorationExperience(uint32 Area, uint32 Experience) const
 {
-    WorldPacket data(SMSG_EXPLORATION_EXPERIENCE, 8);
-    data << uint32(Area);
-    data << uint32(Experience);
-    SendDirectMessage(&data);
+    SendDirectMessage(WorldPackets::Misc::ExplorationExperience(Experience, Area).Write());
 }
 
 void Player::SendDungeonDifficulty(bool changeCurrentDifficuly, bool changeGroupDifficuly) const
