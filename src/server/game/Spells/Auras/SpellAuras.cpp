@@ -768,7 +768,7 @@ void Aura::_ApplyEffectForTargets(uint8 effIndex)
     UnitList targetList;
     for (ApplicationMap::iterator appIter = m_applications.begin(); appIter != m_applications.end(); ++appIter)
     {
-        if ((appIter->second->GetEffectsToApply() & (1<<effIndex)) && !appIter->second->HasEffect(effIndex))
+        if ((appIter->second->GetEffectsToApply() & (1 << effIndex)) && !appIter->second->HasEffect(effIndex))
             targetList.push_back(appIter->second->GetTarget());
     }
 
@@ -835,7 +835,7 @@ void Aura::Update(uint32 diff, Unit* caster)
         {
             if (m_timeCla > int32(diff))
                 m_timeCla -= diff;
-            else if (caster)
+            else if (caster && (caster == GetOwner() || !GetSpellInfo()->HasAttribute(SPELL_ATTR2_HEALTH_FUNNEL)))
             {
                 if (int32 manaPerSecond = m_spellInfo->ManaPerSecond + m_spellInfo->ManaPerSecondPerLevel * caster->GetLevel())
                 {

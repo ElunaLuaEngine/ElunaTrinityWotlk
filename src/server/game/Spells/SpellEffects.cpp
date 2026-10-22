@@ -55,6 +55,7 @@
 #include "SpellAuras.h"
 #include "SpellHistory.h"
 #include "SpellMgr.h"
+#include "SpellPackets.h"
 #include "TemporarySummon.h"
 #include "Totem.h"
 #include "UpdateMask.h"
@@ -4183,9 +4184,9 @@ void Spell::EffectForceDeselect()
     Cell::VisitWorldObjects(unitCaster, notifierBreak, dist);
 
     // and selection
-    data.Initialize(SMSG_CLEAR_TARGET, 8);
-    data << unitCaster->GetGUID();
-    Trinity::MessageDistDelivererToHostile notifierClear(unitCaster, &data, dist);
+    WorldPackets::Spells::ClearTarget clearTarget;
+    clearTarget.Guid = unitCaster->GetGUID();
+    Trinity::MessageDistDelivererToHostile notifierClear(unitCaster, clearTarget.Write(), dist);
     Cell::VisitWorldObjects(unitCaster, notifierClear, dist);
 
     // we should also force pets to remove us from current target
@@ -4610,10 +4611,13 @@ void Spell::EffectDestroyAllTotems()
                 mana += spellInfo->ManaCost;
                 mana += int32(CalculatePct(unitCaster->GetCreateMana(), spellInfo->ManaCostPercentage));
             }
+
             totem->ToTotem()->UnSummon();
         }
     }
+
     ApplyPct(mana, damage);
+
     if (mana)
     {
         CastSpellExtraArgs args(TRIGGERED_FULL_MASK);
@@ -5426,12 +5430,8 @@ void Spell::EffectCastButtons()
         if (!spellInfo->HasAttribute(SPELL_ATTR7_SUMMON_PLAYER_TOTEM))
             continue;
 
-        uint32 cost = spellInfo->CalcPowerCost(player, spellInfo->GetSchoolMask());
-        if (player->GetPower(POWER_MANA) < cost)
-            continue;
-
         CastSpellExtraArgs args;
-        args.TriggerFlags = TRIGGERED_IGNORE_GCD | TRIGGERED_IGNORE_CAST_IN_PROGRESS | TRIGGERED_CAST_DIRECTLY;
+        args.TriggerFlags = TRIGGERED_IGNORE_GCD | TRIGGERED_IGNORE_CAST_IN_PROGRESS | TRIGGERED_CAST_DIRECTLY | TRIGGERED_DONT_REPORT_CAST_ERROR;
         m_caster->CastSpell(m_caster, spellInfo->Id, args);
     }
 }

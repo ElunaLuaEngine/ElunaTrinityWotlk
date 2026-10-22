@@ -112,20 +112,15 @@ void WorldSession::HandleQuestgiverHelloOpcode(WorldPacket& recvData)
     _player->SendPreparedGossip(creature);
 }
 
-void WorldSession::HandleQuestgiverAcceptQuestOpcode(WorldPacket& recvData)
+void WorldSession::HandleQuestgiverAcceptQuestOpcode(WorldPackets::Quest::QuestGiverAcceptQuest& packet)
 {
-    ObjectGuid guid;
-    uint32 questId;
-    uint32 startCheat;
-    recvData >> guid >> questId >> startCheat;
-
-    TC_LOG_DEBUG("network", "WORLD: Received CMSG_QUESTGIVER_ACCEPT_QUEST {}, quest = {}, startCheat = {}", guid.ToString(), questId, startCheat);
+    TC_LOG_DEBUG("network", "WORLD: Received CMSG_QUESTGIVER_ACCEPT_QUEST {}, quest = {}, startCheat = {}", packet.QuestGiverGUID.ToString(), packet.QuestID, packet.StartCheat);
 
     Object* object;
-    if (!guid.IsPlayer())
-        object = ObjectAccessor::GetObjectByTypeMask(*_player, guid, TYPEMASK_UNIT | TYPEMASK_GAMEOBJECT | TYPEMASK_ITEM);
+    if (!packet.QuestGiverGUID.IsPlayer())
+        object = ObjectAccessor::GetObjectByTypeMask(*_player, packet.QuestGiverGUID, TYPEMASK_UNIT | TYPEMASK_GAMEOBJECT | TYPEMASK_ITEM);
     else
-        object = ObjectAccessor::FindPlayer(guid);
+        object = ObjectAccessor::FindPlayer(packet.QuestGiverGUID);
 
     auto CLOSE_GOSSIP_CLEAR_SHARING_INFO = ([this]()
     {
@@ -142,7 +137,7 @@ void WorldSession::HandleQuestgiverAcceptQuestOpcode(WorldPacket& recvData)
 
     if (Player* playerQuestObject = object->ToPlayer())
     {
-        if ((!_player->GetPlayerSharingQuest().IsEmpty() && _player->GetPlayerSharingQuest() != guid) || !playerQuestObject->CanShareQuest(questId))
+        if ((!_player->GetPlayerSharingQuest().IsEmpty() && _player->GetPlayerSharingQuest() != packet.QuestGiverGUID) || !playerQuestObject->CanShareQuest(packet.QuestID))
         {
             CLOSE_GOSSIP_CLEAR_SHARING_INFO();
             return;
@@ -155,7 +150,7 @@ void WorldSession::HandleQuestgiverAcceptQuestOpcode(WorldPacket& recvData)
     }
     else
     {
-        if (!object->hasQuest(questId))
+        if (!object->hasQuest(packet.QuestID))
         {
             CLOSE_GOSSIP_CLEAR_SHARING_INFO();
             return;
@@ -169,7 +164,7 @@ void WorldSession::HandleQuestgiverAcceptQuestOpcode(WorldPacket& recvData)
         return;
     }
 
-    if (Quest const* quest = sObjectMgr->GetQuestTemplate(questId))
+    if (Quest const* quest = sObjectMgr->GetQuestTemplate(packet.QuestID))
     {
         // prevent cheating
         if (!GetPlayer()->CanTakeQuest(quest, true))
@@ -205,7 +200,7 @@ void WorldSession::HandleQuestgiverAcceptQuestOpcode(WorldPacket& recvData)
 
                         if (player->CanTakeQuest(quest, true))
                         {
-                            player->SetQuestSharingInfo(_player->GetGUID(), questId);
+                            player->SetQuestSharingInfo(_player->GetGUID(), packet.QuestID);
 
                             // need confirmation that any gossip window will close
                             player->PlayerTalkClass->SendCloseGossip();
@@ -406,16 +401,13 @@ void WorldSession::HandleQuestLogSwapQuest(WorldPacket& recvData)
     GetPlayer()->SwapQuestSlot(slot1, slot2);
 }
 
-void WorldSession::HandleQuestLogRemoveQuest(WorldPacket& recvData)
+void WorldSession::HandleQuestLogRemoveQuest(WorldPackets::Quest::QuestLogRemoveQuest& packet)
 {
-    uint8 slot;
-    recvData >> slot;
+    TC_LOG_DEBUG("network", "WORLD: Received CMSG_QUESTLOG_REMOVE_QUEST slot = {}", packet.Entry);
 
-    TC_LOG_DEBUG("network", "WORLD: Received CMSG_QUESTLOG_REMOVE_QUEST slot = {}", slot);
-
-    if (slot < MAX_QUEST_LOG_SIZE)
+    if (packet.Entry < MAX_QUEST_LOG_SIZE)
     {
-        if (uint32 questId = _player->GetQuestSlotQuestId(slot))
+        if (uint32 questId = _player->GetQuestSlotQuestId(packet.Entry))
         {
             if (!_player->TakeQuestSourceItem(questId, true))
                 return;                                     // can't un-equip some items, reject quest cancel
@@ -458,7 +450,7 @@ void WorldSession::HandleQuestLogRemoveQuest(WorldPacket& recvData)
             sScriptMgr->OnQuestStatusChange(_player, questId);
         }
 
-        _player->SetQuestSlot(slot, 0);
+        _player->SetQuestSlot(packet.Entry, 0);
 
         _player->UpdateAchievementCriteria(ACHIEVEMENT_CRITERIA_TYPE_QUEST_ABANDONED, 1);
     }

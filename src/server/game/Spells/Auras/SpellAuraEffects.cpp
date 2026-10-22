@@ -5349,33 +5349,6 @@ void AuraEffect::HandlePeriodicHealAurasTick(Unit* target, Unit* caster) const
     if (caster)
         target->GetThreatManager().ForwardThreatForAssistingMe(caster, healInfo.GetEffectiveHeal() * 0.5f, GetSpellInfo());
 
-    bool haveCastItem = !GetBase()->GetCastItemGUID().IsEmpty();
-
-    // Health Funnel
-    // damage caster for heal amount
-    if (target != caster && GetSpellInfo()->HasAttribute(SPELL_ATTR2_HEALTH_FUNNEL))
-    {
-        uint32 funnelDamage = GetSpellInfo()->ManaPerSecond; // damage is not affected by spell power
-
-        if (funnelDamage > healInfo.GetEffectiveHeal() && healInfo.GetEffectiveHeal())
-            funnelDamage = healInfo.GetEffectiveHeal();
-
-        uint32 funnelAbsorb = 0;
-        Unit::DealDamageMods(caster, funnelDamage, &funnelAbsorb);
-
-        if (caster)
-        {
-            SpellNonMeleeDamage log(caster, caster, GetId(), GetSpellInfo()->GetSchoolMask());
-            log.damage = funnelDamage;
-            log.absorb = funnelAbsorb;
-            log.periodicLog = true;
-            caster->SendSpellNonMeleeDamageLog(&log);
-        }
-
-        CleanDamage cleanDamage = CleanDamage(0, 0, BASE_ATTACK, MELEE_HIT_NORMAL);
-        Unit::DealDamage(caster, caster, funnelDamage, &cleanDamage, SELF_DAMAGE, GetSpellInfo()->GetSchoolMask(), GetSpellInfo(), true);
-    }
-
     // %-based heal - does not proc auras
     if (GetAuraType() == SPELL_AURA_OBS_MOD_HEALTH)
         return;
@@ -5384,7 +5357,7 @@ void AuraEffect::HandlePeriodicHealAurasTick(Unit* target, Unit* caster) const
     uint32 procVictim   = PROC_FLAG_TAKEN_PERIODIC;
     uint32 hitMask = crit ? PROC_HIT_CRITICAL : PROC_HIT_NORMAL;
     // ignore item heals
-    if (!haveCastItem)
+    if (GetBase()->GetCastItemGUID().IsEmpty())
         Unit::ProcSkillsAndAuras(caster, target, procAttacker, procVictim, PROC_SPELL_TYPE_HEAL, PROC_SPELL_PHASE_HIT, hitMask, nullptr, nullptr, &healInfo);
 }
 
@@ -5407,17 +5380,6 @@ void AuraEffect::HandlePeriodicManaLeechAuraTick(Unit* target, Unit* caster) con
 
     // ignore negative values (can be result apply spellmods to aura damage
     int32 drainAmount = std::max(GetAmount(), 0);
-
-    // Special case: draining x% of mana (up to a maximum of 2*x% of the caster's maximum mana)
-    // It's mana percent cost spells, m_amount is percent drain from target
-    if (m_spellInfo->ManaCostPercentage)
-    {
-        // max value
-        int32 maxmana = CalculatePct(caster->GetMaxPower(powerType), drainAmount * 2.0f);
-        ApplyPct(drainAmount, target->GetMaxPower(powerType));
-        if (drainAmount > maxmana)
-            drainAmount = maxmana;
-    }
 
     TC_LOG_DEBUG("spells.aura.effect", "PeriodicTick: {} power leech of {} for {} dmg inflicted by {}",
         GetCasterGUID().ToString(), target->GetGUID().ToString(), drainAmount, GetId());
