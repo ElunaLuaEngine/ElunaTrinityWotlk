@@ -32,6 +32,12 @@ namespace WorldPackets
 {
     namespace Movement
     {
+        struct MovementAck
+        {
+            MovementInfo Status;
+            int32 AckIndex = 0;
+        };
+
         class ClientPlayerMovement final : public ClientPacket
         {
         public:
@@ -258,6 +264,27 @@ namespace WorldPackets
             ObjectGuid MoverGUID;
             int32 AckIndex = 0;
             int32 MoveTime = 0;
+        };
+
+        class MovementSpeedAck final : public ClientPacket
+        {
+        public:
+            explicit MovementSpeedAck(WorldPacket&& packet) : ClientPacket(std::move(packet)) { }
+
+            void Read() override;
+
+            MovementAck Ack;
+            float Speed = 0.0f;
+        };
+
+        class SetActiveMover final : public ClientPacket
+        {
+        public:
+            explicit SetActiveMover(WorldPacket&& packet) : ClientPacket(CMSG_SET_ACTIVE_MOVER, std::move(packet)) { }
+
+            void Read() override;
+
+            ObjectGuid ActiveMover;
         };
     }
 }

@@ -26392,7 +26392,7 @@ Pet* Player::SummonPet(uint32 entry, float x, float y, float z, float ang, PetTy
 
     Map* map = GetMap();
     uint32 pet_number = sObjectMgr->GeneratePetNumber();
-    if (!pet->Create(map->GenerateLowGuid<HighGuid::Pet>(), map, GetPhaseMask(), entry, pet_number))
+    if (!pet->Create(map->GenerateLowGuid<HighGuid::Pet>(), map, entry, pet_number))
     {
         TC_LOG_ERROR("misc", "Player::SummonPet: No such creature entry {}", entry);
         delete pet;
@@ -26401,6 +26401,8 @@ Pet* Player::SummonPet(uint32 entry, float x, float y, float z, float ang, PetTy
 
     if (petType == SUMMON_PET && petStable.CurrentPet)
         RemovePet(nullptr, PET_SAVE_NOT_IN_SLOT);
+
+    pet->CopyPhaseFrom(this);
 
     pet->SetCreatorGUID(GetGUID());
     pet->SetFaction(GetFaction());

@@ -134,15 +134,15 @@ void WorldSession::HandleUseItemOpcode(WorldPackets::Spells::UseItem& packet)
     }
 }
 
-void WorldSession::HandleOpenItemOpcode(WorldPacket& recvPacket)
+void WorldSession::HandleOpenItemOpcode(WorldPackets::Spells::OpenItem& packet)
 {
-    TC_LOG_DEBUG("network", "WORLD: CMSG_OPEN_ITEM packet, data length = {}", (uint32)recvPacket.size());
-
     Player* player = GetPlayer();
 
     // ignore for remote control state
     if (player->IsCharmed())
         return;
+
+    TC_LOG_INFO("network", "bagIndex: {}, slot: {}", packet.Slot, packet.PackSlot);
 
     // additional check, client outputs message on its own
     if (!player->IsAlive())
@@ -151,12 +151,7 @@ void WorldSession::HandleOpenItemOpcode(WorldPacket& recvPacket)
         return;
     }
 
-    uint8 bagIndex, slot;
-    recvPacket >> bagIndex >> slot;
-
-    TC_LOG_INFO("network", "bagIndex: {}, slot: {}", bagIndex, slot);
-
-    Item* item = player->GetItemByPos(bagIndex, slot);
+    Item* item = player->GetItemByPos(packet.Slot, packet.PackSlot);
     if (!item)
     {
         player->SendEquipError(EQUIP_ERR_ITEM_NOT_FOUND, nullptr, nullptr);
